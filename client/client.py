@@ -46,15 +46,18 @@ class Client:
                 elif(section == Section.LEVELNAME):
                     print((section.name, line), file=sys.stderr, flush=True)
                 elif(section == Section.COLORS):
+                    print((section.name, line), file=sys.stderr, flush=True)
+
                     color = line.split(":")[0]
                     items = line.split(":")[1].strip().split(",")
 
                     for item in items:
                         item_dict[item] = color
-
-                    print((section.name, line), file=sys.stderr, flush=True)
                 elif(section == Section.INITIAL):
                     print((section.name, line), file=sys.stderr, flush=True)
+
+                    for char in line:
+                        
                 elif(section == Section.GOAL):
                     print((section.name, line), file=sys.stderr, flush=True)
 
