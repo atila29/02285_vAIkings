@@ -1,6 +1,8 @@
 from typing import Tuple
+from level_element import LevelElement
 
-class Box(object):
+
+class Box(LevelElement):
 
     color: str # maybe enums?
     name: str

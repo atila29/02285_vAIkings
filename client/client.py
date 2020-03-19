@@ -4,6 +4,8 @@ import re
 
 from agent import Agent
 from box import Box
+from state import State
+from level_element import LevelElement, Wall, Space
 
 class Section(Enum):
     DOMAIN = 1
@@ -11,7 +13,6 @@ class Section(Enum):
     COLORS = 3
     INITIAL = 4
     GOAL = 5
-    END = 6
 
 
 class Client:
@@ -24,9 +25,12 @@ class Client:
 
         item_dict = {}
 
+        initial_state = State()
+        row = 0
+
         while line:
             if(line == "#end"):
-                section = Section.END
+                break
             elif(line == "#domain"):
                 section = Section.DOMAIN
             elif(line == "#levelname"):
@@ -38,10 +42,7 @@ class Client:
             elif(line == "#goal"):
                 section = Section.GOAL
             else:
-                if(section == Section.END):
-                    print((section.name, line), file=sys.stderr, flush=True)
-                    continue
-                elif(section == Section.DOMAIN):
+                if(section == Section.DOMAIN):
                     print((section.name, line), file=sys.stderr, flush=True)
                 elif(section == Section.LEVELNAME):
                     print((section.name, line), file=sys.stderr, flush=True)
@@ -55,13 +56,19 @@ class Client:
                         item_dict[item] = color
                 elif(section == Section.INITIAL):
                     print((section.name, line), file=sys.stderr, flush=True)
+                    initial_state.level.append([])
 
-                    for char in line:
-                        
+                    for col, char in enumerate(line):
+                        print((row, col, char), file=sys.stderr, flush=True)
+                        if(char == '+'):
+                            initial_state.level[row].append(Wall())
+                    row += 1
                 elif(section == Section.GOAL):
                     print((section.name, line), file=sys.stderr, flush=True)
 
             line = server_messages.readline().rstrip()
+        print(initial_state.level, file=sys.stderr, flush=True)
+
 
 
 
