@@ -1,43 +1,7 @@
 import sys
 from enum import Enum
 
-# #domain
-# hospital
-# #levelname
-# Example1
-# #colors
-# blue: 0, A, B
-# red: 1, C
-# #initial
-# ++++++++
-# +      +
-# + ++B+ +
-# ++++B+ +
-# ++++B+ +
-# ++++B+ +
-# ++++B+ +
-# ++++B+ +
-# ++++B+ +
-# ++++B+ +
-# ++++B+ ++
-# +++1AC 0+
-# +++++++++
-# #goal
-# ++++++++
-# +      +
-# + ++ + +
-# ++++ + +
-# ++++ + +
-# ++++ + +
-# ++++ + +
-# ++++ + +
-# ++++ + +
-# ++++ + +
-# ++++ +C++
-# +++   A +
-# +++++++++
-# #end
-
+from agent import Agent
 
 class Section(Enum):
     DOMAIN = 1
@@ -50,7 +14,6 @@ class Section(Enum):
 
 class Client:
     def __init__(self, server_messages):
-        print("tes", file=sys.stderr, flush=True)
         print("vAIkings client", file=sys.stdout, flush=True)
 
         line = server_messages.readline().rstrip()
