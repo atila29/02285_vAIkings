@@ -1,7 +1,9 @@
 import sys
 from enum import Enum
+import re
 
 from agent import Agent
+from box import Box
 
 class Section(Enum):
     DOMAIN = 1
@@ -14,11 +16,13 @@ class Section(Enum):
 
 class Client:
     def __init__(self, server_messages):
-        print("vAIkings client", file=sys.stdout, flush=True)
+        print("vAIkings client", file=sys.stdout, flush=True) # publish our client's name to the server
 
         line = server_messages.readline().rstrip()
 
         section = None
+
+        item_dict = {}
 
         while line:
             if(line == "#end"):
@@ -42,6 +46,12 @@ class Client:
                 elif(section == Section.LEVELNAME):
                     print((section.name, line), file=sys.stderr, flush=True)
                 elif(section == Section.COLORS):
+                    color = line.split(":")[0]
+                    items = line.split(":")[1].strip().split(",")
+
+                    for item in items:
+                        item_dict[item] = color
+
                     print((section.name, line), file=sys.stderr, flush=True)
                 elif(section == Section.INITIAL):
                     print((section.name, line), file=sys.stderr, flush=True)
