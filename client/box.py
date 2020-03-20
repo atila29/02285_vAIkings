@@ -1,15 +1,16 @@
 from typing import Tuple
-from level_element import LevelElement
 
 
-class Box(LevelElement):
+class Box:
 
     color: str # maybe enums?
     name: str
-    position = Tuple[int, int]
+    row = -1
+    col = -1
 
-    def __init__(self, name, color):
+    def __init__(self, name, color, row, col):
         self.color = color
         self.name = name
-
+        self.row = row
+        self.col = col
 

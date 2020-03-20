@@ -4,8 +4,8 @@ import re
 
 from agent import Agent
 from box import Box
-from state import State
-from level_element import LevelElement, Wall, Space
+from state import State, LEVEL
+from level import LevelElement, Wall, Space, Goal, Level
 
 class Section(Enum):
     DOMAIN = 1
@@ -41,6 +41,7 @@ class Client:
                 section = Section.INITIAL
             elif(line == "#goal"):
                 section = Section.GOAL
+                row = 0
             else:
                 if(section == Section.DOMAIN):
                     print((section.name, line), file=sys.stderr, flush=True)
@@ -50,24 +51,40 @@ class Client:
                     print((section.name, line), file=sys.stderr, flush=True)
 
                     color = line.split(":")[0]
-                    items = line.split(":")[1].strip().split(",")
+                    items = line.split(":")[1].replace(" ", "").split(",")
 
                     for item in items:
                         item_dict[item] = color
+                    
                 elif(section == Section.INITIAL):
                     print((section.name, line), file=sys.stderr, flush=True)
-                    initial_state.level.append([])
+                    LEVEL.level.append([])
 
                     for col, char in enumerate(line):
-                        print((row, col, char), file=sys.stderr, flush=True)
+                        # print((row, col, char), file=sys.stderr, flush=True)
                         if(char == '+'):
-                            initial_state.level[row].append(Wall())
+                            LEVEL.level[row].append(Wall())
+                        elif(char==' '):
+                            LEVEL.level[row].append(Space())
+                        elif(re.match(r"\d", char)): # match digits, Agents
+                            LEVEL.level[row].append(Space()) # can add agent instead?
+                            initial_state.agents.append(Agent(char, item_dict[char], row, col))
+                        elif(re.match(r"[A-Z]", char)): # match capital letters, Boxes
+                            LEVEL.level[row].append(Space())
+                            initial_state.boxes.append(Box(char, item_dict[char], row, col))
                     row += 1
                 elif(section == Section.GOAL):
                     print((section.name, line), file=sys.stderr, flush=True)
+                    for col, char in enumerate(line):
+                        # print((row, col, char), file=sys.stderr, flush=True)
+                        if(re.match(r"[A-Z]", char)):
+                            LEVEL.add_goal(char, row, col)
+
+                    row += 1
+
 
             line = server_messages.readline().rstrip()
-        print(initial_state.level, file=sys.stderr, flush=True)
+        print(LEVEL, file=sys.stderr, flush=True)
 
 
 
