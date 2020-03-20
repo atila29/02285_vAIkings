@@ -4,10 +4,12 @@ class LevelElement(object):
     pass
 
 class Wall(LevelElement):
-    pass
+    def __str__(self):
+        return "+"
 
 class Space(LevelElement):
-    pass
+    def __str__(self):
+        return " "
 
 class Goal(LevelElement):
     name = None
@@ -16,6 +18,11 @@ class Goal(LevelElement):
         self.name = name
         self.row = row
         self.col = col
+
+    def __str__(self):
+        return str.lower(self.name)
+
+    
 
 #Class containing the static level information
 class Level:
@@ -30,7 +37,7 @@ class Level:
 
     def add_goal(self, char, row, col):
         goal = Goal(char, row, col)
-        self.level[row].append(goal)
+        self.level[row][col] = goal
         #Add goal to goal list
         if(char in self.goals):
             self.goals[char].append(goal)

@@ -14,3 +14,9 @@ class Box:
         self.row = row
         self.col = col
 
+    def __repr__(self):
+        return self.color + " Box with letter " + self.name
+        
+
+    def __str__(self):
+        return self.name

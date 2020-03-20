@@ -68,10 +68,10 @@ class Client:
                             LEVEL.level[row].append(Space())
                         elif(re.match(r"\d", char)): # match digits, Agents
                             LEVEL.level[row].append(Space()) # can add agent instead?
-                            initial_state.agents.append(Agent(char, item_dict[char], row, col))
+                            initial_state.agents[(row,col)] = Agent(char, item_dict[char], row, col)
                         elif(re.match(r"[A-Z]", char)): # match capital letters, Boxes
                             LEVEL.level[row].append(Space())
-                            initial_state.boxes.append(Box(char, item_dict[char], row, col))
+                            initial_state.boxes[(row,col)] = Box(char, item_dict[char], row, col)
                     row += 1
                 elif(section == Section.GOAL):
                     print((section.name, line), file=sys.stderr, flush=True)
@@ -84,9 +84,9 @@ class Client:
 
 
             line = server_messages.readline().rstrip()
-        print(LEVEL, file=sys.stderr, flush=True)
-
-
+        # print(LEVEL, file=sys.stderr, flush=True)
+        # print(initial_state, file=sys.stderr, flush=True)
+        initial_state.print_current_state()
 
 
 def main():
