@@ -57,3 +57,6 @@ class State(object):
         if (row, col) in self.agents or (row, col) in self.boxes or isinstance(LEVEL.level[row][col], Wall):
             return False
         return True
+        
+    def extract_plan(self) -> '[State,...]': #include this function?
+        return
