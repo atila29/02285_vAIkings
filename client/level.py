@@ -22,7 +22,26 @@ class Goal(LevelElement):
     def __str__(self):
         return str.lower(self.name)
 
-    
+ 
+class AgentElement:
+
+    color: str # maybe enums?
+    name: str
+    row = -1
+    col = -1
+
+    def __init__(self, name: str, color: str, row: int, col: int):
+        self.color = color
+        self.name = name
+        self.row = row
+        self.col = col
+
+    def __repr__(self):
+        return self.color +" Agent with letter " + self.name
+
+    def __str__(self):
+        return self.name
+   
 
 #Class containing the static level information
 class Level:

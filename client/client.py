@@ -2,10 +2,9 @@ import sys
 from enum import Enum
 import re
 
-from agent import Agent
 from box import Box
 from state import State, LEVEL
-from level import LevelElement, Wall, Space, Goal, Level
+from level import LevelElement, Wall, Space, Goal, Level, AgentElement
 
 class Section(Enum):
     DOMAIN = 1
@@ -68,7 +67,7 @@ class Client:
                             LEVEL.level[row].append(Space())
                         elif(re.match(r"\d", char)): # match digits, Agents
                             LEVEL.level[row].append(Space()) # can add agent instead?
-                            initial_state.agents[(row,col)] = Agent(char, item_dict[char], row, col)
+                            initial_state.agents[(row,col)] = AgentElement(char, item_dict[char], row, col)
                         elif(re.match(r"[A-Z]", char)): # match capital letters, Boxes
                             LEVEL.level[row].append(Space())
                             initial_state.boxes[(row,col)] = Box(char, item_dict[char], row, col)
@@ -89,6 +88,8 @@ class Client:
         initial_state.print_current_state()
 
 
+
+
 def main():
     # Read server messages from stdin.
     server_messages = sys.stdin
@@ -98,6 +99,9 @@ def main():
           file=sys.stderr, flush=True)
 
     client = Client(server_messages)
+
+    #Client.doit()
+    #Print result summary (time, memory, solution length, ... )
 
 
 if __name__ == '__main__':

@@ -1,6 +1,5 @@
 from typing import Tuple
 
-
 class Box:
 
     color: str # maybe enums?

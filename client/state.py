@@ -1,9 +1,8 @@
 import sys
 from typing import List, Tuple, Dict
 from enum import Enum
-from agent import Agent
 from box import Box
-from level import LevelElement, Level
+from level import LevelElement, Level, Wall, AgentElement
 import copy
 
 LEVEL = Level()
@@ -13,15 +12,26 @@ LEVEL = Level()
     i.e. the position of boxes and agents
 """
 class State(object):
-    agents = Dict[Tuple[int, int], Agent]
+    agents = Dict[Tuple[int, int], AgentElement]
     boxes = Dict[Tuple[int, int], Box]
+    g: int
+    parent: 'State'
 
+    def __init__(self, copy_state: 'State' = None):
 
-    def __init__(self):
-        self.agents = {}
-        self.boxes = {}
+        if copy_state is None:
+            self.agents = {}
+            self.boxes = {}
+            self.g = 0
+            self.parent = None
+        else:
+            self.agents = copy.deepcopy(copy_state.agents)
+            self.boxes = copy.deepcopy(copy_state.boxes)
+            self.g = copy_state.g + 1
+            self.parent = copy_state
 
-    # TODO: impl.
+        
+
     def __repr__(self):
         return str((self.agents, self.boxes))
 
@@ -42,3 +52,8 @@ class State(object):
                 line.append(str(elm))
             lines.append(''.join(line))
         print("\n".join(lines), file=sys.stderr, flush=True)
+
+    def is_free(self, row , col):
+        if (row, col) in self.agents or (row, col) in self.boxes or isinstance(LEVEL.level[row][col], Wall):
+            return False
+        return True
