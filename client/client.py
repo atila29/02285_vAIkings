@@ -5,6 +5,7 @@ import re
 from box import Box
 from state import State, LEVEL
 from level import LevelElement, Wall, Space, Goal, Level, AgentElement
+from agent import Agent
 
 class Section(Enum):
     DOMAIN = 1
@@ -86,7 +87,13 @@ class Client:
         # print(LEVEL, file=sys.stderr, flush=True)
         # print(initial_state, file=sys.stderr, flush=True)
         initial_state.print_current_state()
-
+        for pos in initial_state.agents:
+            test_agent_element = initial_state.agents[pos]
+            test_agent = Agent(test_agent_element.row, test_agent_element.col, test_agent_element.color, test_agent_element.name)
+            children = test_agent.get_children(initial_state)
+            print("Agent " + str(pos), file=sys.stderr, flush=True)
+            if(len(children) != 0):
+                children[0].print_current_state()
 
 
 

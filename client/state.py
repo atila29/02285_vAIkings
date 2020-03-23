@@ -53,7 +53,7 @@ class State(object):
             lines.append(''.join(line))
         print("\n".join(lines), file=sys.stderr, flush=True)
 
-    def is_free(self, row , col):
+    def is_free(self, row , col) -> 'bool':
         if (row, col) in self.agents or (row, col) in self.boxes or isinstance(LEVEL.level[row][col], Wall):
             return False
         return True
