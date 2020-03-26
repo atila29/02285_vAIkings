@@ -9,7 +9,7 @@ class Agent:
     row: int
     col: int
 
-    def __init__(self,   id, color, row, col):
+    def __init__(self, id, color, row, col):
         self.row = row
         self.col = col
         self.color = color
@@ -119,8 +119,27 @@ class BDIAgent(Agent):
         return
 
     def execute(self, a): #execute an action
+        #update internal knowledge of you position, the state is updated from the client
         return
 
+    def extract_plan(self, current_state) -> '[Action,...]': #include this function?
+        
+        """
+            E.g. Version 2 from slide 24 week 5
+                1. & 2. removed since loop is in client instead
+                3. get next percept ρ, in our case the current state;
+                4. Update beliefs, B := brf (B,ρ);
+                5. Update Intentions, I := deliberate(B);
+                6. Make plan, π:= plan(B,I);
+                7. Return plan π
+        Q: Do we need to save in new variables 
+        until we know from server that the plan is OK?
+        Q: In case of conflict we might need to make some agents replan,
+        How do we get them to choose another plan?
+            Idea 1: Give them a number i, 0 as default, to tell them to choose the
+            'ith best' plan.
+        """
+        pass
 
 
 # def run_game():
