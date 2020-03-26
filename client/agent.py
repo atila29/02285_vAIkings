@@ -6,10 +6,10 @@ from state import State
 class Agent:
     color: str  # maybe enums?
     name: str
-    row = -1
-    col = -1
+    row: int
+    col: int
 
-    def __init__(self, row, col, color, id):
+    def __init__(self,   id, color, row, col):
         self.row = row
         self.col = col
         self.color = color
@@ -78,7 +78,15 @@ class Agent:
 
 class BDIAgent(Agent):
 
-    def __init__(self, initial_beliefs, initial_intentions, initial_state):
+    def __init__(self,
+            id,          
+            color,
+            row,
+            col, 
+            initial_beliefs, 
+            initial_intentions):
+            
+        super().__init__(id, color, row, col)
         self.beliefs = initial_beliefs
         self.intentions = initial_intentions
         # self.path = [] #tar vare på veien agenten beveger seg
