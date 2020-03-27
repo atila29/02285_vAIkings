@@ -28,7 +28,7 @@ Dir.W = Dir('W',  0, -1)
 
 # Copied from Warmup assignment
 class ActionType:
-    Move = Push = Pull = None
+    NoOp = Move = Push = Pull = None
 
     def __init__(self, name: 'str'):
         '''
@@ -44,6 +44,7 @@ class ActionType:
 ActionType.Move = ActionType('Move')
 ActionType.Push = ActionType('Push')
 ActionType.Pull = ActionType('Pull')
+ActionType.NoOp = ActionType('NoOp')
 
 
 # generate list of all grounded actions: 4 moves, 12 push (16 if we count switching places which is never allowed), 12 pull (16 if we count switching places which is never allowed)
@@ -67,6 +68,7 @@ class Action:
 
 # Grounded actions.
 ALL_ACTIONS = []
+ALL_ACTIONS.append(Action(ActionType.NoOp, None, None))
 for agent_dir in (Dir.N, Dir.S, Dir.E, Dir.W):
     ALL_ACTIONS.append(Action(ActionType.Move, agent_dir, None))
     for box_dir in (Dir.N, Dir.S, Dir.E, Dir.W):
