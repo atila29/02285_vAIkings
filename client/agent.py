@@ -102,59 +102,44 @@ class BDIAgent(Agent):
             self.beliefs = p
 
     def deliberate(self):  # choose goal - either to a box or to a goal
-        dist = 1000
-        go = [self.row, self.col] # default
-        for boxes in self.beliefs.boxes.keys():  # find the closest box
-            dist_agt_box = abs(self.row - boxes[0]) + abs(self.col - boxes[1])
-            if dist_agt_box == 1:  # finds the nearest goal if the agent are next to a box
-                for goals in self.beliefs.goals.keys():
-                    dist_box_goal = abs(goals[0] - boxes[0]) + abs(goals[1] - boxes[1])
-                    if dist_box_goal < dist:
-                        dist = dist_box_goal
-                        go = goals  # returns position at the board
-                return go
-            if dist_agt_box < dist:
-                dist = dist_agt_box
-                go = boxes
-        return go  # return the position at the board
-
-    def deliberate2(self):
-        dist = {}
-        for goal in self.beliefs.goals:
-            for box in self.beliefs.boxes:
-                dist_box_goal = abs(goal[0] - box[0]) + abs(goal[1] - box[1])
-                dist_box_agent = abs(self.row - box[0]) + abs(self.col - box[1])
-                dist[box] = dist_box_goal + dist_box_agent
-        intention = min(dist)  # returns the key corresponding to the minimal value [row, col]
-        return intention
-
-    def plan(self):
-        plan = [Action.Move('N'), Action.Move('N')]
-        return plan
+        #go = [self.row, self.col]   default
+        intention= {}
+        for box in self.beliefs.boxes:
+            for goal in self.beliefs.goals:
+                dist_box_goal = abs(goal.row - box.row) + abs(goal[1] - box[1])
+                dist_agt_box = abs(self.row - box.row) + abs(self.col - box.col)
+                dist = dist_box_goal + dist_agt_box
+                intention[box, goal] = dist
+        return min(intention)  # [box, goal]
 
 
-    def extract_plan(self, current_state) -> '[Action,...]':  # include this function?
-        self.brf(current_state)
-        self.deliberate()
-        plan = self.plan()
-        return plan
+def plan(self):  #li
+    plan = [Action.Move('N'), Action.Move('N')]
+    return plan
 
-        """
-            E.g. Version 2 from slide 24 week 5
-                1. & 2. removed since loop is in client instead
-                3. get next percept ρ, in our case the current state;
-                4. Update beliefs, B := brf (B,ρ);
-                5. Update Intentions, I := deliberate(B);
-                6. Make plan, π:= plan(B,I);
-                7. Return plan π
-        Q: Do we need to save in new variables 
-        until we know from server that the plan is OK?
-        Q: In case of conflict we might need to make some agents replan,
-        How do we get them to choose another plan?
-            Idea 1: Give them a number i, 0 as default, to tell them to choose the
-            'ith best' plan.
-        """
 
+def extract_plan(self, current_state) -> '[Action,...]':  # include this function?
+    self.brf(current_state)
+    self.deliberate()
+    plan = self.plan()
+    return plan  # only return the first step
+
+
+"""
+    E.g. Version 2 from slide 24 week 5
+        1. & 2. removed since loop is in client instead
+        3. get next percept ρ, in our case the current state;
+        4. Update beliefs, B := brf (B,ρ);
+        5. Update Intentions, I := deliberate(B);
+        6. Make plan, π:= plan(B,I);
+        7. Return plan π
+Q: Do we need to save in new variables 
+until we know from server that the plan is OK?
+Q: In case of conflict we might need to make some agents replan,
+How do we get them to choose another plan?
+    Idea 1: Give them a number i, 0 as default, to tell them to choose the
+    'ith best' plan.
+"""
 
 # def run_game():
 #     agent = BDIAgent()
@@ -177,4 +162,3 @@ class BDIAgent(Agent):
 
 # if __name__ == '__main__':
 #     run_game()
-
