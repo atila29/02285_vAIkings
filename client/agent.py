@@ -2,6 +2,8 @@ from action import ActionType, ALL_ACTIONS, Action
 from level import AgentElement
 from box import Box
 from state import State
+from strategy import StrategyBestFirst
+
 
 
 class Agent:
@@ -92,7 +94,8 @@ class BDIAgent(Agent):
 
         super().__init__(id, color, row, col)
         self.beliefs = initial_beliefs
-        self.intentions = initial_intentions
+
+        self.intentions = self.deliberate()
 
         # self.path = [] #tar vare på veien agenten beveger seg
 
@@ -103,26 +106,72 @@ class BDIAgent(Agent):
 
     def deliberate(self):  # choose goal - either to a box or to a goal
         #go = [self.row, self.col]   default
-        intention= {}
+        intention = {}
         for box in self.beliefs.boxes:
             for goal in self.beliefs.goals:
                 dist_box_goal = abs(goal.row - box.row) + abs(goal[1] - box[1])
                 dist_agt_box = abs(self.row - box.row) + abs(self.col - box.col)
                 dist = dist_box_goal + dist_agt_box
                 intention[box, goal] = dist
-        return min(intention)  # [box, goal]
+        return min(intention) # [box, goal]
 
 
-def plan(self):  #li
-    plan = [Action.Move('N'), Action.Move('N')]
-    return plan
+
+    def search(self) -> '[State, ...]':
+        strategy = StrategyBestFirst()
+        print('Starting search with strategy {}.'.format(strategy), file=sys.stderr, flush=True)
+        strategy.add_to_frontier(self.beliefs)  # current state
+
+        iterations = 0
+        while True:
+            if strategy.frontier_empty():
+                return None
+
+            leaf = strategy.get_and_remove_leaf()  # state
+
+            if leaf.check_goal_status():
+                return leaf.extract_plan()  # how is plan represented ?
+
+            strategy.add_to_explored(leaf)
+            for child_state in leaf.get_children():  # The list of expanded states is shuffled randomly; see state.py.
+                if not strategy.is_explored(child_state) and not strategy.in_frontier(child_state):
+                    strategy.add_to_frontier(child_state)
+
+            iterations += 1
+
+    def extract_plan(self) -> '[State, ...]':
+        plan = []
+        state = self
+        while not state.is_initial_state():
+            plan.append(state)
+            state = state.parent
+        plan.reverse()
+        return plan
 
 
-def extract_plan(self, current_state) -> '[Action,...]':  # include this function?
-    self.brf(current_state)
-    self.deliberate()
-    plan = self.plan()
-    return plan  # only return the first step
+
+    def agent_search_plan(self):  #li
+        #have to check if the intentions are executable
+        self.intentions # [box, goal] : dist
+        self.beliefs # current state
+
+
+        #søk
+        #strategi - Best first strategy
+        #heuristikk
+
+
+        return plan
+
+    # search
+
+
+    def extract_plan(self, current_state) -> '[Action,...]':  # include this function?
+        self.brf(current_state)
+        #self.deliberate()
+        plan = self.plan()
+        return plan  # only return the first step
+        #return unfolded_action ??
 
 
 """
