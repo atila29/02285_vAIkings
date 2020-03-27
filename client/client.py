@@ -20,6 +20,7 @@ class Client:
     
     initial_state: 'State'
     agents = []
+    agent_dic = {}
     current_conflicts = []
     
     def __init__(self, server_messages):
@@ -77,6 +78,7 @@ class Client:
                             LEVEL.level[row].append(Space()) # can add agent instead?
                             self.initial_state.agents[(row,col)] = AgentElement(char, item_dict[char], row, col)
                             self.agents.append(BDIAgent(char, item_dict[char], row, col, None, None))
+                            self.agent_dic[char] = self.agents[-1]
                         elif(re.match(r"[A-Z]", char)): # match capital letters, Boxes
                             LEVEL.level[row].append(Space())
                             self.initial_state.boxes[(row,col)] = Box(char, item_dict[char], row, col)
@@ -124,16 +126,48 @@ class Client:
             if self.check_goal_status(current_state):
                 break
 
+    """
+        Takes a list of unfolded actions as input (assumed to be applicable when viewed as single actions)
+        i.e. Each of the individual actions has its precondition satisfied in the current state
         
-    def check_for_conflicts(self, joint_actions) -> 'Bool':
-        raise NotImplementedError
+        OUTPUT: Returns a list of list of indexes of conflicting actions
+        Each list in the list will contain the index of the agents that conflict with eachother 
+        e.g. if [i,j] is in the list it means:
+        "The ith action on the list conflicts with the jth action on the list"
+    """    
+    def check_for_conflicts(self, joint_actions) -> '[[Tuple, Tuple, ...], ...]':
+        conflicts = []
+        #Case a in TA: Two actions attempt to move two distinct objects into the same cell.
+        all_agent_to = [action.agent_to for action in joint_actions]
+        all_box_to = [action.box_to for action in joint_actions]
+        conflic_pos = set([pos for pos in all_agent_to if pos in all_box_to])
+        for pos in conflic_pos:
+            if pos != []:
+                conflicts.append([i for i in range(len(all_agent_to)) if all_box_to[i] == pos or all_agent_to[i] == pos]) #<-- Currently possible saves longer lists than tuples
+        #Case b in TA: Two actions attempt to move the same box 
+        all_box_from = [action.box_from for action in joint_actions]
+        duplicates = set([x for x in all_box_from if all_box_from.count(x) > 1])
+        for dupe in duplicates:
+            if dupe != []:
+                conflicts.append([i for i in range(len(all_box_from)) if all_box_from[i] == dupe]) #<-- Currently possible saves longer lists than tuples
+        return conflicts #<-- Currently may contain duplicates since agents might conflict in both cases
 
-    def create_joint_actions(self, list_of_plans) -> '[Action, ...]':
-        result = []
-        for plan in list_of_plans:
-            result.append(plan[0][0])
-        return result
 
+        
+    def create_joint_actions(self, list_of_plans) -> '[UnfoldedAction, ...]':
+        # #Comment in if plan is list of lists
+        # result = []
+        # for plan in list_of_plans:
+        #     result.append(plan[0][0])
+        # return result
+
+        #If a plan is just one unfolded action:
+        return [plan for plan in list_of_plans]
+
+    """
+        Returns True if all goals have a box with the right letter on it.
+        Otherwise it returns False
+    """
     def check_goal_status(self, current_state) -> 'Bool':
         for goal_pos in LEVEL.goals_by_pos:
             if goal_pos not in current_state.boxes:
@@ -146,19 +180,19 @@ class Client:
     
     def execute_joint_actions(self,joint_actions, current_state) -> 'State':
         #Send to server and get response
+            # TODO
         #Update State: Move agents and boxes, 
         new_state = State(current_state)
         for action in joint_actions:
-            # if action.action_type is ActionType.NoOp:
-            #     pass
-            # elif action.action_type is ActionType.Push:
-            #     pass
-            # elif action.action_type is ActionType.Pull:
-            #     pass
-            # elif action.action_type is ActionType.NoOp:
-            #     pass
-        #Update all agents so they know they've moved (i.e. make all agents excute)
-
+            #update box location in state
+            box = new_state.boxes.pop(action.box_from)
+            new_state.boxes[action.box_to] = Box(box.name, box.color, *action.box_to)
+            #update agent location in state
+            agent = new_state.agents.pop(action.agent_from)
+            new_state.agents[action.agent_to] = Agent(agent.id, agent.color, *action.agent_to)
+            #update agents with their new location
+            bdi_agent = self.agent_dic[action.agent_id]
+            bdi_agent.row, bdi_agent.col = action.agent_to
         return new_state
 
     def solve_a_conflict(self, joint_actions) -> '[Action, ...]':
