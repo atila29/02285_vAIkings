@@ -68,7 +68,7 @@ class Action:
 
 # Grounded actions.
 ALL_ACTIONS = []
-ALL_ACTIONS.append(Action(ActionType.NoOp, None, None))
+ALL_ACTIONS.append(Action(ActionType.NoOp, Dir.N, Dir.N))
 for agent_dir in (Dir.N, Dir.S, Dir.E, Dir.W):
     ALL_ACTIONS.append(Action(ActionType.Move, agent_dir, None))
     for box_dir in (Dir.N, Dir.S, Dir.E, Dir.W):

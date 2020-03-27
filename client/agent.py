@@ -75,10 +75,12 @@ class Agent:
                             child.boxes[self.row, self.col] = Box(box.name, box.color, self.row, self.col)
                             # save child
                             children.append(child)
-                            children_with_actions[child] = action
+            elif action.action_type is ActionType.NoOp:
+                child = State(current_state)
+                children.append(child)
 
-        # Shuffle children
-        return children, children_with_actions
+        #Shuffle children ? 
+        return children
 
     def __repr__(self):
         return self.color + " Agent with letter " + self.name

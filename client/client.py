@@ -5,7 +5,8 @@ import re
 from box import Box
 from state import State, LEVEL
 from level import LevelElement, Wall, Space, Goal, Level, AgentElement
-from agent import Agent
+from agent import Agent, BDIAgent
+from action import Action, ActionType
 
 class Section(Enum):
     DOMAIN = 1
@@ -128,16 +129,37 @@ class Client:
         raise NotImplementedError
 
     def create_joint_actions(self, list_of_plans) -> '[Action, ...]':
-        raise NotImplementedError
+        result = []
+        for plan in list_of_plans:
+            result.append(plan[0][0])
+        return result
 
     def check_goal_status(self, current_state) -> 'Bool':
-        raise NotImplementedError
+        for goal_pos in LEVEL.goals_by_pos:
+            if goal_pos not in current_state.boxes:
+                return False
+            if current_state.boxes[goal_pos].name != LEVEL.goals_by_pos[goal_pos].name:
+                return False
+        return True
 
+    
+    
     def execute_joint_actions(self,joint_actions, current_state) -> 'State':
         #Send to server and get response
-        #Update State
-        #Update all agents so they know they've moved (i.e. make all agents excute)   
-        raise NotImplementedError
+        #Update State: Move agents and boxes, 
+        new_state = State(current_state)
+        for action in joint_actions:
+            # if action.action_type is ActionType.NoOp:
+            #     pass
+            # elif action.action_type is ActionType.Push:
+            #     pass
+            # elif action.action_type is ActionType.Pull:
+            #     pass
+            # elif action.action_type is ActionType.NoOp:
+            #     pass
+        #Update all agents so they know they've moved (i.e. make all agents excute)
+
+        return new_state
 
     def solve_a_conflict(self, joint_actions) -> '[Action, ...]':
         raise NotImplementedError
