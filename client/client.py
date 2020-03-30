@@ -97,7 +97,7 @@ class Client:
         for pos in self.initial_state.agents:
             test_agent_element = self.initial_state.agents[pos]
             test_agent = Agent(test_agent_element.row, test_agent_element.col, test_agent_element.color, test_agent_element.name)
-            children = test_agent.get_children(self.initial_state)
+            children, children_with_actions = test_agent.get_children(self.initial_state)
             print("Agent " + str(pos), file=sys.stderr, flush=True)
             if(len(children) != 0):
                 children[0].print_current_state()
