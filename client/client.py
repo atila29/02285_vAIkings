@@ -119,7 +119,7 @@ class Client:
             conflicts = self.check_for_conflicts(joint_actions)
             if conflicts:    
                 #If yes : Replan ?? (Naive: make some use NoOp)
-                joint_actions = self.solve_conflicts(joint_actions, conflicts)
+                self.solve_conflicts(joint_actions, conflicts)
             #Otherwise: Execute
             current_state = self.execute_joint_actions(joint_actions, current_state)
 
