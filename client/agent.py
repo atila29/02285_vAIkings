@@ -113,7 +113,7 @@ class BDIAgent(Agent):
         intention = {}
         for box in self.beliefs.boxes:
             for goal in self.beliefs.goals:
-                dist_box_goal = abs(goal.row - box.row) + abs(goal[1] - box[1]) # dist from box to goal
+                dist_box_goal = abs(goal.row - box.row) + abs(goal.col - box.col) # dist from box to goal
                 dist_agt_box = abs(self.row - box.row) + abs(self.col - box.col) # dist from agent to box
                 dist = dist_box_goal + dist_agt_box # total dist
                 intention[box, goal] = dist # adding all dist to intentions
@@ -123,7 +123,7 @@ class BDIAgent(Agent):
 
     def search_action(self) -> '[Action, ...]':
         heuristic = self.beliefs.Heuristic()
-        strategy = StrategyBestFirst(heuristic.h()) 
+        strategy = StrategyBestFirst(heuristic.f()) 
         print('Starting search with strategy {}.'.format(strategy), file=sys.stderr, flush=True)
         strategy.add_to_frontier(self.beliefs)  # current state
         iterations = 0
@@ -162,7 +162,7 @@ class BDIAgent(Agent):
             actions_in_plan.append(state.get_action(self))
             state = state.parent # one level uo
         actions_in_plan = actions_in_plan.reverse() # actions in executable order
-        return actions_in_plan # retun actions
+        return actions_in_plan # return actions
 
     def agent_action_plan(self):
         #have to check if the intentions are executable

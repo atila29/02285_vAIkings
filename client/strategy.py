@@ -10,7 +10,6 @@ class StrategyBestFirst():
     # when this happens, heapq.heappop will remove and return the element with the smallest counter
     # starting by default with the number 0
 
-    #Must take in a
     def __init__(self, heuristic: 'Heuristic'):
         super().__init__()
         self.heuristic = heuristic
