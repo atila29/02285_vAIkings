@@ -6,7 +6,7 @@ from box import Box
 from state import State, LEVEL
 from level import LevelElement, Wall, Space, Goal, Level, AgentElement
 from agent import Agent, BDIAgent
-from action import Action, ActionType
+from action import Action, ActionType, Dir
 
 class Section(Enum):
     DOMAIN = 1
@@ -116,9 +116,10 @@ class Client:
             joint_actions = self.create_joint_actions(plans)
             
             #Check if conflicts in joint plan, Loop until we resolve all conflicts
-            while self.check_for_conflicts(joint_actions):    
+            conflicts = self.check_for_conflicts(joint_actions)
+            if conflicts:    
                 #If yes : Replan ?? (Naive: make some use NoOp)
-                joint_actions = self.solve_a_conflict(joint_actions)
+                joint_actions = self.solve_conflicts(joint_actions, conflicts)
             #Otherwise: Execute
             current_state = self.execute_joint_actions(joint_actions, current_state)
 
@@ -195,8 +196,10 @@ class Client:
             bdi_agent.row, bdi_agent.col = action.agent_to
         return new_state
 
-    def solve_a_conflict(self, joint_actions) -> '[Action, ...]':
-        raise NotImplementedError
+    def solve_conflicts(self, joint_actions, conflicts) -> '[UnfoldedAction, ...]':
+        for conflict in conflicts:
+            for index in conflict[1:]:
+                joint_actions[index].action = Action(ActionType.NoOp, Dir.N, Dir.N)
 
 
 def main():
