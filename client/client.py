@@ -184,6 +184,22 @@ class Client:
             # TODO
         #Update State: Move agents and boxes, 
         new_state = State(current_state)
+
+        # ''.join(map(lambda action: repr(action),joint_actions))
+        msg = repr(joint_actions[0].action)
+        if len(joint_actions) > 1:
+            for action in joint_actions[1:]:
+                msg = msg + ';' + repr(action.action) 
+        
+        
+        print(msg, flush = True)
+        result = sys.stdin.readline().rstrip()
+        result = result.split(';')
+        if False in result:
+            print("Something went wrong. Client send invalid move", file=sys.stderr, flush=True)
+            raise RuntimeError
+        
+
         for action in joint_actions:
             #update box location in state
             box = new_state.boxes.pop(action.box_from)
