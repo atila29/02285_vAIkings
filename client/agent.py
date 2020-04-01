@@ -2,6 +2,8 @@ from action import ActionType, ALL_ACTIONS, Action
 from level import AgentElement
 from box import Box
 from state import State
+from strategy import StrategyBestFirst
+from heuristics import Heuristic
 
 
 class Agent:
@@ -18,6 +20,7 @@ class Agent:
 
     def get_children(self, current_state):
         children = []
+        children_with_actions = {} # dictionary with children as keys and and their respective actions from state as values
         for action in ALL_ACTIONS:
             # Determine if action is applicable.
             new_agent_row = self.row + action.agent_dir.d_row
@@ -33,6 +36,8 @@ class Agent:
                     child.agents[new_agent_row, new_agent_col] = AgentElement(self.id, self.color, new_agent_row,
                                                                               new_agent_col)
                     children.append(child)
+                    children_with_actions[child] = action
+
             elif action.action_type is ActionType.Push:
                 # Check if push action is applicable
                 if (new_agent_row, new_agent_col) in current_state.boxes:
@@ -51,6 +56,7 @@ class Agent:
                             child.boxes[new_box_row, new_box_col] = Box(box.name, box.color, new_box_row, new_box_col)
                             # Save child
                             children.append(child)
+                            children_with_actions[child] = action
             elif action.action_type is ActionType.Pull:
                 # Check if pull action is applicable
                 if current_state.is_free(new_agent_row, new_agent_col):
@@ -69,9 +75,10 @@ class Agent:
                             child.boxes[self.row, self.col] = Box(box.name, box.color, self.row, self.col)
                             # save child
                             children.append(child)
+                            children_with_actions[child] = action
 
         # Shuffle children
-        return children
+        return children, children_with_actions
 
     def __repr__(self):
         return self.color + " Agent with letter " + self.name
@@ -92,7 +99,7 @@ class BDIAgent(Agent):
 
         super().__init__(id, color, row, col)
         self.beliefs = initial_beliefs
-        self.intentions = initial_intentions
+        self.intentions = self.deliberate()
 
         # self.path = [] #tar vare på veien agenten beveger seg
 
@@ -102,58 +109,67 @@ class BDIAgent(Agent):
             self.beliefs = p
 
     def deliberate(self):  # choose goal - either to a box or to a goal
-        dist = 1000
-        go = [self.row, self.col] # default
-        for boxes in self.beliefs.boxes.keys():  # find the closest box
-            dist_agt_box = abs(self.row - boxes[0]) + abs(self.col - boxes[1])
-            if dist_agt_box == 1:  # finds the nearest goal if the agent are next to a box
-                for goals in self.beliefs.goals.keys():
-                    dist_box_goal = abs(goals[0] - boxes[0]) + abs(goals[1] - boxes[1])
-                    if dist_box_goal < dist:
-                        dist = dist_box_goal
-                        go = goals  # returns position at the board
-                return go
-            if dist_agt_box < dist:
-                dist = dist_agt_box
-                go = boxes
-        return go  # return the position at the board
-
-    def deliberate2(self):
-        dist = {}
-        for goal in self.beliefs.goals:
-            for box in self.beliefs.boxes:
-                dist_box_goal = abs(goal[0] - box[0]) + abs(goal[1] - box[1])
-                dist_box_agent = abs(self.row - box[0]) + abs(self.col - box[1])
-                dist[box] = dist_box_goal + dist_box_agent
-        intention = min(dist)  # returns the key corresponding to the minimal value [row, col]
-        return intention
-
-    def plan(self):
-        plan = [Action.Move('N'), Action.Move('N')]
-        return plan
+        #go = [self.row, self.col]   default
+        intention = {}
+        for box in self.beliefs.boxes:
+            for goal in self.beliefs.goals:
+                dist_box_goal = abs(goal.row - box.row) + abs(goal.col - box.col) # dist from box to goal
+                dist_agt_box = abs(self.row - box.row) + abs(self.col - box.col) # dist from agent to box
+                dist = dist_box_goal + dist_agt_box # total dist
+                intention[box, goal] = dist # adding all dist to intentions
+        return min(intention) # [box, goal] with the least distance
 
 
-    def extract_plan(self, current_state) -> '[Action,...]':  # include this function?
-        self.brf(current_state)
-        self.deliberate()
-        plan = self.plan()
-        return plan
 
-        """
-            E.g. Version 2 from slide 24 week 5
-                1. & 2. removed since loop is in client instead
-                3. get next percept ρ, in our case the current state;
-                4. Update beliefs, B := brf (B,ρ);
-                5. Update Intentions, I := deliberate(B);
-                6. Make plan, π:= plan(B,I);
-                7. Return plan π
-        Q: Do we need to save in new variables 
-        until we know from server that the plan is OK?
-        Q: In case of conflict we might need to make some agents replan,
-        How do we get them to choose another plan?
-            Idea 1: Give them a number i, 0 as default, to tell them to choose the
-            'ith best' plan.
-        """
+    def search_action(self) -> '[Action, ...]':
+        heuristic = self.beliefs.Heuristic()
+        strategy = StrategyBestFirst(heuristic.f()) 
+        print('Starting search with strategy {}.'.format(strategy), file=sys.stderr, flush=True)
+        strategy.add_to_frontier(self.beliefs)  # current state
+        iterations = 0
+
+        while True:
+            if strategy.frontier_empty():
+                return None
+            leaf = strategy.get_and_remove_leaf()  # state
+            if leaf.check_goal_status(): # if the leaf is a goal stat -> extract plan
+                return leaf.extract_plan()  # return actions
+            strategy.add_to_explored(leaf) # if not goal, contuniue to explore
+            for child_state in leaf.get_children(): 
+                if not strategy.is_explored(child_state) and not strategy.in_frontier(child_state):
+                    strategy.add_to_frontier(child_state)
+            iterations += 1
+
+    def get_action(self, current_state): 
+        # get the only action possible to execute from parent state to current state
+        parent_state = current_state.parent 
+        children, children_and_actions = parent_state.get_children() # get list and dict 
+
+        for key,value in children_and_actions:
+            if key == current_state:
+                return value # returning action from parent to current state
+
+    # warm up
+    def extract_plan(self) -> '[Actions, ...]':
+        # self.brf(current_state)
+        # self.deliberate()
+        states_in_plan = []
+        actions_in_plan = []
+        state = self.beliefs # current state
+        while not state.is_initial_state():
+            states_in_plan.append(state)
+            # action from parent state to current state added to actions
+            actions_in_plan.append(state.get_action(self))
+            state = state.parent # one level uo
+        actions_in_plan = actions_in_plan.reverse() # actions in executable order
+        return actions_in_plan # return actions
+
+    def agent_action_plan(self):
+        #have to check if the intentions are executable
+        self.intentions # [box, goal] : dist
+        self.beliefs # current state
+        action = list(self.extract_plan)
+        return action.pop(0) # return first action in the plan
 
 
 # def run_game():
@@ -177,4 +193,3 @@ class BDIAgent(Agent):
 
 # if __name__ == '__main__':
 #     run_game()
-

@@ -57,4 +57,7 @@ class State(object):
         if (row, col) in self.agents or (row, col) in self.boxes or isinstance(LEVEL.level[row][col], Wall):
             return False
         return True
+        
+    def is_initial_state(self) -> 'bool':
+        return self.parent is None
     
