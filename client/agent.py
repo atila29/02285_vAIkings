@@ -1,9 +1,10 @@
-from action import ActionType, ALL_ACTIONS, Action
+from action import ActionType, ALL_ACTIONS, UnfoldedAction
 from level import AgentElement
 from box import Box
 from state import State
 from strategy import StrategyBestFirst
 from heuristics import Heuristic
+import sys
 
 
 class Agent:
@@ -25,6 +26,9 @@ class Agent:
             # Determine if action is applicable.
             new_agent_row = self.row + action.agent_dir.d_row
             new_agent_col = self.col + action.agent_dir.d_col
+            unfolded_action = UnfoldedAction(action, self.id)
+            unfolded_action.agent_from = [self.row, self.col]
+            unfolded_action.agent_to = [new_agent_row, new_agent_col]
 
             if action.action_type is ActionType.Move:
                 # Check if move action is applicable
@@ -33,11 +37,10 @@ class Agent:
                     child = State(current_state)
                     # update agent location
                     child.agents.pop((self.row, self.col))
-                    child.agents[new_agent_row, new_agent_col] = AgentElement(self.id, self.color, new_agent_row,
-                                                                              new_agent_col)
-                    children.append(child)
-                    children_with_actions[child] = action
-
+                    child.agents[new_agent_row, new_agent_col] = AgentElement(self.id, self.color, new_agent_row, new_agent_col)
+                    #update unfolded action
+                    unfolded_action.required_free = unfolded_action.agent_to
+                    unfolded_action.will_become_free = unfolded_action.agent_from
             elif action.action_type is ActionType.Push:
                 # Check if push action is applicable
                 if (new_agent_row, new_agent_col) in current_state.boxes:
@@ -54,9 +57,11 @@ class Agent:
                             # update box location
                             box = child.boxes.pop((new_agent_row, new_agent_col))
                             child.boxes[new_box_row, new_box_col] = Box(box.name, box.color, new_box_row, new_box_col)
-                            # Save child
-                            children.append(child)
-                            children_with_actions[child] = action
+                            #update unfolded action
+                            unfolded_action.box_from = [box.row, box.col]
+                            unfolded_action.box_to = [new_box_row, new_box_col]
+                            unfolded_action.required_free = unfolded_action.box_to
+                            unfolded_action.will_become_free = unfolded_action.agent_from                            
             elif action.action_type is ActionType.Pull:
                 # Check if pull action is applicable
                 if current_state.is_free(new_agent_row, new_agent_col):
@@ -73,12 +78,18 @@ class Agent:
                             # update box location
                             box = child.boxes.pop((box_row, box_col))
                             child.boxes[self.row, self.col] = Box(box.name, box.color, self.row, self.col)
-                            # save child
-                            children.append(child)
-                            children_with_actions[child] = action
-
-        # Shuffle children
-        return children, children_with_actions
+                            #update unfolded action
+                            unfolded_action.box_from = [box.row, box.col]
+                            unfolded_action.box_to = [new_box_row, new_box_col]
+                            unfolded_action.required_free = unfolded_action.agent_to
+                            unfolded_action.will_become_free = unfolded_action.box_from 
+            elif action.action_type is ActionType.NoOp:
+                child = State(current_state)
+            #Save child
+            child.unfolded_action = unfolded_action
+            children.append(child)
+        #Shuffle children ? 
+        return children
 
     def __repr__(self):
         return self.color + " Agent with letter " + self.name

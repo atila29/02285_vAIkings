@@ -16,6 +16,7 @@ class State(object):
     boxes = Dict[Tuple[int, int], Box]
     g: int
     parent: 'State'
+    unfolded_action: 'UnfoldedAction'
 
     def __init__(self, copy_state: 'State' = None):
 
@@ -24,11 +25,13 @@ class State(object):
             self.boxes = {}
             self.g = 0
             self.parent = None
+            self.unfolded_action = None
         else:
             self.agents = copy.deepcopy(copy_state.agents)
             self.boxes = copy.deepcopy(copy_state.boxes)
             self.g = copy_state.g + 1
             self.parent = copy_state
+            self.unfolded_acion = copy_state.unfolded_action
 
         
 

@@ -46,9 +46,10 @@ class AgentElement:
 #Class containing the static level information
 class Level:
     #List containing "empty level",  i.e. walls, free space, goals
-    level: List[List[LevelElement]]
+    level = List[List[LevelElement]]
     #Dictionary containing goals corresponding to different letters
-    goals: Dict[str, List[Goal]]
+    goals = Dict[str, List[Goal]]
+    goals_by_pos = {}
 
     def __init__(self):
         self.level = [] 
@@ -57,8 +58,10 @@ class Level:
     def add_goal(self, char, row, col):
         goal = Goal(char, row, col)
         self.level[row][col] = goal
-        #Add goal to goal list
+        #Add goal to goal list 1
         if(char in self.goals):
             self.goals[char].append(goal)
         else:
             self.goals[char] = [goal]
+        #Add goal to goal list 2
+        self.goals_by_pos[(row,col)] = goal
