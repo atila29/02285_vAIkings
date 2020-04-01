@@ -59,11 +59,11 @@ class Action:
         self.agent_dir = agent_dir
         self.box_dir = box_dir
         if action_type == ActionType.NoOp:
-            self._repr = '[{}]'.format(action_type)
+            self._repr = '{}'.format(action_type)
         elif box_dir is not None:
-            self._repr = '[{}({},{})]'.format(action_type, agent_dir, box_dir)
+            self._repr = '{}({},{})'.format(action_type, agent_dir, box_dir)
         else:
-            self._repr = '[{}({})]'.format(action_type, agent_dir)
+            self._repr = '{}({})'.format(action_type, agent_dir)
 
     def __repr__(self):
         return self._repr

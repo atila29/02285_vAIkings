@@ -31,7 +31,7 @@ class State(object):
             self.boxes = copy.deepcopy(copy_state.boxes)
             self.g = copy_state.g + 1
             self.parent = copy_state
-            self.unfolded_acion = copy_state.unfolded_action
+            self.unfolded_action = copy_state.unfolded_action
 
         
 
@@ -57,6 +57,8 @@ class State(object):
         print("\n".join(lines), file=sys.stderr, flush=True)
 
     def is_free(self, row , col) -> 'bool':
+        #print('index: ' + str((row, col)), file=sys.stderr, flush=True)
+
         if (row, col) in self.agents or (row, col) in self.boxes or isinstance(LEVEL.level[row][col], Wall):
             return False
         return True
