@@ -77,8 +77,6 @@ class Client:
                         elif(re.match(r"\d", char)): # match digits, Agents
                             LEVEL.level[row].append(Space()) # can add agent instead?
                             self.initial_state.agents[(row,col)] = AgentElement(char, item_dict[char], row, col)
-                            self.agents.append(BDIAgent(char, item_dict[char], row, col, None, None))
-                            self.agent_dic[char] = self.agents[-1]
                         elif(re.match(r"[A-Z]", char)): # match capital letters, Boxes
                             LEVEL.level[row].append(Space())
                             self.initial_state.boxes[(row,col)] = Box(char, item_dict[char], row, col)
@@ -94,25 +92,33 @@ class Client:
 
 
             line = server_messages.readline().rstrip()
+        #End while
+
+        #Initialise the BDI Agents
+        
+        for agent_pos in self.initial_state.agents:
+            agent = self.initial_state.agents[agent_pos]
+            self.agents.append(BDIAgent(agent.name, agent.color, agent.row, agent.col, self.initial_state, None))
+            self.agent_dic[agent.name] = self.agents[-1]
         # print(LEVEL, file=sys.stderr, flush=True)
         # print(initial_state, file=sys.stderr, flush=True)
-        self.initial_state.print_current_state()
-        for pos in self.initial_state.agents:
-            test_agent_element = self.initial_state.agents[pos]
-            test_agent = Agent(test_agent_element.row, test_agent_element.col, test_agent_element.color, test_agent_element.name)
-            children, children_with_actions = test_agent.get_children(self.initial_state)
-            print("Agent " + str(pos), file=sys.stderr, flush=True)
-            if(len(children) != 0):
-                children[0].print_current_state()
+        # self.initial_state.print_current_state()
+        # for pos in self.initial_state.agents:
+        #     test_agent_element = self.initial_state.agents[pos]
+        #     test_agent = Agent(test_agent_element.row, test_agent_element.col, test_agent_element.color, test_agent_element.name)
+        #     children, children_with_actions = test_agent.get_children(self.initial_state)
+        #     print("Agent " + str(pos), file=sys.stderr, flush=True)
+        #     if(len(children) != 0):
+        #         children[0].print_current_state()
 
     def search(self, initial_state):
         current_state = initial_state
         while True:
             plans = []
             #Loop through agents
-            for agent in self.agents:
+            for agent_id in sorted(self.agent_dic.keys()):
                 #Get plan from each
-                plans.append(agent.extract_plan(current_state))
+                plans.append(self.agent_dic[agent_id].agent_action_plan(current_state))
             joint_actions = self.create_joint_actions(plans)
             
             #Check if conflicts in joint plan, Loop until we resolve all conflicts
@@ -120,6 +126,7 @@ class Client:
             if conflicts:    
                 #If yes : Replan ?? (Naive: make some use NoOp)
                 self.solve_conflicts(joint_actions, conflicts)
+            
             #Otherwise: Execute
             current_state = self.execute_joint_actions(joint_actions, current_state)
 
@@ -137,20 +144,25 @@ class Client:
         "The ith action on the list conflicts with the jth action on the list"
     """    
     def check_for_conflicts(self, joint_actions) -> '[[Tuple, Tuple, ...], ...]':
+        
+        #print("joint actions" + str(joint_actions), file=sys.stderr, flush=True)
         conflicts = []
         #Case a in TA: Two actions attempt to move two distinct objects into the same cell.
         all_agent_to = [action.agent_to for action in joint_actions]
         all_box_to = [action.box_to for action in joint_actions]
-        conflic_pos = set([pos for pos in all_agent_to if pos in all_box_to])
-        for pos in conflic_pos:
-            if pos != []:
-                conflicts.append([i for i in range(len(all_agent_to)) if all_box_to[i] == pos or all_agent_to[i] == pos]) #<-- Currently possible saves longer lists than tuples
+        combined_list = all_agent_to + all_box_to
+        duplicates = set([tuple(x) for x in combined_list if combined_list.count(x) > 1])
+        for dupe in duplicates:
+            if dupe != tuple([]):
+                conflicts.append([i for i in range(len(all_box_to)) if tuple(all_agent_to[i]) == dupe or tuple(all_box_to[i]) == dupe]) #<-- Currently possible saves longer lists than tuples
         #Case b in TA: Two actions attempt to move the same box 
         all_box_from = [action.box_from for action in joint_actions]
-        duplicates = set([x for x in all_box_from if all_box_from.count(x) > 1])
+        #print("all_box_from" + str(all_box_from), file=sys.stderr, flush=True)
+        duplicates = set([tuple(x) for x in all_box_from if all_box_from.count(x) > 1])
+        #print("duplicates" + str(duplicates), file=sys.stderr, flush=True)
         for dupe in duplicates:
-            if dupe != []:
-                conflicts.append([i for i in range(len(all_box_from)) if all_box_from[i] == dupe]) #<-- Currently possible saves longer lists than tuples
+            if dupe != tuple([]):
+                conflicts.append([i for i in range(len(all_box_from)) if tuple(all_box_from[i]) == dupe]) #<-- Currently possible saves longer lists than tuples
         return conflicts #<-- Currently may contain duplicates since agents might conflict in both cases
 
 
@@ -184,13 +196,44 @@ class Client:
             # TODO
         #Update State: Move agents and boxes, 
         new_state = State(current_state)
+
+        # ''.join(map(lambda action: repr(action),joint_actions))
+        msg = repr(joint_actions[0].action)
+        if len(joint_actions) > 1:
+            for action in joint_actions[1:]:
+                msg = msg + ';' + repr(action.action) 
+        
+        print(msg, file=sys.stderr, flush=True)
+
+        print(msg, flush = True)
+        result = sys.stdin.readline().rstrip()
+        print(result, file=sys.stderr, flush=True)
+        result = result.split(';')
+        if "false" in result:
+            print("Something went wrong. Client send invalid move", file=sys.stderr, flush=True)
+            print("agents at: ", file=sys.stderr, flush=True)
+            for agent in self.agents:
+                print((agent.id, agent.row, agent.col), file=sys.stderr, flush=True)
+            all_agent_to = [action.agent_to for action in joint_actions]
+            all_box_to = [action.box_to for action in joint_actions]
+            combined_list = all_agent_to + all_box_to
+            print("combined_list:" + str(combined_list), file=sys.stderr, flush=True)
+            duplicates = set([tuple(x) for x in combined_list if combined_list.count(x) > 1])
+            print("duplicates:" + str(duplicates), file=sys.stderr, flush=True)
+            print("Check for conflicts:" + str(self.check_for_conflicts(joint_actions)), file=sys.stderr, flush=True)
+            raise RuntimeError
+        
+
         for action in joint_actions:
+            if action.action.action_type == ActionType.NoOp:
+                continue
             #update box location in state
-            box = new_state.boxes.pop(action.box_from)
-            new_state.boxes[action.box_to] = Box(box.name, box.color, *action.box_to)
+            if action.box_from != []:
+                box = new_state.boxes.pop(tuple(action.box_from))
+                new_state.boxes[tuple(action.box_to)] = Box(box.name, box.color, *action.box_to)
             #update agent location in state
-            agent = new_state.agents.pop(action.agent_from)
-            new_state.agents[action.agent_to] = Agent(agent.id, agent.color, *action.agent_to)
+            agent = new_state.agents.pop(tuple(action.agent_from))
+            new_state.agents[tuple(action.agent_to)] = AgentElement(agent.name, agent.color, *action.agent_to)
             #update agents with their new location
             bdi_agent = self.agent_dic[action.agent_id]
             bdi_agent.row, bdi_agent.col = action.agent_to
@@ -211,8 +254,9 @@ def main():
           file=sys.stderr, flush=True)
 
     client = Client(server_messages)
+    
+    client.search(client.initial_state)
 
-    #Client.doit()
     #Print result summary (time, memory, solution length, ... )
 
 
