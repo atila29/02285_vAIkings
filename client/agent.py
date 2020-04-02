@@ -1,11 +1,11 @@
-from action import ActionType, ALL_ACTIONS, UnfoldedAction
+import sys
+import random
+from action import ActionType, ALL_ACTIONS, UnfoldedAction, Action, Dir
 from level import AgentElement
 from box import Box
 from state import State, LEVEL
 from strategy import StrategyBestFirst
 from heuristics import Heuristic
-import sys
-import random   #used for testing
 
 
 class Agent:
@@ -32,7 +32,6 @@ class Agent:
             unfolded_action.agent_to = [new_agent_row, new_agent_col]
 
             if action.action_type is ActionType.Move:
-                #print('Agent at :' + str((self.row, self.col)) + "figuring out if it can " + str(action), file=sys.stderr, flush=True)
                 # Check if move action is applicable
                 if current_state.is_free(new_agent_row, new_agent_col):
                     # Create child
@@ -108,7 +107,9 @@ class Agent:
     def __str__(self):
         return self.name
 
-
+"""
+    "Interface" for implementation of BDI Agent
+"""
 class BDIAgent(Agent):
 
     def __init__(self,
@@ -116,14 +117,68 @@ class BDIAgent(Agent):
                  color,
                  row,
                  col,
-                 initial_beliefs,
-                 initial_intentions):
+                 initial_beliefs):
 
         super().__init__(id, color, row, col)
         self.beliefs = initial_beliefs
-        self.intentions = self.deliberate()
+        self.deliberate()
+        self.current_plan = None
 
-        # self.path = [] #tar vare på veien agenten beveger seg
+
+    def brf(self, p):  # belief revision function, return new beliefs (updated in while-loop)
+        self.beliefs = p
+    
+    # Updates desires and intentions 
+    def deliberate(self):  
+        self.desires = self.options()
+        self.intentions = self.filter()
+
+    def options(self) -> '?':  # used in deliberate
+        return self.desires
+
+    def filter(self) -> '?':  # used in deliberate
+        return self.intentions
+
+    def sound(self) -> 'Bool':  # returns true/false, if sound return true
+        return True
+
+    def succeeded(self) -> 'Bool':
+        return False
+
+    def impossible(self) -> 'Bool':
+        return False
+
+    def reconsider(self) -> 'Bool':
+        return True
+
+    #default NoOp plan
+    def plan(self) -> '[UnfoldedAction, ...]':
+        self.current_plan=[UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id)]
+        return self.current_plan
+
+    def get_next_action(self,p) -> 'UnfoldedAction':
+        self.brf(p)
+        if len(self.current_plan) != 0 and not self.succeeded() and not self.impossible(): 
+            if self.reconsider():
+                self.deliberate()
+            if not(self.sound()):
+                self.plan()
+        self.deliberate()
+        self.plan()
+        return self.current_plan[0]
+
+    
+
+
+class BDIAgent1(BDIAgent):
+
+    def __init__(self,
+                 id,
+                 color,
+                 row,
+                 col,
+                 initial_beliefs):
+        super().__init__(id, color, row, col, initial_beliefs)
 
     def brf(self, p):  # belief revision function, return new beliefs (updated in while-loop)
         # return updated state
@@ -168,16 +223,6 @@ class BDIAgent(Agent):
                     strategy.add_to_frontier(child_state)
             iterations += 1
 
-    # Not needed after adding unfoldedAction to state
-    # def get_action(self, current_state): 
-    #     # get the only action possible to execute from parent state to current state
-    #     parent_state = current_state.parent 
-    #     children, children_and_actions = parent_state.get_children() # get list and dict 
-
-    #     for key,value in children_and_actions:
-    #         if key == current_state:
-    #             return value # returning action from parent to current state
-
     """
         Used in the search, for extracting a plan when reaching a goal state
     """
@@ -198,7 +243,7 @@ class BDIAgent(Agent):
     """
         Called by client to get next plan of action
     """
-    def agent_action_plan(self, current_state):
+    def get_next_action(self, current_state) -> 'UnfoldedAction':
         children = self.get_children(current_state)
         return random.choice(children).unfolded_action
         #have to check if the intentions are executable
@@ -207,25 +252,90 @@ class BDIAgent(Agent):
         # list_of_actions = self.search_action()
         # return list_of_actions.pop(0) # return first unfolded action in the plan
 
+"""
+    Example BDI agent.
+    
+    The agent will choose a box and a corresponding goal and try to put that box on that goal 
+    until the goal has a box on it with the right letter.
+    
+    INPUT:
+            depth :     Number of steps we look forward
+            heuristic:  Function used to evaluate the best step (Depending on the chosen intentions)
 
-# def run_game():
-#     agent = BDIAgent()
-#     state = State()
+    When making a plan the agent will look "depth" steps ahead, where depth is given as an input.
+    It will then return the first step of the plan that will result in the state with the best heuristic.
+   
+    Beliefs:        current_state 
+    Desires:        All goals need a box        
+    Intentions:     Put box X on goal Y     (Saved as [box, goal])
+    Deliberation:   Pick a goal without a box that has a box of your own color somewhere on the map. 
+                    Pick one of these boxes to put on the goal.
+                    If no such box exists it will just move/push/pull randomnly.
+"""
+class NaiveBDIAgent(BDIAgent):
+    def __init__(self,
+                 id,
+                 color,
+                 row,
+                 col,
+                 initial_beliefs, 
+                 heuristic,
+                 depth = 1):
+        
+        super().__init__(id, color, row, col, initial_beliefs)
+        self.n = depth
+        self.h = heuristic
 
-#     while True:
-#         p = agent.get_next_percept()
-#         agent.beliefs = agent.brf(p)
-#         agent.intentions = agent.deliberate()
-#         plan = state.extract_plan(agent.beliefs, agent.intentions)
-#         while not plan == [] and not agent.suceeded() and not agent.impossible():
-#             agent.execute(plan.pop([0]))  # execute first step in plan, and removes step from plan
-#             p = agent.get_next_percept()
-#             agent.beliefs = agent.brf(p)
-#             if agent.reconsider():
-#                 agent.intentions = agent.deliberate()  # Intention reconsideration
-#             if not agent.sound(plan):
-#                 plan = state.extract_plan(agent.beliefs, agent.intentions)
+    #Choose box and goal and save in intentions as [box, goal]
+    #Right now chooses first box in list of right color that has an open goal
+    def deliberate(self) :
+        box = None
+        #find box of the same color
+        for b in self.beliefs.boxes.values():
+            if b.color == self.color:
+                #see if there is a goal that need this box
+                for g in LEVEL.goals[b.name]:
+                    if not self.beliefs.is_goal_satisfied(g):
+                        box = b
+                        goal = g
+        if box == None:
+            self.intentions = None #: When no box to choose default to random
+        else:
+            self.intentions = (box, goal)
+        
+        return self.intentions 
 
+    def plan(self):
+        if self.intentions is None:
+            super().plan()
+        else:            
+            return self.single_agent_search()
 
-# if __name__ == '__main__':
-#     run_game()
+    # Check if the goal still needs a box (Another agent might have solved it)
+    def reconsider(self) -> 'Bool':
+        return self.succeeded()
+        
+    # Check if first action is applicable
+    def impossible(self) -> 'Bool':
+        action = self.current_plan[0]
+        #required_free still free?
+        if not self.beliefs.is_free(*action.required_free):
+            return True
+        #if box_from != [] check if a box is still there and right color
+        if action.box_from != []:
+            if tuple(action.box_from) in self.beliefs.boxes and self.beliefs.boxes[tuple(action.box_from)].color == self.color:
+                return False 
+            return True
+        else:
+            return False
+
+    # Check if goal achieved
+    def succeeded(self) -> 'Bool':
+        if self.intentions is not None:
+            return self.beliefs.is_goal_satisfied(self.intentions[1])
+        return True
+
+    # TODO: implement
+    def single_agent_search(self) -> '[UnfoldedAction, ...]':
+        raise NotImplementedError 
+    

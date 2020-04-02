@@ -98,18 +98,8 @@ class Client:
         
         for agent_pos in self.initial_state.agents:
             agent = self.initial_state.agents[agent_pos]
-            self.agents.append(BDIAgent(agent.name, agent.color, agent.row, agent.col, self.initial_state, None))
+            self.agents.append(BDIAgent(agent.name, agent.color, agent.row, agent.col, self.initial_state))
             self.agent_dic[agent.name] = self.agents[-1]
-        # print(LEVEL, file=sys.stderr, flush=True)
-        # print(initial_state, file=sys.stderr, flush=True)
-        # self.initial_state.print_current_state()
-        # for pos in self.initial_state.agents:
-        #     test_agent_element = self.initial_state.agents[pos]
-        #     test_agent = Agent(test_agent_element.row, test_agent_element.col, test_agent_element.color, test_agent_element.name)
-        #     children, children_with_actions = test_agent.get_children(self.initial_state)
-        #     print("Agent " + str(pos), file=sys.stderr, flush=True)
-        #     if(len(children) != 0):
-        #         children[0].print_current_state()
 
     def search(self, initial_state):
         current_state = initial_state
@@ -118,7 +108,7 @@ class Client:
             #Loop through agents
             for agent_id in sorted(self.agent_dic.keys()):
                 #Get plan from each
-                plans.append(self.agent_dic[agent_id].agent_action_plan(current_state))
+                plans.append(self.agent_dic[agent_id].get_next_action(current_state))
             joint_actions = self.create_joint_actions(plans)
             
             #Check if conflicts in joint plan, Loop until we resolve all conflicts
@@ -157,9 +147,9 @@ class Client:
                 conflicts.append([i for i in range(len(all_box_to)) if tuple(all_agent_to[i]) == dupe or tuple(all_box_to[i]) == dupe]) #<-- Currently possible saves longer lists than tuples
         #Case b in TA: Two actions attempt to move the same box 
         all_box_from = [action.box_from for action in joint_actions]
-        #print("all_box_from" + str(all_box_from), file=sys.stderr, flush=True)
+
         duplicates = set([tuple(x) for x in all_box_from if all_box_from.count(x) > 1])
-        #print("duplicates" + str(duplicates), file=sys.stderr, flush=True)
+
         for dupe in duplicates:
             if dupe != tuple([]):
                 conflicts.append([i for i in range(len(all_box_from)) if tuple(all_box_from[i]) == dupe]) #<-- Currently possible saves longer lists than tuples
@@ -168,12 +158,6 @@ class Client:
 
         
     def create_joint_actions(self, list_of_plans) -> '[UnfoldedAction, ...]':
-        # #Comment in if plan is list of lists
-        # result = []
-        # for plan in list_of_plans:
-        #     result.append(plan[0][0])
-        # return result
-
         #If a plan is just one unfolded action:
         return [plan for plan in list_of_plans]
 
@@ -197,7 +181,6 @@ class Client:
         #Update State: Move agents and boxes, 
         new_state = State(current_state)
 
-        # ''.join(map(lambda action: repr(action),joint_actions))
         msg = repr(joint_actions[0].action)
         if len(joint_actions) > 1:
             for action in joint_actions[1:]:
@@ -223,7 +206,8 @@ class Client:
             print("Check for conflicts:" + str(self.check_for_conflicts(joint_actions)), file=sys.stderr, flush=True)
             raise RuntimeError
         
-
+        # TODO: Make sure to pop the action from the agents plan (either directly or through a execute function) 
+        # Remark: Don't pop if action is NoOP from conflict resolves
         for action in joint_actions:
             if action.action.action_type == ActionType.NoOp:
                 continue
