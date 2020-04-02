@@ -1,11 +1,11 @@
-from action import ActionType, ALL_ACTIONS, UnfoldedAction, Action
+import sys
+import random
+from action import ActionType, ALL_ACTIONS, UnfoldedAction, Action, Dir
 from level import AgentElement
 from box import Box
 from state import State, LEVEL
 from strategy import StrategyBestFirst
 from heuristics import Heuristic
-import sys
-import random   #used for testing
 
 
 class Agent:
@@ -273,16 +273,16 @@ class BDIAgent1(BDIAgent):
                     If no such box exists it will just move/push/pull randomnly.
 """
 class NaiveBDIAgent(BDIAgent):
-
     def __init__(self,
                  id,
                  color,
                  row,
                  col,
-                 initial_beliefs,
-                 depth = 1, 
-                 heuristic):
-        super().__init__(id, color, row, col, initial_beliefs, initial_intentions)
+                 initial_beliefs, 
+                 heuristic,
+                 depth = 1):
+        
+        super().__init__(id, color, row, col, initial_beliefs)
         self.n = depth
         self.h = heuristic
 
@@ -307,3 +307,4 @@ class NaiveBDIAgent(BDIAgent):
 
         return
         raise NotImplementedError
+
