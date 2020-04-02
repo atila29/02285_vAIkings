@@ -32,7 +32,6 @@ class Agent:
             unfolded_action.agent_to = [new_agent_row, new_agent_col]
 
             if action.action_type is ActionType.Move:
-                #print('Agent at :' + str((self.row, self.col)) + "figuring out if it can " + str(action), file=sys.stderr, flush=True)
                 # Check if move action is applicable
                 if current_state.is_free(new_agent_row, new_agent_col):
                     # Create child
@@ -217,16 +216,6 @@ class BDIAgent1(BDIAgent):
                     strategy.add_to_frontier(child_state)
             iterations += 1
 
-    # Not needed after adding unfoldedAction to state
-    # def get_action(self, current_state): 
-    #     # get the only action possible to execute from parent state to current state
-    #     parent_state = current_state.parent 
-    #     children, children_and_actions = parent_state.get_children() # get list and dict 
-
-    #     for key,value in children_and_actions:
-    #         if key == current_state:
-    #             return value # returning action from parent to current state
-
     """
         Used in the search, for extracting a plan when reaching a goal state
     """
@@ -247,7 +236,7 @@ class BDIAgent1(BDIAgent):
     """
         Called by client to get next plan of action
     """
-    def agent_action_plan(self, current_state) -> 'UnfoldedAction':
+    def get_next_action(self, current_state) -> 'UnfoldedAction':
         children = self.get_children(current_state)
         return random.choice(children).unfolded_action
         #have to check if the intentions are executable
@@ -286,7 +275,7 @@ class NaiveBDIAgent(BDIAgent):
         self.n = depth
         self.h = heuristic
 
-    def agent_action_plan(self, current_state)-> 'UnfoldedAction':
+    def get_next_action(self, current_state)-> 'UnfoldedAction':
         #update beliefs
         self.beliefs = current_state
         #deliberate
@@ -295,16 +284,22 @@ class NaiveBDIAgent(BDIAgent):
         #return        
         raise NotImplementedError
 
+    # TODO : Choose box and goal
     def deliberate(self) -> '[(int, int), (int, int)]':
         raise NotImplementedError 
 
+    # TODO : Search like single Agent
     def plan(self):
-        #given box and goal search for plan
+        #given box and goal (intentions) search for plan
 
-        #Make modifications to state so it looks like a singleagent level
 
-        #Use Search on modified level
-
-        return
+        #return
         raise NotImplementedError
 
+    # """
+    #     INPUT:
+    #         level:  Modified level with all other agents/boxes converted to walls and all other goals deleted
+    #         state:  State only consisting of one box and one agent
+    # """
+    # def single_agent_search(level, state):
+    #     pass
