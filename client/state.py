@@ -150,3 +150,6 @@ class State(object):
         #Shuffle children ? 
         return children
 
+    def is_goal_satisfied(self, goal):
+        return (goal.row, goal.col) in self.boxes and self.boxes[goal.row, goal.col].name == goal.name
+

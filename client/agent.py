@@ -108,7 +108,7 @@ class Agent:
         return self.name
 
 """
-    "Skeleton" for implementation of BDI Agent
+    "Interface" for implementation of BDI Agent
 """
 class BDIAgent(Agent):
 
@@ -155,7 +155,7 @@ class BDIAgent(Agent):
     def plan(self) -> '[UnfoldedAction, ...]':
         self.current_plan=[UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id)]
         return self.current_plan
-    
+
     def get_next_action(self,p) -> 'UnfoldedAction':
         self.brf(p)
         if len(self.current_plan) != 0 and not self.succeeded() and not self.impossible(): 
@@ -265,9 +265,9 @@ class BDIAgent1(BDIAgent):
     When making a plan the agent will look "depth" steps ahead, where depth is given as an input.
     It will then return the first step of the plan that will result in the state with the best heuristic.
    
-    Beliefs:
+    Beliefs:        current_state 
     Desires:        All goals need a box        
-    Intentions:     Put box X on goal Y     (Saved as [box_pos, goal_pos])
+    Intentions:     Put box X on goal Y     (Saved as [box, goal])
     Deliberation:   Pick a goal without a box that has a box of your own color somewhere on the map. 
                     Pick one of these boxes to put on the goal.
                     If no such box exists it will just move/push/pull randomnly.
@@ -286,39 +286,56 @@ class NaiveBDIAgent(BDIAgent):
         self.n = depth
         self.h = heuristic
 
-    # def get_next_action(self, current_state)-> 'UnfoldedAction':
-    #     #update beliefs
-    #     self.beliefs = current_state
-    #     #deliberate
-    #     self.intentions = self.deliberate()
-    #     #plan
-    #     #return        
-    #     raise NotImplementedError
-
-    #     # def get_next_action(self,p) -> 'UnfoldedAction':
-    #     # self.brf(p)
-    #     # self.deliberate()
-    #     # plan = self.plan()
-    #     # return plan[0]
-
-    # TODO : Choose box and goal
-    def deliberate(self) -> '[(int, int), (int, int)]':
+    #Choose box and goal and save in intentions as [box, goal]
+    #Right now chooses first box in list of right color that has an open goal
+    def deliberate(self) :
+        box = None
+        #find box of the same color
+        for b in self.beliefs.boxes.values():
+            if b.color == self.color:
+                #see if there is a goal that need this box
+                for g in LEVEL.goals[b.name]:
+                    if not self.beliefs.is_goal_satisfied(g):
+                        box = b
+                        goal = g
+        if box == None:
+            self.intentions = None #: When no box to choose default to random
+        else:
+            self.intentions = (box, goal)
         
-        
-        raise NotImplementedError 
+        return self.intentions 
 
-    # TODO : Search like single Agent
     def plan(self):
-        #given box and goal (intentions) search for plan
+        if self.intentions is None:
+            super().plan()
+        else:            
+            return self.single_agent_search()
 
+    # Check if the goal still needs a box (Another agent might have solved it)
+    def reconsider(self) -> 'Bool':
+        return self.succeeded()
+        
+    # Check if first action is applicable
+    def impossible(self) -> 'Bool':
+        action = self.current_plan[0]
+        #required_free still free?
+        if not self.beliefs.is_free(*action.required_free):
+            return True
+        #if box_from != [] check if a box is still there and right color
+        if action.box_from != []:
+            if tuple(action.box_from) in self.beliefs.boxes and self.beliefs.boxes[tuple(action.box_from)].color == self.color:
+                return False 
+            return True
+        else:
+            return False
 
-        #return
-        raise NotImplementedError
+    # Check if goal achieved
+    def succeeded(self) -> 'Bool':
+        if self.intentions is not None:
+            return self.beliefs.is_goal_satisfied(self.intentions[1])
+        return True
 
-    # """
-    #     INPUT:
-    #         level:  Modified level with all other agents/boxes converted to walls and all other goals deleted
-    #         state:  State only consisting of one box and one agent
-    # """
-    # def single_agent_search(level, state):
-    #     pass
+    # TODO: implement
+    def single_agent_search(self) -> '[UnfoldedAction, ...]':
+        raise NotImplementedError 
+    
