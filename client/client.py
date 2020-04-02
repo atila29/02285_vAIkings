@@ -98,7 +98,7 @@ class Client:
         
         for agent_pos in self.initial_state.agents:
             agent = self.initial_state.agents[agent_pos]
-            self.agents.append(BDIAgent(agent.name, agent.color, agent.row, agent.col, self.initial_state, None))
+            self.agents.append(BDIAgent(agent.name, agent.color, agent.row, agent.col, self.initial_state))
             self.agent_dic[agent.name] = self.agents[-1]
         # print(LEVEL, file=sys.stderr, flush=True)
         # print(initial_state, file=sys.stderr, flush=True)

@@ -1,4 +1,4 @@
-from action import ActionType, ALL_ACTIONS, UnfoldedAction
+from action import ActionType, ALL_ACTIONS, UnfoldedAction, Action
 from level import AgentElement
 from box import Box
 from state import State, LEVEL
@@ -108,7 +108,9 @@ class Agent:
     def __str__(self):
         return self.name
 
-
+"""
+    "Skeleton" for implementation of BDI Agent
+"""
 class BDIAgent(Agent):
 
     def __init__(self,
@@ -116,14 +118,61 @@ class BDIAgent(Agent):
                  color,
                  row,
                  col,
-                 initial_beliefs,
-                 initial_intentions):
+                 initial_beliefs):
 
         super().__init__(id, color, row, col)
         self.beliefs = initial_beliefs
-        self.intentions = self.deliberate()
+        self.deliberate()
 
-        # self.path = [] #tar vare på veien agenten beveger seg
+
+    def brf(self, p):  # belief revision function, return new beliefs (updated in while-loop)
+        self.beliefs = p
+    
+    # Updates desires and intentions 
+    def deliberate(self):  
+        self.desires = self.options()
+        self.intentions = self.filter()
+
+    def options(self) -> '?':  # used in deliberate
+        return self.desires
+
+    def filter(self) -> '?':  # used in deliberate
+        return self.intentions
+
+    def sound(self, plan) -> 'Bool':  # returns true/false, if sound return true
+        return True
+
+    def suceeded(self) -> 'Bool':
+        return False
+
+    def impossible(self) -> 'Bool':
+        return False
+
+    def reconsider(self) -> 'Bool':
+        return True
+
+    #default NoOp plan
+    def plan(self) -> '[UnfoldedAction, ...]':
+        return [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id)]
+
+    def get_next_action(self,p) -> 'UnfoldedAction':
+        self.brf(p)
+        self.deliberate()
+        plan = self.plan()
+        return plan[0]
+
+    
+
+
+class BDIAgent1(BDIAgent):
+
+    def __init__(self,
+                 id,
+                 color,
+                 row,
+                 col,
+                 initial_beliefs):
+        super().__init__(id, color, row, col, initial_beliefs)
 
     def brf(self, p):  # belief revision function, return new beliefs (updated in while-loop)
         # return updated state
@@ -198,7 +247,7 @@ class BDIAgent(Agent):
     """
         Called by client to get next plan of action
     """
-    def agent_action_plan(self, current_state):
+    def agent_action_plan(self, current_state) -> 'UnfoldedAction':
         children = self.get_children(current_state)
         return random.choice(children).unfolded_action
         #have to check if the intentions are executable
@@ -207,25 +256,54 @@ class BDIAgent(Agent):
         # list_of_actions = self.search_action()
         # return list_of_actions.pop(0) # return first unfolded action in the plan
 
+"""
+    Example BDI agent.
+    
+    The agent will choose a box and a corresponding goal and try to put that box on that goal 
+    until the goal has a box on it with the right letter.
+    
+    When making a plan the agent will look "depth" steps ahead, where depth is given as an input.
+    It will then return the first step of the plan that will result in the state with the best heuristic.
+   
+    Beliefs:
+    Desires:        All goals need a box        
+    Intentions:     Put box X on goal Y     (Saved as [box_pos, goal_pos])
+    Deliberation:   Pick a goal without a box that has a box of your own color somewhere on the map. 
+                    Pick one of these boxes to put on the goal.
+                    If no such box exists it will just move/push/pull randomnly.
+"""
+class NaiveBDIAgent(BDIAgent):
 
-# def run_game():
-#     agent = BDIAgent()
-#     state = State()
+    def __init__(self,
+                 id,
+                 color,
+                 row,
+                 col,
+                 initial_beliefs,
+                 depth = 1, 
+                 heuristic):
+        super().__init__(id, color, row, col, initial_beliefs, initial_intentions)
+        self.n = depth
+        self.h = heuristic
 
-#     while True:
-#         p = agent.get_next_percept()
-#         agent.beliefs = agent.brf(p)
-#         agent.intentions = agent.deliberate()
-#         plan = state.extract_plan(agent.beliefs, agent.intentions)
-#         while not plan == [] and not agent.suceeded() and not agent.impossible():
-#             agent.execute(plan.pop([0]))  # execute first step in plan, and removes step from plan
-#             p = agent.get_next_percept()
-#             agent.beliefs = agent.brf(p)
-#             if agent.reconsider():
-#                 agent.intentions = agent.deliberate()  # Intention reconsideration
-#             if not agent.sound(plan):
-#                 plan = state.extract_plan(agent.beliefs, agent.intentions)
+    def agent_action_plan(self, current_state)-> 'UnfoldedAction':
+        #update beliefs
+        self.beliefs = current_state
+        #deliberate
+        self.intentions = self.deliberate()
+        #plan
+        #return        
+        raise NotImplementedError
 
+    def deliberate(self) -> '[(int, int), (int, int)]':
+        raise NotImplementedError 
 
-# if __name__ == '__main__':
-#     run_game()
+    def plan(self):
+        #given box and goal search for plan
+
+        #Make modifications to state so it looks like a singleagent level
+
+        #Use Search on modified level
+
+        return
+        raise NotImplementedError
