@@ -206,7 +206,8 @@ class Client:
             print("Check for conflicts:" + str(self.check_for_conflicts(joint_actions)), file=sys.stderr, flush=True)
             raise RuntimeError
         
-
+        # TODO: Make sure to pop the action from the agents plan (either directly or through a execute function) 
+        # Remark: Don't pop if action is NoOP from conflict resolves
         for action in joint_actions:
             if action.action.action_type == ActionType.NoOp:
                 continue

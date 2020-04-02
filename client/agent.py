@@ -122,6 +122,7 @@ class BDIAgent(Agent):
         super().__init__(id, color, row, col)
         self.beliefs = initial_beliefs
         self.deliberate()
+        self.current_plan = None
 
 
     def brf(self, p):  # belief revision function, return new beliefs (updated in while-loop)
@@ -138,10 +139,10 @@ class BDIAgent(Agent):
     def filter(self) -> '?':  # used in deliberate
         return self.intentions
 
-    def sound(self, plan) -> 'Bool':  # returns true/false, if sound return true
+    def sound(self) -> 'Bool':  # returns true/false, if sound return true
         return True
 
-    def suceeded(self) -> 'Bool':
+    def succeeded(self) -> 'Bool':
         return False
 
     def impossible(self) -> 'Bool':
@@ -152,13 +153,19 @@ class BDIAgent(Agent):
 
     #default NoOp plan
     def plan(self) -> '[UnfoldedAction, ...]':
-        return [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id)]
-
+        self.current_plan=[UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id)]
+        return self.current_plan
+    
     def get_next_action(self,p) -> 'UnfoldedAction':
         self.brf(p)
+        if len(self.current_plan) != 0 and not self.succeeded() and not self.impossible(): 
+            if self.reconsider():
+                self.deliberate()
+            if not(self.sound()):
+                self.plan()
         self.deliberate()
-        plan = self.plan()
-        return plan[0]
+        self.plan()
+        return self.current_plan[0]
 
     
 
@@ -251,6 +258,10 @@ class BDIAgent1(BDIAgent):
     The agent will choose a box and a corresponding goal and try to put that box on that goal 
     until the goal has a box on it with the right letter.
     
+    INPUT:
+            depth :     Number of steps we look forward
+            heuristic:  Function used to evaluate the best step (Depending on the chosen intentions)
+
     When making a plan the agent will look "depth" steps ahead, where depth is given as an input.
     It will then return the first step of the plan that will result in the state with the best heuristic.
    
@@ -275,17 +286,25 @@ class NaiveBDIAgent(BDIAgent):
         self.n = depth
         self.h = heuristic
 
-    def get_next_action(self, current_state)-> 'UnfoldedAction':
-        #update beliefs
-        self.beliefs = current_state
-        #deliberate
-        self.intentions = self.deliberate()
-        #plan
-        #return        
-        raise NotImplementedError
+    # def get_next_action(self, current_state)-> 'UnfoldedAction':
+    #     #update beliefs
+    #     self.beliefs = current_state
+    #     #deliberate
+    #     self.intentions = self.deliberate()
+    #     #plan
+    #     #return        
+    #     raise NotImplementedError
+
+    #     # def get_next_action(self,p) -> 'UnfoldedAction':
+    #     # self.brf(p)
+    #     # self.deliberate()
+    #     # plan = self.plan()
+    #     # return plan[0]
 
     # TODO : Choose box and goal
     def deliberate(self) -> '[(int, int), (int, int)]':
+        
+        
         raise NotImplementedError 
 
     # TODO : Search like single Agent
