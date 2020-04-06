@@ -4,7 +4,7 @@ class Heuristic():
     def __init__(self, agent:'BDIAgent'):
         self.agent = agent
         pass
-
+    #could add an if-statement of whether the agent is next to the box or not
     def h(self) -> 'int':
         # distance from agent to box to goal
         box, goal = self.agent.intentions

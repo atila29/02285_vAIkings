@@ -335,7 +335,34 @@ class NaiveBDIAgent(BDIAgent):
             return self.beliefs.is_goal_satisfied(self.intentions[1])
         return True
 
-    # TODO: implement
     def single_agent_search(self) -> '[UnfoldedAction, ...]':
-        raise NotImplementedError 
-    
+        strategy = StrategyBestFirst(self.h) 
+        print('Starting search with strategy {}.'.format(strategy), file=sys.stderr, flush=True)
+        strategy.add_to_frontier(self.beliefs)  # current state
+        iterations = 0
+
+        while True:
+            if strategy.frontier_empty():
+                return None
+            leaf = strategy.get_and_remove_leaf()  # state
+            if leaf.check_goal_status() or iterations == self.depth: # if the leaf is a goal stat -> extract plan
+                # self.brf(current_state)
+                # self.deliberate()
+                actions_in_plan = []
+                state = leaf # current state
+                while not state.is_initial_state():
+                    actions_in_plan.append(state.unfolded_action) # action from parent state to current state added to actions
+                    state = state.parent # one level up
+                actions_in_plan = actions_in_plan.reverse() # actions in executable order
+                return actions_in_plan # return actions
+            strategy.add_to_explored(leaf) # if not goal or depth reached, contuniue to explore
+            for child_state in leaf.get_children(): 
+                if not strategy.is_explored(child_state) and not strategy.in_frontier(child_state):
+                    strategy.add_to_frontier(child_state)
+            iterations += 1
+
+            
+        
+        
+
+
