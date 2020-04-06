@@ -88,17 +88,14 @@ for agent_dir in (Dir.N, Dir.S, Dir.E, Dir.W):
 class UnfoldedAction:
 
     def __init__(self, action, agent_id):
-        # self.box_movement = []
-        # self.agent_movement = []
-        # self.free_space_changes = []
-        # self.action = action
-        # self.agent_id = agent_id
 
-        self.box_from = []
-        self.box_to = []
-        self.agent_from = []
-        self.agent_to = []
-        self.required_free = []
-        self.will_become_free = []
+        #tuples
+        self.box_from = None
+        self.box_to = None
+        self.agent_from = None
+        self.agent_to = None
+        self.required_free = None
+        self.will_become_free = None
+
         self.action = action
         self.agent_id = agent_id
