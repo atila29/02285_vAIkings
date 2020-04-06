@@ -5,8 +5,9 @@ import re
 from box import Box
 from state import State, LEVEL
 from level import LevelElement, Wall, Space, Goal, Level, AgentElement
-from agent import Agent, BDIAgent
+from agent import Agent, BDIAgent1
 from action import Action, ActionType, Dir
+from util import log
 
 class Section(Enum):
     DOMAIN = 1
@@ -24,7 +25,7 @@ class Client:
     current_conflicts = []
     
     def __init__(self, server_messages):
-        print("vAIkings client", file=sys.stdout, flush=True) # publish our client's name to the server
+        self.send_message_async("vAIkings client") # publish our client's name to the server
 
         line = server_messages.readline().rstrip()
 
@@ -34,7 +35,6 @@ class Client:
         self.initial_state = State()
         
         row = 0
-
         
         while line:
             if(line == "#end"):
@@ -52,12 +52,10 @@ class Client:
                 row = 0
             else:
                 if(section == Section.DOMAIN):
-                    print((section.name, line), file=sys.stderr, flush=True)
+                    pass
                 elif(section == Section.LEVELNAME):
-                    print((section.name, line), file=sys.stderr, flush=True)
+                    pass
                 elif(section == Section.COLORS):
-                    print((section.name, line), file=sys.stderr, flush=True)
-
                     color = line.split(":")[0]
                     items = line.split(":")[1].replace(" ", "").split(",")
 
@@ -65,7 +63,7 @@ class Client:
                         item_dict[item] = color
                     
                 elif(section == Section.INITIAL):
-                    print((section.name, line), file=sys.stderr, flush=True)
+                    log((section.name, line))
                     LEVEL.level.append([])
 
                     for col, char in enumerate(line):
@@ -82,7 +80,7 @@ class Client:
                             self.initial_state.boxes[(row,col)] = Box(char, item_dict[char], row, col)
                     row += 1
                 elif(section == Section.GOAL):
-                    print((section.name, line), file=sys.stderr, flush=True)
+                    log((section.name, line))
                     for col, char in enumerate(line):
                         # print((row, col, char), file=sys.stderr, flush=True)
                         if(re.match(r"[A-Z]", char)):
@@ -94,14 +92,7 @@ class Client:
             line = server_messages.readline().rstrip()
         #End while
 
-        #Initialise the BDI Agents
-        
-        for agent_pos in self.initial_state.agents:
-            agent = self.initial_state.agents[agent_pos]
-            self.agents.append(BDIAgent(agent.name, agent.color, agent.row, agent.col, self.initial_state))
-            self.agent_dic[agent.name] = self.agents[-1]
-
-    def search(self, initial_state):
+    def run(self, initial_state):
         current_state = initial_state
         while True:
             plans = []
@@ -133,7 +124,7 @@ class Client:
         e.g. if [i,j] is in the list it means:
         "The ith action on the list conflicts with the jth action on the list"
     """    
-    def check_for_conflicts(self, joint_actions) -> '[[Tuple, Tuple, ...], ...]':
+    def check_for_conflicts(self, joint_actions) -> '[[int, int,..], ...]':
         
         #print("joint actions" + str(joint_actions), file=sys.stderr, flush=True)
         conflicts = []
@@ -141,18 +132,18 @@ class Client:
         all_agent_to = [action.agent_to for action in joint_actions]
         all_box_to = [action.box_to for action in joint_actions]
         combined_list = all_agent_to + all_box_to
-        duplicates = set([tuple(x) for x in combined_list if combined_list.count(x) > 1])
+        duplicates = set([x for x in combined_list if combined_list.count(x) > 1])
         for dupe in duplicates:
-            if dupe != tuple([]):
-                conflicts.append([i for i in range(len(all_box_to)) if tuple(all_agent_to[i]) == dupe or tuple(all_box_to[i]) == dupe]) #<-- Currently possible saves longer lists than tuples
+            if dupe is not None:
+                conflicts.append([i for i in range(len(all_box_to)) if all_agent_to[i] == dupe or all_box_to[i] == dupe]) #<-- Currently possible saves longer lists than tuples
         #Case b in TA: Two actions attempt to move the same box 
         all_box_from = [action.box_from for action in joint_actions]
 
-        duplicates = set([tuple(x) for x in all_box_from if all_box_from.count(x) > 1])
+        duplicates = set([x for x in all_box_from if all_box_from.count(x) > 1])
 
         for dupe in duplicates:
-            if dupe != tuple([]):
-                conflicts.append([i for i in range(len(all_box_from)) if tuple(all_box_from[i]) == dupe]) #<-- Currently possible saves longer lists than tuples
+            if dupe is not None:
+                conflicts.append([i for i in range(len(all_box_from)) if all_box_from[i] == dupe]) #<-- Currently possible saves longer lists than tuples
         return conflicts #<-- Currently may contain duplicates since agents might conflict in both cases
 
 
@@ -173,7 +164,40 @@ class Client:
                 return False
         return True
 
-    
+    def init_agents(self, agent_type):
+        for agent_pos in self.initial_state.agents:
+            agent = self.initial_state.agents[agent_pos]
+            self.agents.append(agent_type(agent.name, agent.color, agent.row, agent.col, self.initial_state))
+            self.agent_dic[agent.name] = self.agents[-1]
+
+    def send_message(self, msg):
+        print(msg, flush = True)
+        return sys.stdin.readline().rstrip()
+
+    def send_message_async(self, msg):
+        print(msg, flush = True)
+
+    """
+        Send actions to the server. 
+        If server declines one of the actions it raises a RuntimeError
+    """
+    def send_agent_actions(self, actions):
+
+        msg = repr(actions[0].action)
+        if len(actions) > 1:
+            for action in actions[1:]:
+                msg = msg + ';' + repr(action.action)
+
+        result = self.send_message(msg)
+
+        result = result.split(';')
+        if "false" in result:
+            error_msg = "Client send invalid move. \n Agents were at "
+            for agent in self.agents:
+                error_msg = error_msg + str((agent.id, agent.row, agent.col)) + "\n"
+            error_msg = error_msg + "Tried to do following move: \n" + msg
+            raise RuntimeError(error_msg)
+
     
     def execute_joint_actions(self,joint_actions, current_state) -> 'State':
         #Send to server and get response
@@ -181,30 +205,7 @@ class Client:
         #Update State: Move agents and boxes, 
         new_state = State(current_state)
 
-        msg = repr(joint_actions[0].action)
-        if len(joint_actions) > 1:
-            for action in joint_actions[1:]:
-                msg = msg + ';' + repr(action.action) 
-        
-        print(msg, file=sys.stderr, flush=True)
-
-        print(msg, flush = True)
-        result = sys.stdin.readline().rstrip()
-        print(result, file=sys.stderr, flush=True)
-        result = result.split(';')
-        if "false" in result:
-            print("Something went wrong. Client send invalid move", file=sys.stderr, flush=True)
-            print("agents at: ", file=sys.stderr, flush=True)
-            for agent in self.agents:
-                print((agent.id, agent.row, agent.col), file=sys.stderr, flush=True)
-            all_agent_to = [action.agent_to for action in joint_actions]
-            all_box_to = [action.box_to for action in joint_actions]
-            combined_list = all_agent_to + all_box_to
-            print("combined_list:" + str(combined_list), file=sys.stderr, flush=True)
-            duplicates = set([tuple(x) for x in combined_list if combined_list.count(x) > 1])
-            print("duplicates:" + str(duplicates), file=sys.stderr, flush=True)
-            print("Check for conflicts:" + str(self.check_for_conflicts(joint_actions)), file=sys.stderr, flush=True)
-            raise RuntimeError
+        self.send_agent_actions(joint_actions)        
         
         # TODO: Make sure to pop the action from the agents plan (either directly or through a execute function) 
         # Remark: Don't pop if action is NoOP from conflict resolves
@@ -212,12 +213,12 @@ class Client:
             if action.action.action_type == ActionType.NoOp:
                 continue
             #update box location in state
-            if action.box_from != []:
-                box = new_state.boxes.pop(tuple(action.box_from))
-                new_state.boxes[tuple(action.box_to)] = Box(box.name, box.color, *action.box_to)
+            if action.box_from is not None:
+                box = new_state.boxes.pop(action.box_from)
+                new_state.boxes[action.box_to] = Box(box.name, box.color, *action.box_to)
             #update agent location in state
-            agent = new_state.agents.pop(tuple(action.agent_from))
-            new_state.agents[tuple(action.agent_to)] = AgentElement(agent.name, agent.color, *action.agent_to)
+            agent = new_state.agents.pop(action.agent_from)
+            new_state.agents[action.agent_to] = AgentElement(agent.name, agent.color, *action.agent_to)
             #update agents with their new location
             bdi_agent = self.agent_dic[action.agent_id]
             bdi_agent.row, bdi_agent.col = action.agent_to
@@ -234,14 +235,16 @@ def main():
     server_messages = sys.stdin
 
     # Use stderr to print to console through server.
-    print('SearchClient initializing. I am sending this using the error output stream.',
-          file=sys.stderr, flush=True)
+    log('SearchClient initializing. I am sending this using the error output stream.')
 
+    #init client and agents
     client = Client(server_messages)
+    client.init_agents(BDIAgent1)
     
-    client.search(client.initial_state)
+    #run client
+    client.run(client.initial_state)
 
-    #Print result summary (time, memory, solution length, ... )
+    #Print result summary (time, memory, solution length, ... ) ?
 
 
 if __name__ == '__main__':

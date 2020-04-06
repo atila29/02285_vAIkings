@@ -28,8 +28,8 @@ class Agent:
             new_agent_row = self.row + action.agent_dir.d_row
             new_agent_col = self.col + action.agent_dir.d_col
             unfolded_action = UnfoldedAction(action, self.id)
-            unfolded_action.agent_from = [self.row, self.col]
-            unfolded_action.agent_to = [new_agent_row, new_agent_col]
+            unfolded_action.agent_from = (self.row, self.col)
+            unfolded_action.agent_to = (new_agent_row, new_agent_col)
 
             if action.action_type is ActionType.Move:
                 # Check if move action is applicable
@@ -62,8 +62,8 @@ class Agent:
                             box = child.boxes.pop((new_agent_row, new_agent_col))
                             child.boxes[new_box_row, new_box_col] = Box(box.name, box.color, new_box_row, new_box_col)
                             #update unfolded action
-                            unfolded_action.box_from = [box.row, box.col]
-                            unfolded_action.box_to = [new_box_row, new_box_col]
+                            unfolded_action.box_from = (box.row, box.col)
+                            unfolded_action.box_to = (new_box_row, new_box_col)
                             unfolded_action.required_free = unfolded_action.box_to
                             unfolded_action.will_become_free = unfolded_action.agent_from
                             #Save child
@@ -86,8 +86,8 @@ class Agent:
                             box = child.boxes.pop((box_row, box_col))
                             child.boxes[self.row, self.col] = Box(box.name, box.color, self.row, self.col)
                             #update unfolded action
-                            unfolded_action.box_from = [box.row, box.col]
-                            unfolded_action.box_to = [self.row, self.col]
+                            unfolded_action.box_from = (box.row, box.col)
+                            unfolded_action.box_to = (self.row, self.col)
                             unfolded_action.required_free = unfolded_action.agent_to
                             unfolded_action.will_become_free = unfolded_action.box_from
                             #Save child
