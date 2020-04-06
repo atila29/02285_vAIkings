@@ -1,8 +1,7 @@
 import sys
 import random
 from action import ActionType, ALL_ACTIONS, UnfoldedAction, Action, Dir
-from level import AgentElement
-from box import Box
+from level import AgentElement, Box
 from state import State, LEVEL
 from strategy import StrategyBestFirst
 from heuristics import Heuristic
@@ -10,15 +9,15 @@ from heuristics import Heuristic
 
 class Agent:
     color: str  # maybe enums?
-    name: str
+    id_: str
     row: int
     col: int
 
-    def __init__(self, id, color, row, col):
+    def __init__(self, id_, color, row, col):
         self.row = row
         self.col = col
         self.color = color
-        self.id = id
+        self.id_ = id_
 
     def get_children(self, current_state):
         children = []
@@ -27,9 +26,9 @@ class Agent:
             # Determine if action is applicable.
             new_agent_row = self.row + action.agent_dir.d_row
             new_agent_col = self.col + action.agent_dir.d_col
-            unfolded_action = UnfoldedAction(action, self.id)
-            unfolded_action.agent_from = [self.row, self.col]
-            unfolded_action.agent_to = [new_agent_row, new_agent_col]
+            unfolded_action = UnfoldedAction(action, self.id_)
+            unfolded_action.agent_from = (self.row, self.col)
+            unfolded_action.agent_to = (new_agent_row, new_agent_col)
 
             if action.action_type is ActionType.Move:
                 # Check if move action is applicable
@@ -38,7 +37,7 @@ class Agent:
                     child = State(current_state)
                     # update agent location
                     child.agents.pop((self.row, self.col))
-                    child.agents[new_agent_row, new_agent_col] = AgentElement(self.id, self.color, new_agent_row, new_agent_col)
+                    child.agents[new_agent_row, new_agent_col] = AgentElement(self.id_, self.color, new_agent_row, new_agent_col)
                     #update unfolded action
                     unfolded_action.required_free = unfolded_action.agent_to
                     unfolded_action.will_become_free = unfolded_action.agent_from
@@ -56,14 +55,14 @@ class Agent:
                             child = State(current_state)
                             # update agent location
                             child.agents.pop((self.row, self.col))
-                            child.agents[new_agent_row, new_agent_col] = AgentElement(self.id, self.color,
+                            child.agents[new_agent_row, new_agent_col] = AgentElement(self.id_, self.color,
                                                                                       new_agent_row, new_agent_col)
                             # update box location
                             box = child.boxes.pop((new_agent_row, new_agent_col))
-                            child.boxes[new_box_row, new_box_col] = Box(box.name, box.color, new_box_row, new_box_col)
+                            child.boxes[new_box_row, new_box_col] = Box(box.letter, box.color, new_box_row, new_box_col)
                             #update unfolded action
-                            unfolded_action.box_from = [box.row, box.col]
-                            unfolded_action.box_to = [new_box_row, new_box_col]
+                            unfolded_action.box_from = (box.row, box.col)
+                            unfolded_action.box_to = (new_box_row, new_box_col)
                             unfolded_action.required_free = unfolded_action.box_to
                             unfolded_action.will_become_free = unfolded_action.agent_from
                             #Save child
@@ -80,14 +79,14 @@ class Agent:
                             child = State(current_state)
                             # update agent location
                             child.agents.pop((self.row, self.col))
-                            child.agents[new_agent_row, new_agent_col] = AgentElement(self.id, self.color,
+                            child.agents[new_agent_row, new_agent_col] = AgentElement(self.id_, self.color,
                                                                                       new_agent_row, new_agent_col)
                             # update box location
                             box = child.boxes.pop((box_row, box_col))
-                            child.boxes[self.row, self.col] = Box(box.name, box.color, self.row, self.col)
+                            child.boxes[self.row, self.col] = Box(box.letter, box.color, self.row, self.col)
                             #update unfolded action
-                            unfolded_action.box_from = [box.row, box.col]
-                            unfolded_action.box_to = [self.row, self.col]
+                            unfolded_action.box_from = (box.row, box.col)
+                            unfolded_action.box_to = (self.row, self.col)
                             unfolded_action.required_free = unfolded_action.agent_to
                             unfolded_action.will_become_free = unfolded_action.box_from
                             #Save child
@@ -102,10 +101,10 @@ class Agent:
         return children
 
     def __repr__(self):
-        return self.color + " Agent with letter " + self.name
+        return self.color + " Agent with letter " + self.id_
 
     def __str__(self):
-        return self.name
+        return self.id_
 
 """
     "Interface" for implementation of BDI Agent
@@ -113,13 +112,13 @@ class Agent:
 class BDIAgent(Agent):
 
     def __init__(self,
-                 id,
+                 id_,
                  color,
                  row,
                  col,
                  initial_beliefs):
 
-        super().__init__(id, color, row, col)
+        super().__init__(id_, color, row, col)
         self.beliefs = initial_beliefs
         self.deliberate()
         self.current_plan = None
@@ -153,7 +152,7 @@ class BDIAgent(Agent):
 
     #default NoOp plan
     def plan(self) -> '[UnfoldedAction, ...]':
-        self.current_plan=[UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id)]
+        self.current_plan=[UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]
         return self.current_plan
 
     def get_next_action(self,p) -> 'UnfoldedAction':
@@ -173,12 +172,12 @@ class BDIAgent(Agent):
 class BDIAgent1(BDIAgent):
 
     def __init__(self,
-                 id,
+                 id_,
                  color,
                  row,
                  col,
                  initial_beliefs):
-        super().__init__(id, color, row, col, initial_beliefs)
+        super().__init__(id_, color, row, col, initial_beliefs)
 
     def brf(self, p):  # belief revision function, return new beliefs (updated in while-loop)
         # return updated state
@@ -274,7 +273,7 @@ class BDIAgent1(BDIAgent):
 """
 class NaiveBDIAgent(BDIAgent):
     def __init__(self,
-                 id,
+                 id_,
                  color,
                  row,
                  col,
@@ -282,7 +281,7 @@ class NaiveBDIAgent(BDIAgent):
                  heuristic,
                  depth = 1):
         
-        super().__init__(id, color, row, col, initial_beliefs)
+        super().__init__(id_, color, row, col, initial_beliefs)
         self.n = depth
         self.h = heuristic
 
@@ -294,7 +293,7 @@ class NaiveBDIAgent(BDIAgent):
         for b in self.beliefs.boxes.values():
             if b.color == self.color:
                 #see if there is a goal that need this box
-                for g in LEVEL.goals[b.name]:
+                for g in LEVEL.goals[b.letter]:
                     if not self.beliefs.is_goal_satisfied(g):
                         box = b
                         goal = g
