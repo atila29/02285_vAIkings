@@ -2,9 +2,8 @@ import sys
 from enum import Enum
 import re
 
-from box import Box
 from state import State, LEVEL
-from level import LevelElement, Wall, Space, Goal, Level, AgentElement
+from level import LevelElement, Wall, Space, Goal, Level, AgentElement, Box
 from agent import Agent, BDIAgent1
 from action import Action, ActionType, Dir
 from util import log
@@ -160,15 +159,15 @@ class Client:
         for goal_pos in LEVEL.goals_by_pos:
             if goal_pos not in current_state.boxes:
                 return False
-            if current_state.boxes[goal_pos].name != LEVEL.goals_by_pos[goal_pos].name:
+            if current_state.boxes[goal_pos].letter != LEVEL.goals_by_pos[goal_pos].letter:
                 return False
         return True
 
     def init_agents(self, agent_type):
         for agent_pos in self.initial_state.agents:
             agent = self.initial_state.agents[agent_pos]
-            self.agents.append(agent_type(agent.name, agent.color, agent.row, agent.col, self.initial_state))
-            self.agent_dic[agent.name] = self.agents[-1]
+            self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state))
+            self.agent_dic[agent.id_] = self.agents[-1]
 
     def send_message(self, msg):
         print(msg, flush = True)
@@ -194,7 +193,7 @@ class Client:
         if "false" in result:
             error_msg = "Client send invalid move. \n Agents were at "
             for agent in self.agents:
-                error_msg = error_msg + str((agent.id, agent.row, agent.col)) + "\n"
+                error_msg = error_msg + str((agent.id_, agent.row, agent.col)) + "\n"
             error_msg = error_msg + "Tried to do following move: \n" + msg
             raise RuntimeError(error_msg)
 
@@ -215,10 +214,10 @@ class Client:
             #update box location in state
             if action.box_from is not None:
                 box = new_state.boxes.pop(action.box_from)
-                new_state.boxes[action.box_to] = Box(box.name, box.color, *action.box_to)
+                new_state.boxes[action.box_to] = Box(box.letter, box.color, *action.box_to)
             #update agent location in state
             agent = new_state.agents.pop(action.agent_from)
-            new_state.agents[action.agent_to] = AgentElement(agent.name, agent.color, *action.agent_to)
+            new_state.agents[action.agent_to] = AgentElement(agent.id_, agent.color, *action.agent_to)
             #update agents with their new location
             bdi_agent = self.agent_dic[action.agent_id]
             bdi_agent.row, bdi_agent.col = action.agent_to

@@ -12,35 +12,56 @@ class Space(LevelElement):
         return " "
 
 class Goal(LevelElement):
-    name = None
+    letter = None
 
-    def __init__(self, name, row, col):
-        self.name = name
+    def __init__(self, letter, row, col):
+        self.letter = letter
         self.row = row
         self.col = col
 
     def __str__(self):
-        return str.lower(self.name)
+        return str.lower(self.letter)
 
  
 class AgentElement:
 
     color: str # maybe enums?
-    name: str
+    id_: str
     row = -1
     col = -1
 
-    def __init__(self, name: str, color: str, row: int, col: int):
+    def __init__(self, id_: str, color: str, row: int, col: int):
         self.color = color
-        self.name = name
+        self.id_ = id_
         self.row = row
         self.col = col
 
     def __repr__(self):
-        return self.color +" Agent with letter " + self.name
+        return self.color +" Agent with letter " + self.id_
 
     def __str__(self):
-        return self.name
+        return self.id_
+
+class Box:
+
+    color: str # maybe enums?
+    letter: str
+    row = -1
+    col = -1
+
+    def __init__(self, letter, color, row, col):
+        self.color = color
+        self.letter = letter
+        self.row = row
+        self.col = col
+
+    def __repr__(self):
+        return self.color + " Box with letter " + self.letter
+        
+
+    def __str__(self):
+        return self.letter
+
    
 
 #Class containing the static level information
