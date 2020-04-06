@@ -58,17 +58,22 @@ class Action:
         self.action_type = action_type
         self.agent_dir = agent_dir
         self.box_dir = box_dir
-        if box_dir is not None:
-            self._repr = '[{}({},{})]'.format(action_type, agent_dir, box_dir)
+        if action_type == ActionType.NoOp:
+            self._repr = '{}'.format(action_type)
+        elif box_dir is not None:
+            self._repr = '{}({},{})'.format(action_type, agent_dir, box_dir)
         else:
-            self._repr = '[{}({})]'.format(action_type, agent_dir)
+            self._repr = '{}({})'.format(action_type, agent_dir)
 
     def __repr__(self):
         return self._repr
 
+    def __str__(self):
+        return self._repr
+
 # Grounded actions.
 ALL_ACTIONS = []
-ALL_ACTIONS.append(Action(ActionType.NoOp, None, None))
+ALL_ACTIONS.append(Action(ActionType.NoOp, Dir.N, Dir.N))
 for agent_dir in (Dir.N, Dir.S, Dir.E, Dir.W):
     ALL_ACTIONS.append(Action(ActionType.Move, agent_dir, None))
     for box_dir in (Dir.N, Dir.S, Dir.E, Dir.W):
@@ -78,3 +83,22 @@ for agent_dir in (Dir.N, Dir.S, Dir.E, Dir.W):
         if agent_dir is not box_dir:
             # If not same directions.
             ALL_ACTIONS.append(Action(ActionType.Pull, agent_dir, box_dir))
+
+
+class UnfoldedAction:
+
+    def __init__(self, action, agent_id):
+        # self.box_movement = []
+        # self.agent_movement = []
+        # self.free_space_changes = []
+        # self.action = action
+        # self.agent_id = agent_id
+
+        self.box_from = []
+        self.box_to = []
+        self.agent_from = []
+        self.agent_to = []
+        self.required_free = []
+        self.will_become_free = []
+        self.action = action
+        self.agent_id = agent_id
