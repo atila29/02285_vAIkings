@@ -4,7 +4,7 @@ import re
 
 from state import State, LEVEL
 from level import LevelElement, Wall, Space, Goal, Level, AgentElement, Box
-from agent import Agent, BDIAgent1
+from agent import Agent, BDIAgent1, NaiveBDIAgent
 from action import Action, ActionType, Dir
 from util import log
 
@@ -238,7 +238,7 @@ def main():
 
     #init client and agents
     client = Client(server_messages)
-    client.init_agents(BDIAgent1)
+    client.init_agents(NaiveBDIAgent)
     
     #run client
     client.run(client.initial_state)

@@ -58,7 +58,6 @@ class State(object):
 
     def is_free(self, row , col) -> 'bool':
         #print('index: ' + str((row, col)), file=sys.stderr, flush=True)
-
         if (row, col) in self.agents or (row, col) in self.boxes or isinstance(LEVEL.level[row][col], Wall):
             return False
         return True

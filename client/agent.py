@@ -121,7 +121,7 @@ class BDIAgent(Agent):
         super().__init__(id_, color, row, col)
         self.beliefs = initial_beliefs
         self.deliberate()
-        self.current_plan = None
+        self.current_plan = []
 
 
     def brf(self, p):  # belief revision function, return new beliefs (updated in while-loop)
@@ -155,7 +155,7 @@ class BDIAgent(Agent):
         self.current_plan=[UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]
         return self.current_plan
 
-    def get_next_action(self,p) -> 'UnfoldedAction':
+    def get_next_action(self, p) -> 'UnfoldedAction':
         self.brf(p)
         if len(self.current_plan) != 0 and not self.succeeded() and not self.impossible(): 
             if self.reconsider():
@@ -278,12 +278,12 @@ class NaiveBDIAgent(BDIAgent):
                  row,
                  col,
                  initial_beliefs, 
-                 heuristic,
+                 #heuristic,
                  depth = 1):
         
         super().__init__(id_, color, row, col, initial_beliefs)
         self.n = depth
-        self.h = heuristic
+        #self.h = heuristic
 
     #Choose box and goal and save in intentions as [box, goal]
     #Right now chooses first box in list of right color that has an open goal
@@ -335,27 +335,24 @@ class NaiveBDIAgent(BDIAgent):
         return True
 
     def single_agent_search(self) -> '[UnfoldedAction, ...]':
-        strategy = StrategyBestFirst(self.h) 
+        heuristic = Heuristic(self)
+        strategy = StrategyBestFirst(heuristic.f(), self)
         print('Starting search with strategy {}.'.format(strategy), file=sys.stderr, flush=True)
+        #ta inn level her ?
         strategy.add_to_frontier(self.beliefs)  # current state
         iterations = 0
-
         while True:
             if strategy.frontier_empty():
                 return None
             leaf = strategy.get_and_remove_leaf()  # state
-            if leaf.check_goal_status() or iterations == self.depth: # if the leaf is a goal stat -> extract plan
-                # self.brf(current_state)
-                # self.deliberate()
-                actions_in_plan = []
-                state = leaf # current state
+            if leaf.is_goal_satisfied(self.intentions[1]) or iterations == self.n:  # if the leaf is a goal stat -> extract plan
+                state = leaf  # current state
                 while not state.is_initial_state():
-                    actions_in_plan.append(state.unfolded_action) # action from parent state to current state added to actions
-                    state = state.parent # one level up
-                actions_in_plan = actions_in_plan.reverse() # actions in executable order
-                return actions_in_plan # return actions
-            strategy.add_to_explored(leaf) # if not goal or depth reached, contuniue to explore
-            for child_state in leaf.get_children(): 
+                    self.current_plan.append(state.unfolded_action)
+                    print(self.current_plan)
+                    state = state.parent  # one level up
+            strategy.add_to_explored(leaf)  # if not goal or depth reached, contuniue to explore
+            for child_state in leaf.get_children_for_agent(self.id_, self.row, self.col):
                 if not strategy.is_explored(child_state) and not strategy.in_frontier(child_state):
                     strategy.add_to_frontier(child_state)
             iterations += 1
