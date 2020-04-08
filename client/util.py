@@ -2,5 +2,5 @@ import sys
 
 def log(msg, tag = None):
     if tag is None:
-        tag = 'debug'
+        tag = 'log'
     print('[{}] {}'.format(tag, msg), file=sys.stderr, flush=True)

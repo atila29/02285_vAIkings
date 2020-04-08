@@ -32,9 +32,9 @@ class StrategyBestFirst():
     def add_to_frontier(self, state: 'State'):
         priority = self.heuristic  # gets the priority from the heuristic function f
         count = next(StrategyBestFirst.counter)  # advancing the value
-        entry = [priority, count, self.agent.beliefs]  # the values the heap is prioritized by
+        entry = [priority, count, state]  # the values the heap is prioritized by
         heapq.heappush(self.frontier, entry)
-        self.frontier_set.add(self.agent.beliefs)
+        self.frontier_set.add(state)
 
     def in_frontier(self, state: 'State') -> 'bool':
         return state in self.frontier_set
@@ -43,7 +43,6 @@ class StrategyBestFirst():
         return len(self.frontier)
 
     def frontier_empty(self) -> 'bool':
-        print(self.frontier, file=sys.stderr, flush=True)
         return len(self.frontier) == 0
 
     def __repr__(self):

@@ -7,6 +7,7 @@ from level import LevelElement, Wall, Space, Goal, Level, AgentElement, Box
 from agent import Agent, BDIAgent1, NaiveBDIAgent
 from action import Action, ActionType, Dir
 from util import log
+import uuid
 
 class Section(Enum):
     DOMAIN = 1
@@ -76,7 +77,7 @@ class Client:
                             self.initial_state.agents[(row,col)] = AgentElement(char, item_dict[char], row, col)
                         elif(re.match(r"[A-Z]", char)): # match capital letters, Boxes
                             LEVEL.level[row].append(Space())
-                            self.initial_state.boxes[(row,col)] = Box(char, item_dict[char], row, col)
+                            self.initial_state.boxes[(row,col)] = Box(str(uuid.uuid4()), char, item_dict[char], row, col)
                     row += 1
                 elif(section == Section.GOAL):
                     log((section.name, line))
@@ -101,6 +102,7 @@ class Client:
                 plans.append(self.agent_dic[agent_id].get_next_action(current_state))
             joint_actions = self.create_joint_actions(plans)
             
+
             #Check if conflicts in joint plan, Loop until we resolve all conflicts
             conflicts = self.check_for_conflicts(joint_actions)
             if conflicts:    
@@ -123,7 +125,7 @@ class Client:
         e.g. if [i,j] is in the list it means:
         "The ith action on the list conflicts with the jth action on the list"
     """    
-    def check_for_conflicts(self, joint_actions) -> '[[int, int,..], ...]':
+    def check_for_conflicts(self, joint_actions):
         
         #print("joint actions" + str(joint_actions), file=sys.stderr, flush=True)
         conflicts = []
@@ -148,7 +150,6 @@ class Client:
 
         
     def create_joint_actions(self, list_of_plans) -> '[UnfoldedAction, ...]':
-        #If a plan is just one unfolded action:
         return [plan for plan in list_of_plans]
 
     """
@@ -163,14 +164,18 @@ class Client:
                 return False
         return True
 
-    def init_agents(self, agent_type):
+    def init_agents(self, agent_type, args=None):
         for agent_pos in self.initial_state.agents:
             agent = self.initial_state.agents[agent_pos]
-            self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state))
+            if args is not None:
+                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state, *args))
+            else:
+                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state))
             self.agent_dic[agent.id_] = self.agents[-1]
 
     def send_message(self, msg):
         print(msg, flush = True)
+        log(msg, "server-msg")
         return sys.stdin.readline().rstrip()
 
     def send_message_async(self, msg):
@@ -214,7 +219,7 @@ class Client:
             #update box location in state
             if action.box_from is not None:
                 box = new_state.boxes.pop(action.box_from)
-                new_state.boxes[action.box_to] = Box(box.letter, box.color, *action.box_to)
+                new_state.boxes[action.box_to] = Box(box.id_, box.letter, box.color, *action.box_to)
             #update agent location in state
             agent = new_state.agents.pop(action.agent_from)
             new_state.agents[action.agent_to] = AgentElement(agent.id_, agent.color, *action.agent_to)
@@ -234,11 +239,11 @@ def main():
     server_messages = sys.stdin
 
     # Use stderr to print to console through server.
-    log('SearchClient initializing. I am sending this using the error output stream.')
+    log('SearchClient initializing.')
 
     #init client and agents
     client = Client(server_messages)
-    client.init_agents(NaiveBDIAgent)
+    client.init_agents(NaiveBDIAgent, [3])
     
     #run client
     client.run(client.initial_state)
