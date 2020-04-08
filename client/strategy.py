@@ -2,6 +2,7 @@
 
 import heapq
 import itertools
+import sys
 
 
 class StrategyBestFirst():
@@ -10,12 +11,13 @@ class StrategyBestFirst():
     # when this happens, heapq.heappop will remove and return the element with the smallest counter
     # starting by default with the number 0
 
-    def __init__(self, heuristic: 'Heuristic'):
+    def __init__(self, heuristic: 'Heuristic', agent: 'BDIAgent'):
         super().__init__()
         self.heuristic = heuristic
         self.frontier = []
         self.frontier_set = set()
-        self.explored = set() # ?? do need ?
+        self.explored = set()
+        self.agent = agent
 
     def add_to_explored(self, state: 'State'):
         self.explored.add(state)
@@ -28,7 +30,7 @@ class StrategyBestFirst():
         return leaf
 
     def add_to_frontier(self, state: 'State'):
-        priority = self.heuristic.f(state)  # gets the priority from the heuristic function f
+        priority = self.heuristic  # gets the priority from the heuristic function f
         count = next(StrategyBestFirst.counter)  # advancing the value
         entry = [priority, count, state]  # the values the heap is prioritized by
         heapq.heappush(self.frontier, entry)

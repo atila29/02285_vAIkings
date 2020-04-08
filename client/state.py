@@ -14,7 +14,7 @@ LEVEL = Level()
 class State(object):
     agents = Dict[Tuple[int, int], AgentElement]
     boxes = Dict[Tuple[int, int], Box]
-    g: int
+    g: int #measure of the depth/time
     parent: 'State'
     unfolded_action: 'UnfoldedAction'
 
@@ -58,7 +58,6 @@ class State(object):
 
     def is_free(self, row , col) -> 'bool':
         #print('index: ' + str((row, col)), file=sys.stderr, flush=True)
-
         if (row, col) in self.agents or (row, col) in self.boxes or isinstance(LEVEL.level[row][col], Wall):
             return False
         return True
@@ -66,11 +65,15 @@ class State(object):
     def is_initial_state(self) -> 'bool':
         return self.parent is None
 
+    def is_current_state(self, state) -> 'bool':
+        return self == state
+
     def get_children_for_agent(self, agent_id, agent_row, agent_col):
         children = []
+        #check there is actually an agent
+        if (agent_row, agent_col) not in self.agents or self.agents[agent_row, agent_col].id_ != agent_id:
+            raise RuntimeError("Mismatch between agent ID and position")
         agent = self.agents[agent_row, agent_col]
-        if agent.id_ != agent_id:
-            raise RuntimeError("Mismatch between agent ID and position. ID given:" + str(agent_id) + " and position " + str((agent_row, agent_col)) + ". But found " + str(agent.id_))
         for action in ALL_ACTIONS:
             # Determine if action is applicable.
             new_agent_row = agent.row + action.agent_dir.d_row
@@ -108,7 +111,7 @@ class State(object):
                                                                                         new_agent_row, new_agent_col)
                             # update box location
                             box = child.boxes.pop((new_agent_row, new_agent_col))
-                            child.boxes[new_box_row, new_box_col] = Box(box.letter, box.color, new_box_row, new_box_col)
+                            child.boxes[new_box_row, new_box_col] = Box(box.id_, box.letter, box.color, new_box_row, new_box_col)
                             #update unfolded action
                             unfolded_action.box_from = (box.row, box.col)
                             unfolded_action.box_to = (new_box_row, new_box_col)
@@ -132,7 +135,7 @@ class State(object):
                                                                                         new_agent_row, new_agent_col)
                             # update box location
                             box = child.boxes.pop((box_row, box_col))
-                            child.boxes[agent.row, agent.col] = Box(box.letter, box.color, agent.row, agent.col)
+                            child.boxes[agent.row, agent.col] = Box(box.id_, box.letter, box.color, agent.row, agent.col)
                             #update unfolded action
                             unfolded_action.box_from = (box.row, box.col)
                             unfolded_action.box_to = (agent.row, agent.col)

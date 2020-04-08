@@ -46,14 +46,17 @@ class Box:
 
     color: str # maybe enums?
     letter: str
+    id_: str
     row = -1
     col = -1
 
-    def __init__(self, letter, color, row, col):
+    def __init__(self, id_, letter, color, row, col):
+        self.id_ = id_
         self.color = color
         self.letter = letter
         self.row = row
         self.col = col
+
 
     def __repr__(self):
         return self.color + " Box with letter " + self.letter
