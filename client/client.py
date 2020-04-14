@@ -4,7 +4,7 @@ import re
 
 from state import State, LEVEL
 from level import LevelElement, Wall, Space, Goal, Level, AgentElement, Box
-from agent import Agent, BDIAgent1, NaiveBDIAgent
+from agent import Agent, BDIAgent1, NaiveBDIAgent, NaiveIterativeBDIAgent
 from action import Action, ActionType, Dir
 from util import log
 import uuid
@@ -100,8 +100,8 @@ class Client:
             for agent_id in sorted(self.agent_dic.keys()):
                 #Get plan from each
                 plans.append(self.agent_dic[agent_id].get_next_action(current_state))
-            joint_actions = self.create_joint_actions(plans)
-            
+            #joint_actions = self.create_joint_actions(plans)
+            joint_actions = plans
 
             #Check if conflicts in joint plan, Loop until we resolve all conflicts
             conflicts = self.check_for_conflicts(joint_actions)
@@ -192,11 +192,12 @@ class Client:
             for action in actions[1:]:
                 msg = msg + ';' + repr(action.action)
 
+        log("SENDING MOVES:" + msg)
         result = self.send_message(msg)
 
         result = result.split(';')
         if "false" in result:
-            error_msg = "Client send invalid move. \n Agents were at "
+            error_msg = "Client send invalid move: " + str(result)+"\n Agents were at "
             for agent in self.agents:
                 error_msg = error_msg + str((agent.id_, agent.row, agent.col)) + "\n"
             error_msg = error_msg + "Tried to do following move: \n" + msg
@@ -214,6 +215,11 @@ class Client:
         # TODO: Make sure to pop the action from the agents plan (either directly or through a execute function) 
         # Remark: Don't pop if action is NoOP from conflict resolves
         for action in joint_actions:
+            bdi_agent = self.agent_dic[action.agent_id]
+            #remove first action in plan if executed
+            if bdi_agent.current_plan[0] is action:
+                bdi_agent.current_plan.pop(0)
+                log("popped something")
             if action.action.action_type == ActionType.NoOp:
                 continue
             #update box location in state
@@ -224,8 +230,8 @@ class Client:
             agent = new_state.agents.pop(action.agent_from)
             new_state.agents[action.agent_to] = AgentElement(agent.id_, agent.color, *action.agent_to)
             #update agents with their new location
-            bdi_agent = self.agent_dic[action.agent_id]
             bdi_agent.row, bdi_agent.col = action.agent_to
+
         return new_state
 
     def solve_conflicts(self, joint_actions, conflicts) -> '[UnfoldedAction, ...]':
@@ -243,7 +249,7 @@ def main():
 
     #init client and agents
     client = Client(server_messages)
-    client.init_agents(NaiveBDIAgent, [3])
+    client.init_agents(NaiveIterativeBDIAgent, [3])
     
     #run client
     client.run(client.initial_state)
