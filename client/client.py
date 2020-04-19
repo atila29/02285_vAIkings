@@ -5,7 +5,7 @@ import re
 from state import State, LEVEL
 from level import LevelElement, Wall, Space, Goal, Level, AgentElement, Box
 from agent import Agent, BDIAgent1, NaiveBDIAgent, NaiveIterativeBDIAgent
-from action import Action, ActionType, Dir
+from action import Action, ActionType, Dir, UnfoldedAction
 from util import log
 import uuid
 
@@ -80,7 +80,7 @@ class Client:
                             self.initial_state.boxes[(row,col)] = Box(str(uuid.uuid4()), char, item_dict[char], row, col)
                     row += 1
                 elif(section == Section.GOAL):
-                    log((section.name, line))
+                    # log((section.name, line))
                     for col, char in enumerate(line):
                         # print((row, col, char), file=sys.stderr, flush=True)
                         if(re.match(r"[A-Z]", char)):
@@ -192,7 +192,6 @@ class Client:
             for action in actions[1:]:
                 msg = msg + ';' + repr(action.action)
 
-        log("SENDING MOVES:" + msg)
         result = self.send_message(msg)
 
         result = result.split(';')
@@ -210,6 +209,8 @@ class Client:
         #Update State: Move agents and boxes, 
         new_state = State(current_state)
 
+        current_state.print_current_state()
+        # log("(6,7) is free: "+ str(current_state.is_free(6,7)))
         self.send_agent_actions(joint_actions)        
         
         # TODO: Make sure to pop the action from the agents plan (either directly or through a execute function) 
@@ -217,18 +218,18 @@ class Client:
         for action in joint_actions:
             bdi_agent = self.agent_dic[action.agent_id]
             #remove first action in plan if executed
-            if bdi_agent.current_plan[0] is action:
-                bdi_agent.current_plan.pop(0)
-                log("popped something")
+            if bdi_agent.current_plan[0] == action:
+                temp = bdi_agent.current_plan.pop(0)
+                #log("Agent " + str(bdi_agent.id_) + "executed first part of it's plan: " + str(temp.action),"POPPED FROM PLAN")
             if action.action.action_type == ActionType.NoOp:
                 continue
             #update box location in state
             if action.box_from is not None:
                 box = new_state.boxes.pop(action.box_from)
-                new_state.boxes[action.box_to] = Box(box.id_, box.letter, box.color, *action.box_to)
+                new_state.boxes[action.box_to] = Box(box.id_, box.letter, box.color, action.box_to[0], action.box_to[1])
             #update agent location in state
             agent = new_state.agents.pop(action.agent_from)
-            new_state.agents[action.agent_to] = AgentElement(agent.id_, agent.color, *action.agent_to)
+            new_state.agents[action.agent_to] = AgentElement(agent.id_, agent.color, action.agent_to[0], action.agent_to[1])
             #update agents with their new location
             bdi_agent.row, bdi_agent.col = action.agent_to
 
@@ -237,7 +238,9 @@ class Client:
     def solve_conflicts(self, joint_actions, conflicts) -> '[UnfoldedAction, ...]':
         for conflict in conflicts:
             for index in conflict[1:]:
-                joint_actions[index].action = Action(ActionType.NoOp, Dir.N, Dir.N)
+                agent_id = joint_actions[index].agent_id
+                joint_actions[index] = UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), agent_id)
+                # log("Agent " + str(joint_actions[index].agent_id) + " forced to NoOP", "CONFLICT RESOLUTION")
 
 
 def main():

@@ -107,5 +107,5 @@ class UnfoldedAction:
         self.agent_id = agent_id
 
     def __eq__(self, other):
-        self.agent_id == other.agent_id and self.action == other.action
+        return self.agent_id == other.agent_id and self.action == other.action
 

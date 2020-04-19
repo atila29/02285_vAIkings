@@ -91,8 +91,8 @@ class State(object):
                     child.agents.pop((agent.row, agent.col))
                     child.agents[new_agent_row, new_agent_col] = AgentElement(agent.id_, agent.color, new_agent_row, new_agent_col)
                     #update unfolded action
-                    unfolded_action.required_free = unfolded_action.agent_to
-                    unfolded_action.will_become_free = unfolded_action.agent_from
+                    unfolded_action.required_free = (new_agent_row, new_agent_col)
+                    unfolded_action.will_become_free = (agent.row, agent.col)
                     #Save child
                     child.unfolded_action = unfolded_action
                     children.append(child)

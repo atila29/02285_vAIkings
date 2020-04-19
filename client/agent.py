@@ -164,13 +164,13 @@ class BDIAgent(Agent):
             if not(self.sound()):
                 self.plan()
         else:
-            log("Planning because:")
-            if len(self.current_plan) == 0:
-                log("Length of current plan, " + str(self.current_plan) +" was 0")
-            if self.succeeded():
-                log("Previous plan succeeded")
-            if self.impossible:
-                log("Current plan was impossible")
+            # log("Agent " + str(self.id_) +" at position " + str((self.row, self.col)) + " is replanning because:")
+            # if len(self.current_plan) == 0:
+            #     log("Length of current plan, was 0")
+            # elif self.succeeded():
+            #     log("Previous plan succeeded")
+            # elif self.impossible:
+            #     log("Current plan: " + str(self.current_plan)+ " was impossible")
             self.deliberate()
             self.plan()
         return self.current_plan[0] #what if empty?
@@ -446,17 +446,35 @@ class NaiveIterativeBDIAgent(BDIAgent):
     # Check if first action is applicable
     def impossible(self) -> 'Bool':
         action = self.current_plan[0]
-        #required_free still free?
-        if (action.required_free is not None) and (not self.beliefs.is_free(action.required_free[0], action.required_free[1])):
-            log("Space no longer free: " + str(action.required_free))
-            return True
-        #if box_from != [] check if a box is still there and right color
-        if action.box_from is not None:
-            if action.box_from in self.beliefs.boxes and self.beliefs.boxes[action.box_from].color == self.color:
-                return False 
-            return True
-        else:
+        #log("status", str(self.id_))
+        #self.beliefs.print_current_state()
+        if action.action.action_type == ActionType.NoOp:
+            #log("Agent " + str(self.id_) + " can safely NoOp")
             return False
+        #required_free still free?
+        if not(self.beliefs.is_free(*action.required_free)):
+            #log("space no longer free: "+ str(action.required_free))
+            return True
+        # else:
+        #     log("Space " + str(action.required_free) + " is free")
+        #Moving box?
+        if action.box_from is not None:
+            if not(action.box_from in self.beliefs.boxes and self.beliefs.boxes[action.box_from].color == self.color):
+                #log("failed to find box of color" + str(self.color) +" in wanted location" + str(action.box_from))
+                return True 
+        #log("Agent " + str(self.id_) +" at position " + str((self.row, self.col)) + " thinks it is safe to " + str(action.action))
+        return False
+
+        # if (action.required_free is not None) and (not self.beliefs.is_free(action.required_free[0], action.required_free[1])):
+        #     log("Space no longer free: " + str(action.required_free))
+        #     return True
+        # #if box_from != [] check if a box is still there and right color
+        # if action.box_from is not None:
+        #     if action.box_from in self.beliefs.boxes and self.beliefs.boxes[action.box_from].color == self.color:
+        #         return False 
+        #     return True
+        # else:
+        #     return False
 
     # Check if goal achieved
     def succeeded(self) -> 'Bool':
@@ -525,7 +543,7 @@ class NaiveIterativeBDIAgent(BDIAgent):
             self.current_plan.append(state.unfolded_action)
             state = state.parent  # one level up
         #log("Extracted plan (in reverse)" + str(self.current_plan))
-        log("Searching done for agent " + str(self.id_) + ", took best state with plan (reversed)" + str(self.current_plan))
+        #log("Searching done for agent " + str(self.id_) + ", took best state with plan (reversed)" + str(self.current_plan))
         return self.current_plan.reverse()
 
 
