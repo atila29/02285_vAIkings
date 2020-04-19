@@ -498,7 +498,7 @@ class NaiveIterativeBDIAgent(BDIAgent):
             #log("Length of frontier" + str(len(strategy.frontier)))
             iterations = iterations + 1
             #Pick a leaf to explore
-            if strategy.frontier_empty() or iterations > 100:
+            if strategy.frontier_empty() or iterations > 1000:
                 #log("frontier is empty")
                 break
             leaf = strategy.get_and_remove_leaf()  # 

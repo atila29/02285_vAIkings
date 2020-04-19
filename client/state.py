@@ -4,6 +4,7 @@ from enum import Enum
 from level import LevelElement, Level, Wall, AgentElement, Box
 from action import Action, ALL_ACTIONS, Dir, ActionType, UnfoldedAction
 import copy
+from util import log
 
 LEVEL = Level()
 
@@ -20,6 +21,7 @@ class State(object):
 
     def __init__(self, copy_state: 'State' = None):
 
+        self._hash = None
         if copy_state is None:
             self.agents = {}
             self.boxes = {}
@@ -64,6 +66,15 @@ class State(object):
         
     def is_initial_state(self) -> 'bool':
         return self.parent is None
+
+    def __hash__(self):
+        if self._hash is None:
+            prime = 31
+            _hash = 1
+            _hash = _hash * prime + hash(tuple([(agent.row, agent.col) for agent in self.agents.values()]))
+            _hash = _hash * prime + hash(tuple([(box.row, box.col) for box in self.boxes.values()]))
+            self._hash = _hash
+        return self._hash
 
     def is_current_state(self, state) -> 'bool':
         return self == state
@@ -155,3 +166,16 @@ class State(object):
     def is_goal_satisfied(self, goal):
         return (goal.row, goal.col) in self.boxes and self.boxes[goal.row, goal.col].letter == goal.letter
 
+    def __eq__(self,other):
+        #check agent locations
+        for key in self.agents:
+            if key not in other.agents or other.agents[key] != self.agents[key]:
+                #log("States were NOT equal:" + str(self) +", " + str(other),"Compared states")
+                return False
+        #check box locations
+        for key in self.boxes:
+            if key not in other.boxes or other.boxes[key] != self.boxes[key]:
+                #log("States were NOT equal:" + str(self) +", " + str(other),"Compared states")
+                return False
+        #log("States were equal:" + str(self) +", " + str(other),"Compared states")
+        return True

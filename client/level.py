@@ -41,6 +41,9 @@ class AgentElement:
 
     def __str__(self):
         return self.id_
+        
+    def __eq__(self, other):
+        return self.id_ == other.id_
 
 class Box:
 
@@ -64,6 +67,9 @@ class Box:
 
     def __str__(self):
         return self.letter
+
+    def __eq__(self, other):
+        return other is not None and self.id_ == other.id_
 
    
 

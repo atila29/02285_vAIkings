@@ -254,6 +254,10 @@ def main():
     client = Client(server_messages)
     client.init_agents(NaiveIterativeBDIAgent, [3])
     
+    log("Testing eq for state:")
+    log(client.initial_state == client.initial_state)
+    test_state = State(client.initial_state)
+    log(client.initial_state == test_state)
     #run client
     client.run(client.initial_state)
 
