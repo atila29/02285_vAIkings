@@ -40,6 +40,9 @@ class ActionType:
     def __repr__(self):
         return self.name
 
+    #def __eq__(self, other):
+    #    return self.name == other.name
+
 
 ActionType.Move = ActionType('Move')
 ActionType.Push = ActionType('Push')
@@ -71,6 +74,9 @@ class Action:
     def __str__(self):
         return self._repr
 
+    def __eq__(self, other):
+        return (self.action_type == other.action_type) and (self.agent_dir == other.agent_dir) and (self.box_dir == other.box_dir)
+
 # Grounded actions.
 ALL_ACTIONS = []
 ALL_ACTIONS.append(Action(ActionType.NoOp, Dir.N, Dir.N))
@@ -99,3 +105,7 @@ class UnfoldedAction:
 
         self.action = action
         self.agent_id = agent_id
+
+    def __eq__(self, other):
+        return self.agent_id == other.agent_id and self.action == other.action
+
