@@ -3,6 +3,7 @@
 import heapq
 import itertools
 import sys
+from collections import deque
 
 
 class StrategyBestFirst():
@@ -47,3 +48,39 @@ class StrategyBestFirst():
 
     def __repr__(self):
         return 'Best-first Search using {}'.format(self.heuristic)
+
+
+class StrategyBFS:
+    def __init__(self):
+        super().__init__()
+        self.frontier = deque()
+        self.frontier_set = set()
+        self.explored = set()
+
+    def add_to_explored(self, state: 'State'):
+        self.explored.add(state)
+
+    def is_explored(self, state: 'State') -> 'bool':
+        return state in self.explored
+
+    def get_and_remove_leaf(self) -> 'State':
+        leaf = self.frontier.popleft()
+        self.frontier_set.remove(leaf)
+        return leaf
+
+    def add_to_frontier(self, state: 'State'):
+        #only adds pull Actions
+        self.frontier.append(state)
+        self.frontier_set.add(state)
+
+    def in_frontier(self, state: 'State') -> 'bool':
+        return state in self.frontier_set
+
+    def frontier_count(self) -> 'int':
+        return len(self.frontier)
+
+    def frontier_empty(self) -> 'bool':
+        return len(self.frontier) == 0
+
+    def __repr__(self):
+        return 'Breadth-first Search'

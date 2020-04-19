@@ -79,13 +79,13 @@ class State(object):
     def is_current_state(self, state) -> 'bool':
         return self == state
 
-    def get_children_for_agent(self, agent_id, agent_row, agent_col):
+    def get_children_for_agent(self, agent_id, agent_row, agent_col, actions=ALL_ACTIONS):
         children = []
         #check there is actually an agent
         if (agent_row, agent_col) not in self.agents or self.agents[agent_row, agent_col].id_ != agent_id:
             raise RuntimeError("Mismatch between agent ID and position")
         agent = self.agents[agent_row, agent_col]
-        for action in ALL_ACTIONS:
+        for action in actions:
             # Determine if action is applicable.
             new_agent_row = agent.row + action.agent_dir.d_row
             new_agent_col = agent.col + action.agent_dir.d_col

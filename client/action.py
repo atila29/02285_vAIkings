@@ -91,6 +91,13 @@ for agent_dir in (Dir.N, Dir.S, Dir.E, Dir.W):
             ALL_ACTIONS.append(Action(ActionType.Pull, agent_dir, box_dir))
 
 
+PULL_ACTIONS = []
+for agent_dir in (Dir.N, Dir.S, Dir.E, Dir.W):
+    for box_dir in (Dir.N, Dir.S, Dir.E, Dir.W):
+        if agent_dir is not box_dir:
+            # If not same directions.
+            PULL_ACTIONS.append(Action(ActionType.Pull, agent_dir, box_dir))
+
 class UnfoldedAction:
 
     def __init__(self, action, agent_id):

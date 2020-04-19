@@ -243,6 +243,10 @@ class Client:
                 # log("Agent " + str(joint_actions[index].agent_id) + " forced to NoOP", "CONFLICT RESOLUTION")
 
 
+
+
+
+
 def main():
     # Read server messages from stdin.
     server_messages = sys.stdin
