@@ -163,6 +163,11 @@ class BDIAgent(Agent):
                 self.deliberate()
             if not(self.sound()):
                 self.plan()
+        #conflict with other agent,
+
+        elif self.next_to_higher_agent():
+            log('in elif sentence')
+            self.current_plan[:0] = [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]
         else:
             # log("Agent " + str(self.id_) +" at position " + str((self.row, self.col)) + " is replanning because:")
             # if len(self.current_plan) == 0:
@@ -175,7 +180,28 @@ class BDIAgent(Agent):
             self.plan()
         return self.current_plan[0] #what if empty?
         
+    def next_to_higher_agent(self) -> bool:
+        current_state = self.beliefs
+        up_agent = current_state.agents.get((self.row-1, self.col)) #check up
+        log('agent: ' + str(self))
+        log(up_agent)
+        down_agent = current_state.agents.get((self.row+1, self.col))
 
+        log(down_agent)
+
+        left_agent = current_state.agents.get((self.row, self.col-1))
+        right_agent = current_state.agents.get((self.row, self.col+1))
+        log(left_agent)
+        log(right_agent)
+        if up_agent is not None and self.id_ < up_agent.id_:
+            return True
+        if down_agent is not None and self.id_ < down_agent.id_:
+            return True
+        if left_agent is not None and self.id_ < left_agent.id_:
+            return True
+        if right_agent is not None and self.id_ < right_agent.id_:
+            return True
+        return False
     
 
 
