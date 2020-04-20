@@ -4,7 +4,9 @@ import re
 
 from state import State, LEVEL
 from level import LevelElement, Wall, Space, Goal, Level, AgentElement, Box
-from agent import Agent, BDIAgent1, NaiveBDIAgent, NaiveIterativeBDIAgent
+from agent import Agent
+from naiveagents import NaiveBDIAgent, NaiveIterativeBDIAgent
+from cnetagent import CNETAgent
 from action import Action, ActionType, Dir, UnfoldedAction
 from util import log
 import uuid
@@ -164,7 +166,8 @@ class Client:
                 return False
         return True
 
-    def init_agents(self, agent_type, args=None):
+    def init_agents(self, agent_type, args=None, DECOMPOSE=False):
+        #Create 'real' agents from AgentElements
         for agent_pos in self.initial_state.agents:
             agent = self.initial_state.agents[agent_pos]
             if args is not None:
@@ -172,6 +175,12 @@ class Client:
             else:
                 self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state))
             self.agent_dic[agent.id_] = self.agents[-1]
+        #Decomposition of goals: Adds the goals of the agents color to their desires
+        if DECOMPOSE:
+            for agent in self.agents:
+                for goal in LEVEL.goals[agent.color]:
+                    agent.add_subgoal(goal)
+            log("Agent " + str(agent.id_) + " now has desires to move boxes onto " + str(agent.desires), "DECOMPOSITION")
 
     def send_message(self, msg):
         print(msg, flush = True)
@@ -219,7 +228,7 @@ class Client:
             bdi_agent = self.agent_dic[action.agent_id]
             #remove first action in plan if executed
             if bdi_agent.current_plan[0] == action:
-                temp = bdi_agent.current_plan.pop(0)
+                bdi_agent.current_plan.pop(0)
                 #log("Agent " + str(bdi_agent.id_) + "executed first part of it's plan: " + str(temp.action),"POPPED FROM PLAN")
             if action.action.action_type == ActionType.NoOp:
                 continue
@@ -254,10 +263,6 @@ def main():
     client = Client(server_messages)
     client.init_agents(NaiveIterativeBDIAgent, [3])
     
-    log("Testing eq for state:")
-    log(client.initial_state == client.initial_state)
-    test_state = State(client.initial_state)
-    log(client.initial_state == test_state)
     #run client
     client.run(client.initial_state)
 
