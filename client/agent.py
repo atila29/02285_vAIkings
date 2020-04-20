@@ -167,7 +167,8 @@ class BDIAgent(Agent):
 
         elif self.next_to_higher_agent():
             log('in elif sentence')
-            self.current_plan[:0] = [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]
+            self.current_plan[:0] = self.retreat_move()
+            #self.current_plan[:0] = [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]
         else:
             # log("Agent " + str(self.id_) +" at position " + str((self.row, self.col)) + " is replanning because:")
             # if len(self.current_plan) == 0:
@@ -179,29 +180,50 @@ class BDIAgent(Agent):
             self.deliberate()
             self.plan()
         return self.current_plan[0] #what if empty?
-        
-    def next_to_higher_agent(self) -> bool:
+
+    def next_to_agent(self):
         current_state = self.beliefs
-        up_agent = current_state.agents.get((self.row-1, self.col)) #check up
+        up_agent = current_state.agents.get((self.row - 1, self.col))  # check up
+        down_agent = current_state.agents.get((self.row + 1, self.col))
+        left_agent = current_state.agents.get((self.row, self.col - 1))
+        right_agent = current_state.agents.get((self.row, self.col + 1))
         log('agent: ' + str(self))
         log(up_agent)
-        down_agent = current_state.agents.get((self.row+1, self.col))
-
         log(down_agent)
-
-        left_agent = current_state.agents.get((self.row, self.col-1))
-        right_agent = current_state.agents.get((self.row, self.col+1))
         log(left_agent)
         log(right_agent)
-        if up_agent is not None and self.id_ < up_agent.id_:
+        return up_agent, down_agent, left_agent, right_agent
+
+    def next_to_higher_agent(self) -> bool:
+        up_agent, down_agent, left_agent, right_agent = self.next_to_agent()
+        if up_agent is not None and self.id_ > up_agent.id_:
             return True
-        if down_agent is not None and self.id_ < down_agent.id_:
+        if down_agent is not None and self.id_ > down_agent.id_:
             return True
-        if left_agent is not None and self.id_ < left_agent.id_:
+        if left_agent is not None and self.id_ > left_agent.id_:
             return True
-        if right_agent is not None and self.id_ < right_agent.id_:
+        if right_agent is not None and self.id_ > right_agent.id_:
             return True
         return False
+
+    #assume that the agents does not take into account boxes
+    def retreat_move(self):
+        current_state = self.beliefs
+        if current_state.is_free(self.row-1, self.col): # up
+            log('up')
+            return [UnfoldedAction(Action(ActionType.Move, Dir.N, None), self.id_)]
+        elif current_state.is_free(self.row+1, self.col): # down
+            log('down')
+            return [UnfoldedAction(Action(ActionType.Move, Dir.S, None), self.id_)]
+        elif current_state.is_free(self.row, self.col-1): # left
+            log('left')
+            return [UnfoldedAction(Action(ActionType.Move, Dir.W, None), self.id_)]
+        elif current_state.is_free(self.row-1, self.col+1): # right
+            log('right')
+            return [UnfoldedAction(Action(ActionType.Move, Dir.E, None), self.id_)]
+        else:
+            return [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]
+
     
 
 
