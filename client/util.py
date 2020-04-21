@@ -1,6 +1,6 @@
 import sys
 
-log_filter = ["test"]
+log_filter = ["BDI", "CNET"]
 
 def log(msg, tag = None, ignoreFilter = True):
     if tag is None:

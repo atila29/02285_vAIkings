@@ -26,29 +26,9 @@ class CfpMoveBoxTo:
         self.location = location
 
 class CfpMoveSpecificBoxTo:
-    def __init__(self, boxId, location, cost = None):
-        self.boxId = boxId
+    def __init__(self, box, location, cost = None):
+        self.box = box
         self.location = location
 
-class Propose:
-    def __init__(self, cost):
-        self.cost = cost
 
-class Agree:
-    pass
-
-class Refuse:
-    pass
-
-class Failed:
-    pass
-
-class AcceptProposal:
-    pass
-
-class RejectProposal:
-    pass
-
-class InformProposalDelivered:
-    pass
 

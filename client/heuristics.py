@@ -1,3 +1,4 @@
+from level import Goal
 
 class Heuristic:
     
@@ -5,9 +6,12 @@ class Heuristic:
         self.agent = agent
 
     #could add an if-statement of whether the agent is next to the box or not
-    def h(self, state) -> 'in#find position of agent':
+    def h(self, state, pair = None) -> 'in#find position of agent':
         
-        intended_box, goal = self.agent.intentions
+        if pair is None:
+            intended_box, goal = self.agent.intentions
+        else:
+            intended_box, goal = pair
 
         #Find agent position in this state
         for agent in state.agents.values(): 
@@ -22,13 +26,16 @@ class Heuristic:
                 box_col = box.col
         
         # distance from agent to box to goal
-        dist_box_goal = abs(goal.row - box_row) + abs(goal.col - box_col) # dist from box to goal
+        if isinstance(goal, Goal):
+            dist_box_goal = abs(goal.row - box_row) + abs(goal.col - box_col) # dist from box to goal
+        else:
+            dist_box_goal = abs(goal[0] - box_row) + abs(goal[1] - box_col)
         dist_agt_box = abs(agent_row - box_row) + abs(agent_col - box_col) # dist from agent to box
         dist = dist_box_goal + dist_agt_box # total dist
         return dist
 
-    def f(self, state): #greedy
-        return self.h(state)
+    def f(self, state, pair=None): #greedy
+        return self.h(state, pair)
 
 
 

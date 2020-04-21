@@ -177,9 +177,16 @@ class Client:
             self.agent_dic[agent.id_] = self.agents[-1]
         #Decomposition of goals: Adds the goals of the agents color to their desires
         if DECOMPOSE:
+            letters_by_color = {}
+            for box in self.initial_state.boxes.values():
+                if box.color not in letters_by_color:
+                    letters_by_color[box.color] = []
+                if box.letter not in letters_by_color[box.color]:
+                    letters_by_color[box.color].append(box.letter)
             for agent in self.agents:
-                for goal in LEVEL.goals[agent.color]:
-                    agent.add_subgoal(goal)
+                for letter in letters_by_color[agent.color]:
+                    for goal in LEVEL.goals[letter]:
+                        agent.add_subgoal(goal)
             log("Agent " + str(agent.id_) + " now has desires to move boxes onto " + str(agent.desires), "DECOMPOSITION")
 
     def send_message(self, msg):
@@ -261,7 +268,7 @@ def main():
 
     #init client and agents
     client = Client(server_messages)
-    client.init_agents(NaiveIterativeBDIAgent, [3])
+    client.init_agents(CNETAgent, DECOMPOSE=True)
     
     #run client
     client.run(client.initial_state)
