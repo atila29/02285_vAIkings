@@ -166,6 +166,9 @@ class State(object):
     def is_goal_satisfied(self, goal):
         return (goal.row, goal.col) in self.boxes and self.boxes[goal.row, goal.col].letter == goal.letter
 
+    def is_box_at_location(self, location, boxid):
+        return  location in self.boxes and self.boxes[location].id_ == boxid
+
     def __eq__(self,other):
         #check agent locations
         for key in self.agents:

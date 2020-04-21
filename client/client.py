@@ -4,7 +4,9 @@ import re
 
 from state import State, LEVEL
 from level import LevelElement, Wall, Space, Goal, Level, AgentElement, Box
-from agent import Agent, BDIAgent1, NaiveBDIAgent, NaiveIterativeBDIAgent
+from agent import Agent
+from naiveagents import NaiveBDIAgent, NaiveIterativeBDIAgent
+from cnetagent import CNETAgent
 from action import Action, ActionType, Dir, UnfoldedAction
 from util import log
 import uuid
@@ -164,14 +166,28 @@ class Client:
                 return False
         return True
 
-    def init_agents(self, agent_type, args=None):
+    def init_agents(self, agent_type, args=None, DECOMPOSE=False):
+        #Create 'real' agents from AgentElements
         for agent_pos in self.initial_state.agents:
             agent = self.initial_state.agents[agent_pos]
             if args is not None:
-                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state, *args))
+                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state, self.agents, *args))
             else:
-                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state))
+                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state, self.agents))
             self.agent_dic[agent.id_] = self.agents[-1]
+        #Decomposition of goals: Adds the goals of the agents color to their desires
+        if DECOMPOSE:
+            letters_by_color = {}
+            for box in self.initial_state.boxes.values():
+                if box.color not in letters_by_color:
+                    letters_by_color[box.color] = []
+                if box.letter not in letters_by_color[box.color]:
+                    letters_by_color[box.color].append(box.letter)
+            for agent in self.agents:
+                for letter in letters_by_color[agent.color]:
+                    for goal in LEVEL.goals[letter]:
+                        agent.add_subgoal(goal)
+            log("Agent " + str(agent.id_) + " now has desires to move boxes onto " + str(agent.desires), "DECOMPOSITION")
 
     def send_message(self, msg):
         print(msg, flush = True)
@@ -219,7 +235,7 @@ class Client:
             bdi_agent = self.agent_dic[action.agent_id]
             #remove first action in plan if executed
             if bdi_agent.current_plan[0] == action:
-                temp = bdi_agent.current_plan.pop(0)
+                bdi_agent.current_plan.pop(0)
                 #log("Agent " + str(bdi_agent.id_) + "executed first part of it's plan: " + str(temp.action),"POPPED FROM PLAN")
             if action.action.action_type == ActionType.NoOp:
                 continue
@@ -240,7 +256,7 @@ class Client:
             for index in conflict[1:]:
                 agent_id = joint_actions[index].agent_id
                 joint_actions[index] = UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), agent_id)
-                # log("Agent " + str(joint_actions[index].agent_id) + " forced to NoOP", "CONFLICT RESOLUTION")
+                log("Agent " + str(joint_actions[index].agent_id) + " forced to NoOP", "CONFLICT RESOLUTION", False)
 
 
 def main():
@@ -252,12 +268,8 @@ def main():
 
     #init client and agents
     client = Client(server_messages)
-    client.init_agents(NaiveIterativeBDIAgent, [3])
+    client.init_agents(CNETAgent, DECOMPOSE=True)
     
-    log("Testing eq for state:")
-    log(client.initial_state == client.initial_state)
-    test_state = State(client.initial_state)
-    log(client.initial_state == test_state)
     #run client
     client.run(client.initial_state)
 
