@@ -171,9 +171,9 @@ class Client:
         for agent_pos in self.initial_state.agents:
             agent = self.initial_state.agents[agent_pos]
             if args is not None:
-                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state, *args))
+                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state, self.agents, *args))
             else:
-                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state))
+                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state, self.agents))
             self.agent_dic[agent.id_] = self.agents[-1]
         #Decomposition of goals: Adds the goals of the agents color to their desires
         if DECOMPOSE:
@@ -256,7 +256,7 @@ class Client:
             for index in conflict[1:]:
                 agent_id = joint_actions[index].agent_id
                 joint_actions[index] = UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), agent_id)
-                # log("Agent " + str(joint_actions[index].agent_id) + " forced to NoOP", "CONFLICT RESOLUTION")
+                log("Agent " + str(joint_actions[index].agent_id) + " forced to NoOP", "CONFLICT RESOLUTION", False)
 
 
 def main():

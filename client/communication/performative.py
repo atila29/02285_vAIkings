@@ -30,5 +30,13 @@ class CfpMoveSpecificBoxTo:
         self.box = box
         self.location = location
 
+    # region String representations
+    def __repr__(self):
+        return "Move box {} to location {}".format(self.box, self.location)
+
+    def __str__(self):
+        return self.__repr__()
+    # endregion
+
 
 

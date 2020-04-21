@@ -23,6 +23,7 @@ class CNETAgent(BDIAgent):
                  row,
                  col,
                  initial_beliefs,
+                 all_agents,
                  depth=1,
                  heuristic=None):
 
@@ -32,10 +33,14 @@ class CNETAgent(BDIAgent):
         else:
             self.heuristic = Heuristic(self)
 
+        self.all_agents = all_agents
+
         # init desires
         self.desires = {}
         self.desires['goals'] = []
         self.desires['contracts'] = []
+
+        self.intentions = None
 
         super().__init__(id_, color, row, col, initial_beliefs)
 
@@ -57,14 +62,18 @@ class CNETAgent(BDIAgent):
     """
     def calculate_proposal(self, performative, cost):
         #search for solution to the problem
+        if len(self.desires['contracts']) != 0:
+            log("Agent {} refused because it is occupied with another contract".format(self.id_), "BIDDING", False)
+            return None
         #update current_proposal + return cost or None as refusal
-        if isinstance(performative, CfpMoveSpecificBoxTo):            
+        if isinstance(performative, CfpMoveSpecificBoxTo) and performative.box.color == self.color:            
             cost = self.heuristic.f(self.beliefs, (performative.box,performative.location))
         else:
             return None
         self.current_proposal = {}
         self.current_proposal['performative'] = performative
         self.current_proposal['cost'] = cost
+        log("Agent {}: I can do it in {} moves".format(self.id_, cost), "BIDDING", False)
         return cost
 
     def accept_proposal(self, manager):
@@ -72,6 +81,7 @@ class CNETAgent(BDIAgent):
         contract = Contract(manager, self, self.current_proposal['performative'], self.current_proposal['cost'], self.beliefs.g)
         self.desires['contracts'].append(contract)
         log("Agent {} contracted agent {} to {}".format(manager.id_, self.id_,self.current_proposal['performative']), "CNET", False)
+        
         return contract
 
     def reject_proposal(self):
@@ -108,46 +118,59 @@ class CNETAgent(BDIAgent):
             Does all boxes eventually have to be moved, or do we have a surplus?
     """
     def deliberate(self):
-        self.intentions = None
+        if self.succeeded():
+            if isinstance(self.intentions, Contract):
+                log("Agent {} succeeded it's task of {}.".format(self.id_, self.intentions), "BDI", False)
+                self.desires['contracts'].pop(0)
+                self.intentions = None
+            #remove contract if fulfilled/failed.
+            self.intentions = None
         if len(self.desires['contracts']) != 0:
             self.intentions = self.desires['contracts'][0]
+            return self.intentions
+        if self.intentions is not None:
+            return self.intentions
         #pick goal not already used (see blackboard)
         # TODO : impl blackboard
         random.shuffle(self.desires['goals'])
         for goal in self.desires['goals']:
             if not self.beliefs.is_goal_satisfied(goal):
-                self.intentions = goal
                 for box in self.beliefs.boxes.values():
                     #TODO: check if box is in use on blackboard
-                    if box.color == self.color:
+                    if box.color == self.color and box.letter == goal.letter:
                         my_box = box
                         break 
                 location = (goal.row, goal.col)
                 my_cost = self.heuristic.f(self.beliefs, (my_box, location))
                 best_cost = my_cost
                 best_agent = self
-                for agent in self.beliefs.agents.values():
+                log("Agent {} is calling for proposals for moving box {} to {}. Own cost: {}".format(self.id_, my_box, location, my_cost), "CNET", False)
+                for agent in self.all_agents:
                     if agent.id_ != self.id_:
                         new_cost = agent.calculate_proposal(CfpMoveSpecificBoxTo(my_box, location),best_cost)
-                        if  new_cost <= best_cost:
+                        if  new_cost is not None and new_cost <= best_cost:
                             best_cost = new_cost
                             best_agent = agent
                 
-                for agent in self.beliefs.agents.values():
+                for agent in self.all_agents:
                     if agent.id_ == self.id_:
                         continue
                     if agent.id_ == best_agent.id_: 
-                        contract = agent.accept_proposal()
-                        self.desires['contracts'].append(contract)
-                        self.intentions = contract
+                        agent.accept_proposal(self)
                         continue
-                    agent.refuse_proposal()
+                    agent.reject_proposal()
 
                 if best_agent.id_ == self.id_:
                     self.intentions = (my_box,goal)
+                    break
 
-                log("Agent {} now has intentions {}".format(self.id_, self.intentions), "BDI", False)
-                break
+        if isinstance(self.intentions, Contract):
+            log("Agent {}'s intention is to fulfill Contract to {}".format(self.id_, self.intentions), "BDI", False)
+        elif self.intentions is None:
+            log("Agent {} has no intentions".format(self.id_), "BDI", False)
+        else:
+            log("Agent {} now has intentions to move box {} to goal {}".format(self.id_, self.intentions[0], self.intentions[1]), "BDI", False)
+
             
 
     """
@@ -164,12 +187,16 @@ class CNETAgent(BDIAgent):
     def plan(self):
         if self.intentions is None:
             super().plan()
+            return
         elif isinstance(self.intentions, Contract):
             box = self.intentions.performative.box
-            location = self.intentions.performative.location            
-            return self.single_agent_search(self.heuristic, (box, location))
+            location = self.intentions.performative.location           
         else:
-            return self.single_agent_search(self.heuristic)
+            box, location = self.intentions       
+        plan = self.single_agent_search(self.heuristic, (box, location))
+        if len(plan) == 0:
+            raise RuntimeError("Empty plan returned from SingleAgentSearch. Agent: {}, Intentions: {}".format(self.id_, self.intentions))
+        return 
 
     """
         Q:  Has something happened in the environment that means I should reconsider my current plan?
@@ -203,6 +230,7 @@ class CNETAgent(BDIAgent):
             location = self.intentions.performative.location 
             if location in self.beliefs.boxes and self.beliefs.boxes[location].id_ == box.id_:
                 return True
+            return False
         return self.beliefs.is_goal_satisfied(self.intentions[1])  
             
         # If intention box/goal: check if a box is on the goal
@@ -217,6 +245,12 @@ class CNETAgent(BDIAgent):
         #ta inn level her ?
         strategy.add_to_frontier(self.beliefs)  # current state
         
+        if pair is None:
+            box, goal = self.intentions
+            location = (goal.row, goal.col)
+        else:
+            box, location = pair
+
         self.current_plan =[]
         iterations = 0
         next_state = (self.beliefs, heuristic.f(self.beliefs, pair))
@@ -231,13 +265,14 @@ class CNETAgent(BDIAgent):
             leaf = strategy.get_and_remove_leaf()  # 
             
             #If we found solution 
-            if leaf.is_goal_satisfied(self.intentions[1]):  # if the leaf is a goal stat -> extract plan
+            if leaf.is_box_at_location(location, box.id_):  # if the leaf is a goal stat -> extract plan
                 #log("found solution", "info")
                 state = leaf  # current state
                 while not state.is_current_state(self.beliefs):
                     self.current_plan.append(state.unfolded_action)
                     state = state.parent  # one level up
-                return self.current_plan.reverse()
+                self.current_plan.reverse()
+                return self.current_plan
            
             #Find agent position in this state
             for agent in leaf.agents.values(): 
@@ -271,7 +306,8 @@ class CNETAgent(BDIAgent):
             state = state.parent  # one level up
         #log("Extracted plan (in reverse)" + str(self.current_plan))
         #log("Searching done for agent " + str(self.id_) + ", took best state with plan (reversed)" + str(self.current_plan))
-        return self.current_plan.reverse()
+        self.current_plan.reverse()
+        return self.current_plan
 
     # region String representations
     def __repr__(self):
@@ -289,5 +325,14 @@ class Contract:
         self.performative = performative
         self.cost = cost
         self.start = start
+
+    # region String representations
+    def __repr__(self):
+        return str(self.performative)
+
+    def __str__(self):
+        return self.__repr__()
+    # endregion
+
         
 
