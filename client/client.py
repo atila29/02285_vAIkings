@@ -9,6 +9,7 @@ from naiveagents import NaiveBDIAgent, NaiveIterativeBDIAgent
 from cnetagent import CNETAgent
 from action import Action, ActionType, Dir, UnfoldedAction
 from util import log
+from communication.blackboard import BLACKBOARD
 import uuid
 
 class Section(Enum):
@@ -187,7 +188,7 @@ class Client:
                 for letter in letters_by_color[agent.color]:
                     for goal in LEVEL.goals[letter]:
                         agent.add_subgoal(goal)
-            log("Agent " + str(agent.id_) + " now has desires to move boxes onto " + str(agent.desires), "DECOMPOSITION")
+            log("Agent " + str(agent.id_) + " now has desires to move boxes onto " + str(agent.desires), "DECOMPOSITION", False)
 
     def send_message(self, msg):
         print(msg, flush = True)
@@ -226,6 +227,7 @@ class Client:
         new_state = State(current_state)
 
         current_state.print_current_state()
+        BLACKBOARD.print_status(current_state)
         # log("(6,7) is free: "+ str(current_state.is_free(6,7)))
         self.send_agent_actions(joint_actions)        
         

@@ -2,10 +2,13 @@ from agent import BDIAgent
 from heuristics import Heuristic
 from communication.message import Message
 from communication.performative import CfpMoveSpecificBoxTo
+from communication.contract import Contract
+from communication.blackboard import BLACKBOARD
 from action import ActionType, ALL_ACTIONS, UnfoldedAction, Action, Dir
 from util import log
 import random
 from strategy import StrategyBestFirst
+from state import LEVEL
 
 """
     This agent should be allocated subgoals after initialisation using add_subgoal.
@@ -118,25 +121,47 @@ class CNETAgent(BDIAgent):
             Does all boxes eventually have to be moved, or do we have a surplus?
     """
     def deliberate(self):
+        #Have we succeeded?
         if self.succeeded():
+            log("Agent {} succeeded it's task of {}.".format(self.id_, self.intentions), "BDI", False)
+            #Remove contract from desire and BB
             if isinstance(self.intentions, Contract):
-                log("Agent {} succeeded it's task of {}.".format(self.id_, self.intentions), "BDI", False)
+                BLACKBOARD.remove(self.intentions)
                 self.desires['contracts'].pop(0)
-                self.intentions = None
-            #remove contract if fulfilled/failed.
+            #Remove claim on box and goal on BB, if intention is (box,goal)
+            elif self.intentions is not None:
+                box, goal = self.intentions
+                BLACKBOARD.remove((box,goal))
+            #Reset intentions
             self.intentions = None
+        
+        #Contract has priority if there is one
         if len(self.desires['contracts']) != 0:
+            
+            #Is contract already the intention -> return
+            if self.intentions == self.desires['contracts'][0]:
+                return self.intentions
+            
+            #Did we have another intention we are overwriting -> Update BB
+            if self.intentions is not None:
+                box, goal = self.intentions
+                BLACKBOARD.remove((box,goal))
+            
+            #Set intention to be the contract
             self.intentions = self.desires['contracts'][0]
+            BLACKBOARD.add(self.intentions, self.id_)
+            log("Agent {}'s intention is to fulfill Contract to {}".format(self.id_, self.intentions), "BDI", False)
             return self.intentions
+        
+        #No contract present, 
         if self.intentions is not None:
             return self.intentions
-        #pick goal not already used (see blackboard)
-        # TODO : impl blackboard
+        
+        #pick box, goal not already used, Start bidding to find best contractor.  
         random.shuffle(self.desires['goals'])
         for goal in self.desires['goals']:
-            if not self.beliefs.is_goal_satisfied(goal):
+            if not self.beliefs.is_goal_satisfied(goal) and (goal.row, goal.col) not in BLACKBOARD.claimed_goals:
                 for box in self.beliefs.boxes.values():
-                    #TODO: check if box is in use on blackboard
                     if box.color == self.color and box.letter == goal.letter:
                         my_box = box
                         break 
@@ -164,15 +189,14 @@ class CNETAgent(BDIAgent):
                     self.intentions = (my_box,goal)
                     break
 
-        if isinstance(self.intentions, Contract):
-            log("Agent {}'s intention is to fulfill Contract to {}".format(self.id_, self.intentions), "BDI", False)
-        elif self.intentions is None:
+        #update blackboard (Intentions might be None!)
+        if self.intentions is None:
             log("Agent {} has no intentions".format(self.id_), "BDI", False)
+            if self.id_ in BLACKBOARD.claimed_boxes.values() or self.id_ in BLACKBOARD.claimed_goals.values():
+                raise RuntimeError("Agent has no intentions but is still on the blackboard.")
         else:
             log("Agent {} now has intentions to move box {} to goal {}".format(self.id_, self.intentions[0], self.intentions[1]), "BDI", False)
-
-            
-
+            BLACKBOARD.add(self.intentions, self.id_)
     """
         Q:  Given an intention (Contract/goal+box) how do we plan to execute said intention?
         Q:  If the intention is goal+box, how do we search for solution?
@@ -317,22 +341,6 @@ class CNETAgent(BDIAgent):
         return self.__repr__()
     # endregion
 
-class Contract:
-
-    def __init__(self, manager, contractor, performative, cost, start):
-        self.manager = manager
-        self.contractor = contractor
-        self.performative = performative
-        self.cost = cost
-        self.start = start
-
-    # region String representations
-    def __repr__(self):
-        return str(self.performative)
-
-    def __str__(self):
-        return self.__repr__()
-    # endregion
 
         
 
