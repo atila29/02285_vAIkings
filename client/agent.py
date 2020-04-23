@@ -1,5 +1,6 @@
 from action import ActionType, ALL_ACTIONS, UnfoldedAction, Action, Dir
 
+from util import log
 """
     Basic properties for agents
 """
@@ -81,7 +82,9 @@ class BDIAgent(Agent):
 
         elif self.next_to_higher_agent():
             log('in elif sentence')
-            self.current_plan[:0] = self.retreat_move()
+            log('plan before: ' + str(self.current_plan))
+            self.current_plan = self.retreat_move() + self.current_plan
+            log('plan after : ' + str(self.current_plan))
             #self.current_plan[:0] = [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]
         else:
             # log("Agent " + str(self.id_) +" at position " + str((self.row, self.col)) + " is replanning because:")
@@ -122,23 +125,44 @@ class BDIAgent(Agent):
         return False
 
     #assume that the agents does not take into account boxes, flytt opp og ned igjen, og legg til litt venting.
+    #assume: no box
     def retreat_move(self):
         current_state = self.beliefs
-        if current_state.is_free(self.row-1, self.col): # up
+        NoOp = UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)
+        moves = [NoOp, NoOp]
+        if current_state.is_free(self.row-1, self.col): # up   (self, action, agent_id):
+            moves = self.get_UnfoldedAction(Action(ActionType.Move, Dir.N, None)) + moves + self.get_UnfoldedAction(Action(ActionType.Move, Dir.S, None))
             log('up')
-            return [UnfoldedAction(Action(ActionType.Move, Dir.N, None), self.id_)]
+
         elif current_state.is_free(self.row+1, self.col): # down
             log('down')
-            return [UnfoldedAction(Action(ActionType.Move, Dir.S, None), self.id_)]
-        elif current_state.is_free(self.row, self.col-1): # left
-            log('left')
-            return [UnfoldedAction(Action(ActionType.Move, Dir.W, None), self.id_)]
-        elif current_state.is_free(self.row-1, self.col+1): # right
-            log('right')
-            return [UnfoldedAction(Action(ActionType.Move, Dir.E, None), self.id_)]
-        else:
-            return [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]
+            moves = self.get_UnfoldedAction(Action(ActionType.Move, Dir.S, None)) + moves + self.get_UnfoldedAction(Action(ActionType.Move, Dir.N, None))
 
+        elif current_state.is_free(self.row, self.col-1): # left
+            moves = self.get_UnfoldedAction(Action(ActionType.Move, Dir.W, None)) + moves + self.get_UnfoldedAction(
+                Action(ActionType.Move, Dir.E, None))
+
+            log('left')
+
+        elif current_state.is_free(self.row-1, self.col+1): # right
+            moves = self.get_UnfoldedAction(Action(ActionType.Move, Dir.E, None)) + moves + self.get_UnfoldedAction(
+                Action(ActionType.Move, Dir.W, None))
+            log('right')
+
+        else:
+            return [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)] #wait
+        return moves
+
+    #har en action --> UnfoldedAction
+    def get_UnfoldedAction(self, action: 'Action') -> []:
+        new_agent_row = self.row + action.agent_dir.d_row
+        new_agent_col = self.col + action.agent_dir.d_col
+        unfolded_action = UnfoldedAction(action, self.id_)
+        unfolded_action.agent_from = (self.row, self.col)
+        unfolded_action.agent_to = (new_agent_row, new_agent_col)
+        unfolded_action.will_become_free = (self.row, self.col)
+        unfolded_action.required_free = (new_agent_row, new_agent_col)
+        return [unfolded_action]
 
 
 

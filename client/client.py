@@ -272,6 +272,7 @@ def main():
 
     #init client and agents
     client = Client(server_messages)
+    #client.init_agents(NaiveBDIAgent, DECOMPOSE = False)
     client.init_agents(CNETAgent, DECOMPOSE=True)
     
     #run client

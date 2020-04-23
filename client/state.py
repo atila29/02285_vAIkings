@@ -86,6 +86,7 @@ class State(object):
             raise RuntimeError("Mismatch between agent ID and position")
         agent = self.agents[agent_row, agent_col]
         for action in ALL_ACTIONS:
+
             # Determine if action is applicable.
             new_agent_row = agent.row + action.agent_dir.d_row
             new_agent_col = agent.col + action.agent_dir.d_col
@@ -162,6 +163,16 @@ class State(object):
                 children.append(child)
         #Shuffle children ? 
         return children
+
+
+
+
+
+
+
+
+
+
 
     def is_goal_satisfied(self, goal):
         return (goal.row, goal.col) in self.boxes and self.boxes[goal.row, goal.col].letter == goal.letter
