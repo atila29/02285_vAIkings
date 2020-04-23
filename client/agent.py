@@ -121,7 +121,7 @@ class BDIAgent(Agent):
             return True
         return False
 
-    #assume that the agents does not take into account boxes
+    #assume that the agents does not take into account boxes, flytt opp og ned igjen, og legg til litt venting.
     def retreat_move(self):
         current_state = self.beliefs
         if current_state.is_free(self.row-1, self.col): # up
