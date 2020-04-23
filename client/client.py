@@ -246,8 +246,6 @@ class Client:
                 box = new_state.boxes.pop(action.box_from)
                 new_state.boxes[action.box_to] = Box(box.id_, box.letter, box.color, action.box_to[0], action.box_to[1])
             #update agent location in state
-            log('new_state.agents: ' + str(new_state.agents))
-            log('action: ' + str(action.agent_from))
             agent = new_state.agents.pop(action.agent_from)
             new_state.agents[action.agent_to] = AgentElement(agent.id_, agent.color, action.agent_to[0], action.agent_to[1])
             #update agents with their new location
@@ -256,6 +254,7 @@ class Client:
         return new_state
 
     def solve_conflicts(self, joint_actions, conflicts) -> '[UnfoldedAction, ...]':
+        log('conflict: ' + str(conflicts))
         for conflict in conflicts:
             for index in conflict[1:]:
                 agent_id = joint_actions[index].agent_id

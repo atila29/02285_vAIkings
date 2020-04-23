@@ -128,7 +128,7 @@ class BDIAgent(Agent):
     #assume: no box
     def retreat_move(self):
         current_state = self.beliefs
-        NoOp = UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)
+        NoOp = UnfoldedAction(Action(ActionType.NoOp, None, None), self.id_)
         moves = [NoOp, NoOp]
         if current_state.is_free(self.row-1, self.col): # up   (self, action, agent_id):
             moves = self.get_UnfoldedAction(Action(ActionType.Move, Dir.N, None)) + moves + self.get_UnfoldedAction(Action(ActionType.Move, Dir.S, None))
@@ -150,7 +150,7 @@ class BDIAgent(Agent):
             log('right')
 
         else:
-            return [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)] #wait
+            return [NoOp, NoOp, NoOp, NoOp] #wait
         return moves
 
     #har en action --> UnfoldedAction
@@ -159,6 +159,7 @@ class BDIAgent(Agent):
         new_agent_col = self.col + action.agent_dir.d_col
         unfolded_action = UnfoldedAction(action, self.id_)
         unfolded_action.agent_from = (self.row, self.col)
+        log('agent_from: ' + str(unfolded_action.agent_from))
         unfolded_action.agent_to = (new_agent_row, new_agent_col)
         unfolded_action.will_become_free = (self.row, self.col)
         unfolded_action.required_free = (new_agent_row, new_agent_col)
