@@ -185,9 +185,10 @@ class Client:
                 if box.letter not in letters_by_color[box.color]:
                     letters_by_color[box.color].append(box.letter)
             for agent in self.agents:
-                for letter in letters_by_color[agent.color]:
-                    for goal in LEVEL.goals[letter]:
-                        agent.add_subgoal(goal)
+                if agent.color in letters_by_color:
+                    for letter in letters_by_color[agent.color]:
+                        for goal in LEVEL.goals[letter]:
+                            agent.add_subgoal(goal)
             log("Agent " + str(agent.id_) + " now has desires to move boxes onto " + str(agent.desires), "DECOMPOSITION", False)
 
     def send_message(self, msg):
