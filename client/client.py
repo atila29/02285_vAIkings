@@ -105,7 +105,6 @@ class Client:
                 plans.append(self.agent_dic[agent_id].get_next_action(current_state))
             #joint_actions = self.create_joint_actions(plans)
             joint_actions = plans
-
             #Check if conflicts in joint plan, Loop until we resolve all conflicts
             conflicts = self.check_for_conflicts(joint_actions)
             if conflicts:    
@@ -113,6 +112,7 @@ class Client:
                 self.solve_conflicts(joint_actions, conflicts)
             
             #Otherwise: Execute
+            log('joint actions: ' + str(joint_actions))
             current_state = self.execute_joint_actions(joint_actions, current_state)
 
             #If we reached goal
@@ -203,11 +203,11 @@ class Client:
         If server declines one of the actions it raises a RuntimeError
     """
     def send_agent_actions(self, actions):
-
         msg = repr(actions[0].action)
         if len(actions) > 1:
-            for action in actions[1:]:
-                msg = msg + ';' + repr(action.action)
+            for unfoldedAction in actions[1:]:
+                msg = msg + ';' + repr(unfoldedAction.action)
+
 
         result = self.send_message(msg)
 
@@ -233,19 +233,24 @@ class Client:
         
         # TODO: Make sure to pop the action from the agents plan (either directly or through a execute function) 
         # Remark: Don't pop if action is NoOP from conflict resolves
-        for action in joint_actions:
+        for action in joint_actions: #list of unfolded actions
+            log('action in joint_actions ' + str(action))
             bdi_agent = self.agent_dic[action.agent_id]
             #remove first action in plan if executed
+            if action.action.action_type == ActionType.NoOp: #6 9 8 9 --> hvor 9 skal noOp
+                bdi_agent.current_plan.pop(0)
             if bdi_agent.current_plan[0] == action:
                 bdi_agent.current_plan.pop(0)
                 #log("Agent " + str(bdi_agent.id_) + "executed first part of it's plan: " + str(temp.action),"POPPED FROM PLAN")
-            if action.action.action_type == ActionType.NoOp:
-                continue
+
+                #continue
             #update box location in state
             if action.box_from is not None:
                 box = new_state.boxes.pop(action.box_from)
                 new_state.boxes[action.box_to] = Box(box.id_, box.letter, box.color, action.box_to[0], action.box_to[1])
             #update agent location in state
+            log('new state agent: ' + str(new_state.agents))
+            log('action.agent_from' + str(action.agent_from))
             agent = new_state.agents.pop(action.agent_from)
             new_state.agents[action.agent_to] = AgentElement(agent.id_, agent.color, action.agent_to[0], action.agent_to[1])
             #update agents with their new location
@@ -258,8 +263,11 @@ class Client:
         for conflict in conflicts:
             for index in conflict[1:]:
                 agent_id = joint_actions[index].agent_id
-                joint_actions[index] = UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), agent_id)
-                log("Agent " + str(joint_actions[index].agent_id) + " forced to NoOP", "CONFLICT RESOLUTION", False)
+                bdi_agent = self.agent_dic[agent_id]
+                joint_actions[index] = UnfoldedAction.get_UnfoldedAction(bdi_agent, Action(ActionType.NoOp, Dir.N, Dir.N)) #NoOp her men i agenten så er den ikke NoOp
+                bdi_agent.current_plan = bdi_agent.get_UnfoldedAction2(Action(ActionType.NoOp, Dir.N, Dir.N)) + bdi_agent.current_plan
+                #joint_actions[index] = UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), agent_id)
+                log("Agent " + str(agent_id) + " forced to NoOP", "CONFLICT RESOLUTION", False)
 
 
 def main():

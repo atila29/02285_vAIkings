@@ -128,24 +128,24 @@ class BDIAgent(Agent):
     #assume: no box
     def retreat_move(self):
         current_state = self.beliefs
-        NoOp = UnfoldedAction(Action(ActionType.NoOp, None, None), self.id_)
+        NoOp = self.get_UnfoldedAction2(Action(ActionType.NoOp, None, None))
         moves = [NoOp, NoOp]
         if current_state.is_free(self.row-1, self.col): # up   (self, action, agent_id):
-            moves = self.get_UnfoldedAction(Action(ActionType.Move, Dir.N, None)) + moves + self.get_UnfoldedAction(Action(ActionType.Move, Dir.S, None))
+            moves = self.get_UnfoldedAction2(Action(ActionType.Move, Dir.N, None)) + moves + self.get_UnfoldedAction2(Action(ActionType.Move, Dir.S, None))
             log('up')
 
         elif current_state.is_free(self.row+1, self.col): # down
             log('down')
-            moves = self.get_UnfoldedAction(Action(ActionType.Move, Dir.S, None)) + moves + self.get_UnfoldedAction(Action(ActionType.Move, Dir.N, None))
+            moves = self.get_UnfoldedAction2(Action(ActionType.Move, Dir.S, None)) + moves + self.get_UnfoldedAction2(Action(ActionType.Move, Dir.N, None))
 
         elif current_state.is_free(self.row, self.col-1): # left
-            moves = self.get_UnfoldedAction(Action(ActionType.Move, Dir.W, None)) + moves + self.get_UnfoldedAction(
+            moves = self.get_UnfoldedAction2(Action(ActionType.Move, Dir.W, None)) + moves + self.get_UnfoldedAction2(
                 Action(ActionType.Move, Dir.E, None))
 
             log('left')
 
         elif current_state.is_free(self.row-1, self.col+1): # right
-            moves = self.get_UnfoldedAction(Action(ActionType.Move, Dir.E, None)) + moves + self.get_UnfoldedAction(
+            moves = self.get_UnfoldedAction2(Action(ActionType.Move, Dir.E, None)) + moves + self.get_UnfoldedAction2(
                 Action(ActionType.Move, Dir.W, None))
             log('right')
 
@@ -154,13 +154,18 @@ class BDIAgent(Agent):
         return moves
 
     #har en action --> UnfoldedAction
-    def get_UnfoldedAction(self, action: 'Action') -> []:
-        new_agent_row = self.row + action.agent_dir.d_row
-        new_agent_col = self.col + action.agent_dir.d_col
+    def get_UnfoldedAction2(self, action: 'Action') -> []:
+        if action.action_type is ActionType.NoOp:
+            new_agent_row = self.row
+            new_agent_col = self.col
+        else:
+            new_agent_row = self.row + action.agent_dir.d_row
+            new_agent_col = self.col + action.agent_dir.d_col
         unfolded_action = UnfoldedAction(action, self.id_)
         unfolded_action.agent_from = (self.row, self.col)
-        log('agent_from: ' + str(unfolded_action.agent_from))
+        log('agent from: ' + str(unfolded_action.agent_from))
         unfolded_action.agent_to = (new_agent_row, new_agent_col)
+        log('agent to: ' + str(unfolded_action.agent_to))
         unfolded_action.will_become_free = (self.row, self.col)
         unfolded_action.required_free = (new_agent_row, new_agent_col)
         return [unfolded_action]
