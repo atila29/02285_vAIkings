@@ -236,7 +236,6 @@ class CNETAgent(BDIAgent):
     """
     def impossible(self) -> 'Bool':
         action = self.current_plan[0] #Unfoldedaction
-        log('action in impossible: ' + str(action))
         if action.action.action_type == ActionType.NoOp:
             return False
         #required_free still free?

@@ -94,18 +94,45 @@ for agent_dir in (Dir.N, Dir.S, Dir.E, Dir.W):
 
 class UnfoldedAction:
 
-    def __init__(self, action, agent_id):
-
-        #tuples
-        self.box_from = None
-        self.box_to = None
-        self.agent_from = None
-        self.agent_to = None
-        self.required_free = None
-        self.will_become_free = None
+    def __init__(self, action, agent_id, auto_create=False, location = None):
 
         self.action = action
         self.agent_id = agent_id
+        if auto_create:
+            #use agents current position
+            if location is None:
+                raise RuntimeError("Have to pass location to auto create UnfoldedAction")
+            if self.action.action_type == ActionType.Move:
+                self.agent_from = location
+                new_agent_row = location[0] + action.agent_dir.d_row
+                new_agent_col = location[1] + action.agent_dir.d_col
+                self.agent_to = (new_agent_row, new_agent_col)
+                self.required_free = self.agent_to
+                self.will_become_free = self.agent_from
+                self.box_from = None
+                self.box_to = None
+            elif self.action.action_type == ActionType.NoOp:
+                self.box_from = None
+                self.box_to = None
+                self.agent_from = location
+                self.agent_to = location
+                self.required_free = None
+                self.will_become_free = None
+            else:
+                raise NotImplementedError("Auto create only implemented for Move/NoOp Actions")
+
+        else:
+            
+            #tuples
+            self.box_from = None
+            self.box_to = None
+            self.agent_from = None
+            self.agent_to = None
+            self.required_free = None
+            self.will_become_free = None
+        
+
+
 
     def __eq__(self, other):
         return self.agent_id == other.agent_id and self.action == other.action

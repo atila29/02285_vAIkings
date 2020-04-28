@@ -81,19 +81,16 @@ class BDIAgent(Agent):
         #conflict with other agent,
 
         elif self.next_to_higher_agent():
-            log('in elif sentence')
-            log('plan before: ' + str(self.current_plan))
             self.current_plan = self.retreat_move() + self.current_plan
-            log('plan after : ' + str(self.current_plan))
             #self.current_plan[:0] = [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]
         else:
-            # log("Agent " + str(self.id_) +" at position " + str((self.row, self.col)) + " is replanning because:")
-            # if len(self.current_plan) == 0:
-            #     log("Length of current plan, was 0")
-            # elif self.succeeded():
-            #     log("Previous plan succeeded")
-            # elif self.impossible:
-            #     log("Current plan: " + str(self.current_plan)+ " was impossible")
+            log("Agent " + str(self.id_) +" at position " + str((self.row, self.col)) + " is replanning because:", "BDI", False)
+            if len(self.current_plan) == 0:
+                log("Length of current plan, was 0", "BDI", False)
+            elif self.succeeded():
+                 log("Previous plan succeeded", "BDI", False)
+            elif self.impossible:
+                 log("Current plan: " + str(self.current_plan)+ " was impossible", "BDI", False)
             self.deliberate()
             self.plan()
         return self.current_plan[0] #what if empty?
@@ -104,11 +101,12 @@ class BDIAgent(Agent):
         down_agent = current_state.agents.get((self.row + 1, self.col))
         left_agent = current_state.agents.get((self.row, self.col - 1))
         right_agent = current_state.agents.get((self.row, self.col + 1))
-        log('agent: ' + str(self))
-        log(up_agent)
-        log(down_agent)
-        log(left_agent)
-        log(right_agent)
+        #log('agent: ' + str(self))
+        #log(up_agent, "NEXT_TO_AGENT", False)
+        #log(down_agent)
+        #log(left_agent)
+        #log(right_agent)
+        log("The following agents are found next to agent {}: {}".format(self.id_, [up_agent, right_agent, down_agent, left_agent]), "NEXT_TO_AGENT", False)
         return up_agent, down_agent, left_agent, right_agent
 
 
@@ -128,31 +126,58 @@ class BDIAgent(Agent):
     #assume: no box
     def retreat_move(self):
         current_state = self.beliefs
-        NoOp = self.get_UnfoldedAction2(Action(ActionType.NoOp, None, None))
+        NoOp = UnfoldedAction(Action(ActionType.NoOp, Dir.N, None), self.id_, True, (self.row, self.col) )
         moves = [NoOp, NoOp]
         if current_state.is_free(self.row-1, self.col): # up   (self, action, agent_id):
-            moves = self.get_UnfoldedAction2(Action(ActionType.Move, Dir.N, None)) + moves + self.get_UnfoldedAction2(Action(ActionType.Move, Dir.S, None))
-            log('up')
+            direction='north'
+            #moves = self.get_UnfoldedAction2(Action(ActionType.Move, Dir.N, None)) + moves + self.get_UnfoldedAction2(Action(ActionType.Move, Dir.S, None))
+            first_move = UnfoldedAction( Action(ActionType.Move, Dir.N, None), self.id_, True, (self.row, self.col) )
+            new_location = (self.row-1, self.col)
+            second_move = UnfoldedAction( Action(ActionType.Move, Dir.S, None), self.id_, True, new_location)
+
+            moves = [first_move] + moves + [second_move]
 
         elif current_state.is_free(self.row+1, self.col): # down
-            log('down')
-            moves = self.get_UnfoldedAction2(Action(ActionType.Move, Dir.S, None)) + moves + self.get_UnfoldedAction2(Action(ActionType.Move, Dir.N, None))
+            direction='south'
+            #moves = self.get_UnfoldedAction2(Action(ActionType.Move, Dir.S, None)) + moves + self.get_UnfoldedAction2(Action(ActionType.Move, Dir.N, None))
+            first_move = UnfoldedAction(Action(ActionType.Move, Dir.S, None), self.id_, True, (self.row, self.col) )
+            new_location = (self.row+1, self.col)
+            second_move = UnfoldedAction(Action(ActionType.Move, Dir.N, None), self.id_, True, new_location)
+
+            moves = [first_move] + moves + [second_move]
 
         elif current_state.is_free(self.row, self.col-1): # left
-            moves = self.get_UnfoldedAction2(Action(ActionType.Move, Dir.W, None)) + moves + self.get_UnfoldedAction2(
-                Action(ActionType.Move, Dir.E, None))
+            #moves = self.get_UnfoldedAction2(Action(ActionType.Move, Dir.W, None)) + moves + self.get_UnfoldedAction2(
+                #Action(ActionType.Move, Dir.E, None))
+            first_move = UnfoldedAction(Action(ActionType.Move, Dir.W, None), self.id_, True, (self.row, self.col) )
+            new_location = (self.row, self.col-1)
+            second_move = UnfoldedAction( Action(ActionType.Move, Dir.E, None), self.id_, True, new_location)
+            moves = [first_move] + moves + [second_move]
 
-            log('left')
+            direction='west'
+            
 
         elif current_state.is_free(self.row-1, self.col+1): # right
-            moves = self.get_UnfoldedAction2(Action(ActionType.Move, Dir.E, None)) + moves + self.get_UnfoldedAction2(
-                Action(ActionType.Move, Dir.W, None))
-            log('right')
+            #moves = self.get_UnfoldedAction2(Action(ActionType.Move, Dir.E, None)) + moves + self.get_UnfoldedAction2(
+            #    Action(ActionType.Move, Dir.W, None))
+            first_move = UnfoldedAction(Action(ActionType.Move, Dir.E, None), self.id_, True, (self.row, self.col) )
+            new_location = (self.row, self.col+1)
+            second_move = UnfoldedAction( Action(ActionType.Move, Dir.W, None), self.id_, True, new_location)
+            moves = [first_move] + moves + [second_move]
+
+            direction='east'
 
         else:
-            return [NoOp, NoOp, NoOp, NoOp] #wait
+            moves = [NoOp, NoOp, NoOp, NoOp] #wait
+            direction = None
+        if direction is None:
+            log("Could not find a retreat move for agent {}".format(self.id_), "RETREAT", False)
+        log("Agent {} is making a retreat move to the {}".format(self.id_, direction), "RETREAT", False)
         return moves
 
+
+'''
+    
     #har en action --> UnfoldedAction
     def get_UnfoldedAction2(self, action: 'Action') -> []:
         if action.action_type is ActionType.NoOp:
@@ -170,5 +195,11 @@ class BDIAgent(Agent):
         unfolded_action.required_free = (new_agent_row, new_agent_col)
         return [unfolded_action]
 
+
+    log('agent to: ' + str(unfolded_action.agent_to))
+        unfolded_action.will_become_free = (self.row, self.col)
+        unfolded_action.required_free = (new_agent_row, new_agent_col)
+        return [unfolded_action]
+'''
 
 
