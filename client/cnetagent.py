@@ -235,7 +235,7 @@ class CNETAgent(BDIAgent):
         Q:  How far ahead should we look when deciding if the plan is still feasible
     """
     def impossible(self) -> 'Bool':
-        action = self.current_plan[0]
+        action = self.current_plan[0] #Unfoldedaction
         if action.action.action_type == ActionType.NoOp:
             return False
         #required_free still free?

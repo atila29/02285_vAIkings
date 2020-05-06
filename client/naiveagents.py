@@ -121,6 +121,9 @@ class NaiveBDIAgent(BDIAgent):
                 return self.current_plan.reverse()
            
             #If the state is not too deep, generate children and add to frontier
+            log(leaf.g)
+            log(initial_g)
+            log(self.n)
             if (leaf.g - initial_g) < self.n:
                         #Find agent position in this state
                 for agent in leaf.agents.values(): 

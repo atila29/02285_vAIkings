@@ -10,12 +10,12 @@ class Blackboard:
         #self.tasks = {}         # key is agentId, value is agent intention
     
     def print_status(self, current_state):
-        log("The following goals are claimed: {}".format([LEVEL.goals_by_pos[location] for location in self.claimed_goals]), "BB")
+        log("The following goals are claimed: {}".format([LEVEL.goals_by_pos[location] for location in self.claimed_goals]), "BB", False)
         boxes = []
         for box in current_state.boxes.values():
             if box.id_ in self.claimed_boxes:
                 boxes.append(box)
-        log("The following boxes are claimed: {}".format(boxes), "BB")
+        log("The following boxes are claimed: {}".format(boxes), "BB", False)
 
     def remove(self, input):
         if isinstance(input, Contract):
@@ -50,4 +50,5 @@ class Blackboard:
         
 
 BLACKBOARD = Blackboard()
+
 
