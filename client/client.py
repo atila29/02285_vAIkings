@@ -187,6 +187,8 @@ class Client:
             for agent in self.agents:
                 if agent.color in letters_by_color:
                     for letter in letters_by_color[agent.color]:
+                        if letter not in LEVEL.goals:
+                            continue
                         for goal in LEVEL.goals[letter]:
                             agent.add_subgoal(goal)
             log("Agent " + str(agent.id_) + " now has desires to move boxes onto " + str(agent.desires), "DECOMPOSITION", False)
