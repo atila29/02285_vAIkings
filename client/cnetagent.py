@@ -1,5 +1,5 @@
 from agent import BDIAgent
-from heuristics import Heuristic
+from heuristics import Heuristic, Heuristic2
 from communication.message import Message
 from communication.performative import CfpMoveSpecificBoxTo
 from communication.contract import Contract
@@ -70,8 +70,14 @@ class CNETAgent(BDIAgent):
             return None
         #update current_proposal + return cost or None as refusal
         if isinstance(performative, CfpMoveSpecificBoxTo) and performative.box.color == self.color:            
-            cost = self.heuristic.f(self.beliefs, (performative.box,performative.location))
+            if isinstance(self.heuristic, Heuristic2):
+                cost = self.heuristic.f(self.beliefs, (performative.box,performative.location), self)
+            else:
+                cost = self.heuristic.f(self.beliefs, (performative.box,performative.location))
         else:
+            return None
+        if cost == float("inf"):
+            log("Agent {} refused because it is unreachable".format(self.id_), "BIDDING", False)
             return None
         self.current_proposal = {}
         self.current_proposal['performative'] = performative
@@ -84,7 +90,11 @@ class CNETAgent(BDIAgent):
         contract = Contract(manager, self, self.current_proposal['performative'], self.current_proposal['cost'], self.beliefs.g)
         self.desires['contracts'].append(contract)
         log("Agent {} contracted agent {} to {}".format(manager.id_, self.id_,self.current_proposal['performative']), "CNET", False)
-        
+        #Remove current intentions
+        if self.intentions is not None:
+            BLACKBOARD.remove(self.intentions, self.id_)
+        self.intentions = contract
+        BLACKBOARD.add(self.intentions, self.id_)
         return contract
 
     def reject_proposal(self):
@@ -126,12 +136,12 @@ class CNETAgent(BDIAgent):
             log("Agent {} succeeded it's task of {}.".format(self.id_, self.intentions), "BDI", False)
             #Remove contract from desire and BB
             if isinstance(self.intentions, Contract):
-                BLACKBOARD.remove(self.intentions)
+                BLACKBOARD.remove(self.intentions, self.id_)
                 self.desires['contracts'].pop(0)
             #Remove claim on box and goal on BB, if intention is (box,goal)
             elif self.intentions is not None:
                 box, goal = self.intentions
-                BLACKBOARD.remove((box,goal))
+                BLACKBOARD.remove((box,goal), self.id_)
             #Reset intentions
             self.intentions = None
         
@@ -145,7 +155,7 @@ class CNETAgent(BDIAgent):
             #Did we have another intention we are overwriting -> Update BB
             if self.intentions is not None:
                 box, goal = self.intentions
-                BLACKBOARD.remove((box,goal))
+                BLACKBOARD.remove((box,goal), self.id_)
             
             #Set intention to be the contract
             self.intentions = self.desires['contracts'][0]
@@ -160,13 +170,16 @@ class CNETAgent(BDIAgent):
         #pick box, goal not already used, Start bidding to find best contractor.  
         random.shuffle(self.desires['goals'])
         for goal in self.desires['goals']:
-            if not self.beliefs.is_goal_satisfied(goal) and (goal.row, goal.col) not in BLACKBOARD.claimed_goals:
+            if not self.beliefs.is_goal_satisfied(goal) and (goal.row, goal.col) not in BLACKBOARD.claimed_goals and (goal.cave is None or goal.cave.is_next_goal(goal, self.beliefs)):
                 for box in self.beliefs.boxes.values():
-                    if box.color == self.color and box.letter == goal.letter:
+                    if box.color == self.color and box.letter == goal.letter and (box.id_ not in BLACKBOARD.claimed_boxes):
                         my_box = box
                         break 
                 location = (goal.row, goal.col)
-                my_cost = self.heuristic.f(self.beliefs, (my_box, location))
+                if isinstance(self.heuristic, Heuristic2):
+                    my_cost = self.heuristic.f(self.beliefs, (my_box, location), self)
+                else:
+                    my_cost = self.heuristic.f(self.beliefs, (my_box, location))
                 best_cost = my_cost
                 best_agent = self
                 log("Agent {} is calling for proposals for moving box {} to {}. Own cost: {}".format(self.id_, my_box, location, my_cost), "CNET", False)
@@ -277,7 +290,10 @@ class CNETAgent(BDIAgent):
 
         self.current_plan =[]
         iterations = 0
-        next_state = (self.beliefs, heuristic.f(self.beliefs, pair))
+        if isinstance(heuristic, Heuristic2):
+            next_state = (self.beliefs, heuristic.f(self.beliefs, pair, self))
+        else:
+            next_state = (self.beliefs, heuristic.f(self.beliefs, pair))
         while True:
             #log("Iteration: " + str(iterations))
             #log("Length of frontier" + str(len(strategy.frontier)))
@@ -307,7 +323,11 @@ class CNETAgent(BDIAgent):
             for child_state in children:
                 if not strategy.is_explored(child_state) and not strategy.in_frontier(child_state):
                     strategy.add_to_frontier(child_state)
-                    h = heuristic.f(child_state, pair)
+                    
+                    if isinstance(heuristic, Heuristic2):
+                        h = heuristic.f(child_state, pair, self)
+                    else:
+                        h = heuristic.f(child_state, pair)
                     if h < next_state[1]:
                         next_state = (child_state, h)  
             
@@ -332,6 +352,8 @@ class CNETAgent(BDIAgent):
         #log("Searching done for agent " + str(self.id_) + ", took best state with plan (reversed)" + str(self.current_plan))
         self.current_plan.reverse()
         return self.current_plan
+
+
 
     # region String representations
     def __repr__(self):

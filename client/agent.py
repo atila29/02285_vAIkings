@@ -157,7 +157,7 @@ class BDIAgent(Agent):
             direction='west'
             
 
-        elif current_state.is_free(self.row-1, self.col+1): # right
+        elif current_state.is_free(self.row, self.col+1): # right
             #moves = self.get_UnfoldedAction2(Action(ActionType.Move, Dir.E, None)) + moves + self.get_UnfoldedAction2(
             #    Action(ActionType.Move, Dir.W, None))
             first_move = UnfoldedAction(Action(ActionType.Move, Dir.E, None), self.id_, True, (self.row, self.col) )

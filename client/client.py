@@ -11,6 +11,8 @@ from action import Action, ActionType, Dir, UnfoldedAction
 from util import log
 from communication.blackboard import BLACKBOARD
 import uuid
+from heuristics import Heuristic2
+from cnetagent2 import CNETAgent2
 
 class Section(Enum):
     DOMAIN = 1
@@ -97,6 +99,8 @@ class Client:
 
     def run(self, initial_state):
         current_state = initial_state
+        LEVEL.pre_process()
+
         while True:
             plans = []
             #Loop through agents
@@ -112,7 +116,7 @@ class Client:
                 self.solve_conflicts(joint_actions, conflicts)
             
             #Otherwise: Execute
-            log('joint actions: ' + str(joint_actions))
+            # log('joint actions: ' + str(joint_actions))
             current_state = self.execute_joint_actions(joint_actions, current_state)
 
             #If we reached goal
@@ -167,14 +171,14 @@ class Client:
                 return False
         return True
 
-    def init_agents(self, agent_type, args=None, DECOMPOSE=False):
+    def init_agents(self, agent_type, args=None, DECOMPOSE=False, h = None):
         #Create 'real' agents from AgentElements
         for agent_pos in self.initial_state.agents:
             agent = self.initial_state.agents[agent_pos]
             if args is not None:
-                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state, self.agents, *args))
+                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state, self.agents, *args, heuristic = h))
             else:
-                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state, self.agents))
+                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state, self.agents, heuristic = h))
             self.agent_dic[agent.id_] = self.agents[-1]
         #Decomposition of goals: Adds the goals of the agents color to their desires
         if DECOMPOSE:
@@ -187,8 +191,15 @@ class Client:
             for agent in self.agents:
                 if agent.color in letters_by_color:
                     for letter in letters_by_color[agent.color]:
+                        if letter not in LEVEL.goals:
+                            continue
                         for goal in LEVEL.goals[letter]:
-                            agent.add_subgoal(goal)
+                            if isinstance(h, Heuristic2):
+                                #only add reachable goals
+                                if h.distances[(goal.row, goal.col)][agent.row][agent.col] < float("inf"):
+                                    agent.add_subgoal(goal)
+                            else:
+                                agent.add_subgoal(goal)
             log("Agent " + str(agent.id_) + " now has desires to move boxes onto " + str(agent.desires), "DECOMPOSITION", False)
 
     def send_message(self, msg):
@@ -227,7 +238,7 @@ class Client:
         #Update State: Move agents and boxes, 
         new_state = State(current_state)
 
-        current_state.print_current_state()
+        # current_state.print_current_state()
         BLACKBOARD.print_status(current_state)
         # log("(6,7) is free: "+ str(current_state.is_free(6,7)))
         self.send_agent_actions(joint_actions)        
@@ -271,6 +282,8 @@ class Client:
                 log("Agent {} forced to NoOP so agent {} can continue".format(agent_id, joint_actions[conflict[0]].agent_id), "CONFLICT RESOLUTION", False)
 
 
+
+
 def main():
     # Read server messages from stdin.
     server_messages = sys.stdin
@@ -280,8 +293,10 @@ def main():
 
     #init client and agents
     client = Client(server_messages)
+
     #client.init_agents(NaiveBDIAgent, DECOMPOSE = False)
-    client.init_agents(CNETAgent, DECOMPOSE=True)
+    heuristic = Heuristic2()
+    client.init_agents(CNETAgent2, DECOMPOSE=True, h = heuristic)
     
     #run client
     client.run(client.initial_state)

@@ -91,6 +91,11 @@ for agent_dir in (Dir.N, Dir.S, Dir.E, Dir.W):
             # If not same directions.
             ALL_ACTIONS.append(Action(ActionType.Pull, agent_dir, box_dir))
 
+ALL_MOVE_ACTIONS = []
+for agent_dir in (Dir.N, Dir.S, Dir.E, Dir.W):
+    ALL_MOVE_ACTIONS.append(Action(ActionType.Move, agent_dir, None))
+
+
 
 class UnfoldedAction:
 
@@ -132,7 +137,11 @@ class UnfoldedAction:
             self.will_become_free = None
         
 
+    def __repr__(self):
+        return self.action.__repr__()
 
+    def __str__(self):
+        return self.__repr__()
 
     def __eq__(self, other):
         return self.agent_id == other.agent_id and self.action == other.action
