@@ -1,0 +1,23 @@
+#domain
+hospital
+#levelname
+MAbongu
+#colors
+blue: 0, A, C, E
+red: 1, D
+green: 2, B
+#initial
++++++++++++++
++1   D0 +   +
++     A +++ +
++    E  +++ +
++C2    B    +
++++++++++++++
+#goal
++++++++++++++
++       +B A+
++       +++D+
++       +++E+
++        C  +
++++++++++++++
+#end
