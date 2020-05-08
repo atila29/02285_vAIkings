@@ -170,7 +170,7 @@ class CNETAgent(BDIAgent):
         #pick box, goal not already used, Start bidding to find best contractor.  
         random.shuffle(self.desires['goals'])
         for goal in self.desires['goals']:
-            if not self.beliefs.is_goal_satisfied(goal) and (goal.row, goal.col) not in BLACKBOARD.claimed_goals:
+            if not self.beliefs.is_goal_satisfied(goal) and (goal.row, goal.col) not in BLACKBOARD.claimed_goals and (goal.cave is None or goal.cave.is_next_goal(goal, self.beliefs)):
                 for box in self.beliefs.boxes.values():
                     if box.color == self.color and box.letter == goal.letter and (box.id_ not in BLACKBOARD.claimed_boxes):
                         my_box = box

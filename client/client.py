@@ -99,6 +99,8 @@ class Client:
 
     def run(self, initial_state):
         current_state = initial_state
+        LEVEL.pre_process()
+
         while True:
             plans = []
             #Loop through agents
@@ -236,7 +238,7 @@ class Client:
         #Update State: Move agents and boxes, 
         new_state = State(current_state)
 
-        current_state.print_current_state()
+        # current_state.print_current_state()
         BLACKBOARD.print_status(current_state)
         # log("(6,7) is free: "+ str(current_state.is_free(6,7)))
         self.send_agent_actions(joint_actions)        
@@ -280,6 +282,8 @@ class Client:
                 log("Agent {} forced to NoOP so agent {} can continue".format(agent_id, joint_actions[conflict[0]].agent_id), "CONFLICT RESOLUTION", False)
 
 
+
+
 def main():
     # Read server messages from stdin.
     server_messages = sys.stdin
@@ -289,6 +293,7 @@ def main():
 
     #init client and agents
     client = Client(server_messages)
+
     #client.init_agents(NaiveBDIAgent, DECOMPOSE = False)
     heuristic = Heuristic2()
     client.init_agents(CNETAgent2, DECOMPOSE=True, h = heuristic)

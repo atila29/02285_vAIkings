@@ -163,7 +163,7 @@ class Heuristic2:
         return result
 
     def print_map(self, location):
-        log("Printing distances to goal with letter {} at location {}:".format(LEVEL.goals_by_pos[location], location), "MAP", True)
+        log("Printing distances to goal with letter {} at location {}:".format(LEVEL.goals_by_pos[location], location), "MAP", False)
         current_map = self.distances[location]
         lines =[]
         for row in current_map:
@@ -171,7 +171,7 @@ class Heuristic2:
             for elm in row:
                 line.append(str(elm))
             lines.append(''.join(line))
-        log("\n".join(lines), "MAP", True)
+        log("\n".join(lines), "MAP", False)
 
 
 
