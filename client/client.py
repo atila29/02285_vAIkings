@@ -12,6 +12,7 @@ from util import log
 from communication.blackboard import BLACKBOARD
 import uuid
 from heuristics import Heuristic2
+from cnetagent2 import CNETAgent2
 
 class Section(Enum):
     DOMAIN = 1
@@ -235,7 +236,7 @@ class Client:
         #Update State: Move agents and boxes, 
         new_state = State(current_state)
 
-        # current_state.print_current_state()
+        current_state.print_current_state()
         BLACKBOARD.print_status(current_state)
         # log("(6,7) is free: "+ str(current_state.is_free(6,7)))
         self.send_agent_actions(joint_actions)        
@@ -290,7 +291,7 @@ def main():
     client = Client(server_messages)
     #client.init_agents(NaiveBDIAgent, DECOMPOSE = False)
     heuristic = Heuristic2()
-    client.init_agents(CNETAgent, DECOMPOSE=True, h = heuristic)
+    client.init_agents(CNETAgent2, DECOMPOSE=True, h = heuristic)
     
     #run client
     client.run(client.initial_state)

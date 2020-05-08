@@ -353,6 +353,8 @@ class CNETAgent(BDIAgent):
         self.current_plan.reverse()
         return self.current_plan
 
+
+
     # region String representations
     def __repr__(self):
         return str(self.color) + " CNET-Agent with id " + str(self.id_) + " at position " + str((self.row, self.col))

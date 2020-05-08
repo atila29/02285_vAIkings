@@ -5,6 +5,28 @@ import time
 from util import log
 from state import LEVEL
 
+class SimpleHeuristic:
+
+    def __init__(self, agent_id, location):
+        self.agent_id = agent_id
+        if isinstance(location, Goal):
+            self.location = (location.row, location.col)
+        else:
+            self.location = location
+
+    def h(self, state):
+        
+        #Find agent position in this state
+        for agent in state.agents.values(): 
+            if agent.id_ == self.agent_id:
+                agent_row = agent.row
+                agent_col = agent.col
+
+        return abs(agent_row-self.location[0]) + abs(agent_col - self.location[1])
+
+    def f(self, state):
+        return self.h(state)
+
 class Heuristic:
     
     def __init__(self, agent: 'BDIAgent'):
