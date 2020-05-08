@@ -167,11 +167,15 @@ class Level:
                 if loc in cave.locations:
                     loc = None
                     continue
+                else:
+                    break
             
             #Cave has no entrance
             if loc is None:
+                log("found no new locations. Cave has no entrance")
                 cave.entrance = None
                 self.caves[location] = cave
+                log("Created the {}th cave. Entrance: {}, goals: {}, locations: {}".format(id_, cave.entrance, cave.goals, cave.locations), "CAVES", False)
                 return
             
             #check if still in cave

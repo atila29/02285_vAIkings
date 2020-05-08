@@ -204,7 +204,7 @@ class Client:
 
     def send_message(self, msg):
         print(msg, flush = True)
-        log(msg, "server-msg")
+        log(msg, "server-msg", False)
         return sys.stdin.readline().rstrip()
 
     def send_message_async(self, msg):
