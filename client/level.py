@@ -132,7 +132,6 @@ class Level:
                     #count number of walls around
                     count = self.count_walls_around((row,col))
                     if count ==3:
-                        log("Element {} at location {} identified as a dead end".format(self.level[row][col], (row,col)), "CAVES", False)
                         result.append((row,col))
         return result
 
@@ -150,7 +149,8 @@ class Level:
         loc = location
 
         #explore cave:
-        while True:           
+        log("Starting to explore the {}th cave".format(id_), "CAVES", False)  
+        while True:         
             #Check if location is a goal
             if loc in self.goals_by_pos:
                 goal = self.goals_by_pos[loc]
@@ -159,16 +159,28 @@ class Level:
 
             #find next space
             row,col = loc
+            loc = None
             for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
                 if isinstance(self.level[row+direction.d_row][col + direction.d_col], Wall):
                     continue
-                loc = (row+direction.d_row, col + direction.d_col) 
+                loc = (row+direction.d_row, col + direction.d_col)
+                if loc in cave.locations:
+                    loc = None
+                    continue
+            
+            #Cave has no entrance
+            if loc is None:
+                cave.entrance = None
+                self.caves[location] = cave
+                return
             
             #check if still in cave
             count = self.count_walls_around(loc)
             if count < 2:
+                log("Found {} walls around location {}. So cave {} is fully explored".format(count, loc, id_), "CAVES", False)
                 cave.entrance = cave.locations[-1]
                 break
+
             cave.locations.append(loc)
             
         self.caves[cave.entrance] = cave
