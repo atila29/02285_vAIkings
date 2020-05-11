@@ -158,4 +158,6 @@ class UnfoldedAction:
         unfolded_action.will_become_free = (agent.row, agent.col)
         unfolded_action.required_free = (new_agent_row, new_agent_col)
         return unfolded_action
+    
+
 

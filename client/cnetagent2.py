@@ -1,4 +1,5 @@
 from cnetagent import CNETAgent
+from agent import BDIAgent
 from strategy import StrategyBestFirst
 from heuristics import SimpleHeuristic
 from state import State
@@ -226,3 +227,167 @@ class CNETAgent2(CNETAgent):
             
             #Add to explored
             strategy.add_to_explored(leaf)  
+
+    def get_next_action(self, p) -> 'UnfoldedAction': #p is the perception
+        need_to_replan = False
+        self.brf(p)
+
+        if len(self.current_plan) == 0:
+            log("Length of current plan, was 0", "BDI", False)
+            need_to_replan = True
+        elif self.succeeded():
+            log("Previous plan succeeded", "BDI", False)
+            need_to_replan = True
+        elif self.impossible():
+            log("Current plan: " + str(self.current_plan)+ " was impossible", "BDI", False)
+            action = self.current_plan[0]
+            # Can/should we do a retreat move?
+            try_to_retreat = False
+            rf_loc = action.required_free
+            state = self.beliefs
+            #Space is occupied
+            if not(state.is_free(*rf_loc)):
+                #If agent at the position
+                if rf_loc in state.agents:
+                    other_agent = self.all_agents[rf_loc]
+                    if about_to_crash(agent = other_agent):
+                        try_to_retreat = True
+                    else:
+                        self.wait(1)
+                #If box at the location
+                if rf_loc in state.boxes:
+                    box = state.boxes[rf_loc]
+                    moving, other_agent = box_on_the_move(box)
+                    if moving:
+                        if about_to_crash(box = box, agent = other_agent):
+                            try_to_retreat = True
+                        else:
+                            self.wait(1)
+                    else:
+                        need_to_replan = True
+            
+            if try_to_retreat:
+                path_direction, blocked_direction = None, None #TODO
+                
+                #This agent retreat moves
+                if self.lower_priority(other_agent) and retreat_is_possible([blocked_direction, path_direction]):        
+                    retreat, duration = self.retreat_move()
+                    self.current_plan =  retreat + self.current_plan
+                    other_agent.wait(duration)
+                
+                #The other agent retreat moves
+                elif other_agent.retreat_is_possible([None,None]): #TODO: not None None
+                    retreat, duration = other_agent.retreat_move()
+                    other_agent.current_plan = retreat + other_agent.current_plan
+                    self.wait(duration)
+            #self.current_plan[:0] = [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]
+            
+
+        else:
+            #next action is doable
+            if self.reconsider():
+                self.deliberate()
+            if not(self.sound()):
+                self.plan()
+
+        if need_to_replan:
+            self.deliberate()
+            self.plan()
+        return self.current_plan[0] #what if empty?
+
+    """
+    If two agents are going oposite directions 
+    """
+    def about_to_crash(self, box=None, agent = None):
+        my_action = self.current_plan[0]
+        other_action = agent.current_plan[0]
+        #TODO:
+
+        if my_action.action.action_type == ActionType.Move or  my_action.action.action_type ==  ActionType.Pull:
+            my_dir = my_action.action.agent_dir
+    
+        elif my_action.action.action_type == ActionType.Push:
+            my_dir = my_action.action.box_dir
+        
+        if box is not None: #is moving 
+            #agent box direction 
+            other_agent_dir = other_action.action.box_dir
+            if my_dir == reverse_direction(other_agent_dir): 
+                return True
+            else: 
+                return False
+                
+        else:
+            other_agent_dir = other_action.action.agent_dir
+            if my_dir == reverse_direction(other_agent_dir): 
+                return True 
+            else: 
+                return False 
+            
+            
+        
+    
+    """
+        OUTPUT list of moves, duration (time it takes for self to clear the space, sent to the other agent) 
+    """
+    def retreat_move(self):
+        move = self.current_plan[0].action
+        moves = []
+        duration = 0
+            if move.action_type == ActionType.Move or move.action_type == ActionType.NoOp:
+                
+            if move.action_type == ActionType.Pull or move.action_type ==  ActionType.Push:
+        
+        return moves, duration
+
+    """
+        OUTPUT  (True, Dir)
+            or
+                (False, None)
+    """
+    def retreat_is_possible(self,ignore_directions: List, depth: int, location=None):
+        if location is None:
+            row, col =self.row, self.col
+        else:
+            row, col = location
+        #TODO: for depth > 1 
+        #for depth 1
+        for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
+            if (direction not in ignore_directions) and state.is_free(row + direction.d_row, col + direction.d_col):
+                return True, direction
+        return False, None
+
+    """
+        OUTPUT:
+                (True, Agent)
+            or
+                (False, None)
+    """
+    def box_on_the_move(self, box):
+        row, col = box.row, box.col
+        adjacent_agents = []
+        #look for agent in adjacent spots
+        for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
+            location = (row + direction.d_row, col + direction.d_col)
+            if location in self.beliefs.agents:
+                adjacent_agents.append(self.all_agents[location])
+
+        #for each agent check if first action is push or pull
+        for agent in adjacent_agents:
+            next_action = agent.current_plan[0]
+            if next_action.action.action_type == ActionType.Pull or move.action_type ==  ActionType.Push:
+                #check if they are moving the current box
+                if next_action.box_from == (row, col):
+                    return (True, agent)
+        return (False, None)
+
+    def wait(self, duration: int):
+        #self.current_plan[:0] = [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]
+        self.current_plan = [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]*duration + self.current_plan
+        
+    
+    """
+        OUTPUT: True if this agent has lower priority than other_agent
+    """
+    def lower_priority(self, other_agent):
+        return self.id_ < other.id_
