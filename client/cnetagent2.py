@@ -57,6 +57,22 @@ class CNETAgent2(CNETAgent):
                 #otherwise pull one
                 next_action = self.convert_move_to_pull(path2[i], path2[i-1].action.agent_dir)
                 result.append(next_action)
+            #we couldn't turn and should pull onto goal
+            if break_point == len(path2)-1:
+                last_action = path2[-1]
+                location = last_action.agent_to
+                for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
+                    
+                    if direction == self.reverse_direction(last_action.action.agent_dir):
+                        continue
+                    row, col = location[0] + direction.d_row, location[1] + direction.d_col
+                    if self.beliefs.is_free(row,col):
+                        action = Action(ActionType.Move, direction, None)
+                        unfolded_action = UnfoldedAction(action, self.id_, True, location)
+                        next_action = self.convert_move_to_pull(unfolded_action, last_action.action.agent_dir)
+                        result.append(next_action)
+                        break
+                return result
         else:
             next_action = self.convert_move_to_push(path1[-1], path2[0].action.agent_dir)
             result.append(next_action)    

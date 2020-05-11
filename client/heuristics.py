@@ -135,7 +135,7 @@ class Heuristic2:
             #Mark unreachable spaces with infinity
             for row in range(len(current_map)):
                 for col in range(len(current_map[row])):
-                    if isinstance(current_map[row][col], Space):
+                    if isinstance(current_map[row][col], Space) or isinstance(current_map[row][col], Goal):
                         current_map[row][col] = float("inf")
             
             #For DEBUG:
