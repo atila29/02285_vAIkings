@@ -2,7 +2,7 @@ from level import Goal, Space
 import copy
 from action import Dir
 import time
-from util import log
+from logger import log
 from state import LEVEL
 
 class SimpleHeuristic:

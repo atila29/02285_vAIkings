@@ -1,10 +1,12 @@
 from cnetagent import CNETAgent
 from strategy import StrategyBestFirst
 from heuristics import SimpleHeuristic
-from state import State
+from state import State, LEVEL
 from level import AgentElement, Goal
 from action import ALL_MOVE_ACTIONS, UnfoldedAction, Action, ActionType, Dir
-from util import log
+from logger import log
+from util import reverse_direction
+from passage import Passage
 
 class CNETAgent2(CNETAgent):
     """
@@ -45,10 +47,10 @@ class CNETAgent2(CNETAgent):
         break_point = 0
        
         #if going back where we came from: start with pull actions
-        if dir1 == self.reverse_direction(dir2):  
+        if dir1 == reverse_direction(dir2):  
             for i in range(1, len(path2)):
                 #check if there is room to turn from pull to push
-                if self.count_free_spaces(path2[i]) >=2:
+                if self.count_free_spaces(path2[i]) >=3:
                     #change to push
                     turn = self.swicth_from_pull_to_push(path2[i-1], path2[i])
                     result = result + turn
@@ -63,7 +65,7 @@ class CNETAgent2(CNETAgent):
                 location = last_action.agent_to
                 for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
                     
-                    if direction == self.reverse_direction(last_action.action.agent_dir):
+                    if direction == reverse_direction(last_action.action.agent_dir):
                         continue
                     row, col = location[0] + direction.d_row, location[1] + direction.d_col
                     if self.beliefs.is_free(row,col):
@@ -84,16 +86,6 @@ class CNETAgent2(CNETAgent):
         # TODO: what if we cannot turn?
         return result
         
-    def reverse_direction(self, direction):
-        if direction == Dir.N:
-            return Dir.S
-        elif direction == Dir.S:
-            return Dir.N
-        elif direction == Dir.E:
-            return Dir.W
-        else:
-            return Dir.E
-        
         
         
     def convert_move_to_push(self, action: UnfoldedAction, direction: Dir):
@@ -108,7 +100,7 @@ class CNETAgent2(CNETAgent):
         return resulting_action
 
     def convert_move_to_pull(self, action: UnfoldedAction, direction: Dir):
-        reversed_direction = self.reverse_direction(direction)
+        reversed_direction = reverse_direction(direction)
         new_action = Action(ActionType.Pull, action.action.agent_dir, reversed_direction)
         resulting_action = UnfoldedAction(new_action, action.agent_id)
         resulting_action.agent_from = action.agent_from
@@ -123,7 +115,7 @@ class CNETAgent2(CNETAgent):
         OUTPUT: list of two unfolded actions, one pull and one push
     """
     def swicth_from_pull_to_push(self, action_before: UnfoldedAction, action_after: UnfoldedAction):
-        box_direction = self.reverse_direction(action_before.action.agent_dir)
+        box_direction = reverse_direction(action_before.action.agent_dir)
         agent_dir = action_after.action.agent_dir
         row, col = action_after.agent_from
         #choose direction
@@ -145,7 +137,7 @@ class CNETAgent2(CNETAgent):
 
         #push
         new_location =(row+turn_dir.d_row, col+turn_dir.d_col)
-        act2= Action(ActionType.Move, self.reverse_direction(turn_dir), None)
+        act2= Action(ActionType.Move, reverse_direction(turn_dir), None)
         part2 = UnfoldedAction(act2, self.id_, True, new_location)
         resulting_action2 = self.convert_move_to_push(part2, action_after.action.agent_dir)
         
@@ -241,4 +233,71 @@ class CNETAgent2(CNETAgent):
                     strategy.add_to_frontier(child_state) 
             
             #Add to explored
-            strategy.add_to_explored(leaf)  
+            strategy.add_to_explored(leaf)
+
+    def sound(self):
+        next_action = self.current_plan[0]
+
+        if next_action.action.action_type == ActionType.NoOp:
+            return True
+
+        wanted_passage = None
+        wanted_cave = None
+
+        if len(self.current_plan) > 1:
+            future_action =  self.current_plan[1]
+            future_location = future_action.required_free
+            if LEVEL.map_of_passages[future_location[0]][future_location[1]] is not None:
+                wanted_passage = LEVEL.map_of_passages[future_location[0]][future_location[1]][0]
+                
+            if LEVEL.map_of_caves[future_location[0]][future_location[1]] is not None:
+                wanted_cave = LEVEL.map_of_caves[future_location[0]][future_location[1]][0]
+
+        #check if we are trying to move into an occupied passage or cave
+        row, col = next_action.required_free
+        old_location = next_action.will_become_free
+        if LEVEL.map_of_passages[row][col] is not None:
+            for passage in LEVEL.map_of_passages[row][col]:
+                if (row,col) in passage.entrances:
+                    if passage.occupied and (old_location not in passage.locations) and passage == wanted_passage:
+                        #log("Agent {} is waiting for passage {} to clear".format(self.id_, passage.id_), "CLEARING", False)
+                        self.wait(1)
+                        break
+                    elif passage == wanted_passage:
+                        #TODO: Make this into a function that can be called recursively
+                        for index in range(1, len(self.current_plan)-1):
+                            if self.current_plan[index].required_free in passage.entrances:
+                                exit_action = self.current_plan[index + 1]
+                                row, col = exit_action.required_free
+                                #moving into another passage
+                                if LEVEL.map_of_passages[row][col] is not None:
+                                   passage2 = LEVEL.map_of_passages[row][col][0]
+                                   if passage2.occupied:
+                                        log("Agent {} can't move into passage {} since passage {} is occupied".format(self.id_, wanted_passage.id_, passage2.id_), "CLEARING", False) 
+                                        self.wait(1)
+                                #moving into a cave
+                                elif LEVEL.map_of_caves[row][col] is not None:
+                                    cave2 = LEVEL.map_of_caves[row][col][0]
+                                    if cave2.occupied:
+                                        log("Agent {} can't move into passage {} since cave {} is occupied".format(self.id_, wanted_passage.id_, cave2.id_), "CLEARING", False) 
+                                        self.wait(1)
+
+
+                        log("Agent {} has claimed passage {}".format(self.id_, wanted_passage.id_), "CLEARING", False)
+
+
+        if LEVEL.map_of_caves[row][col] is not None:
+            for cave in LEVEL.map_of_caves[row][col]:
+                if (row,col) == cave.entrance:
+                    if cave.occupied and (old_location not in cave.locations) and cave == wanted_cave:
+                        #log("Agent {} is waiting for cave {} to clear".format(self.id_, cave.id_), "CLEARING", False)
+                        self.wait(1)
+                        break
+
+        return True
+
+    def clear_object_from_()
+
+    def wait(self, duration: int):
+        self.current_plan = [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]*duration + self.current_plan
+

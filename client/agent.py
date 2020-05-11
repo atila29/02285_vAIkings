@@ -1,6 +1,6 @@
 from action import ActionType, ALL_ACTIONS, UnfoldedAction, Action, Dir
 
-from util import log
+from logger import log
 """
     Basic properties for agents
 """

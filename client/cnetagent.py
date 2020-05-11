@@ -5,7 +5,7 @@ from communication.performative import CfpMoveSpecificBoxTo
 from communication.contract import Contract
 from communication.blackboard import BLACKBOARD
 from action import ActionType, ALL_ACTIONS, UnfoldedAction, Action, Dir
-from util import log
+from logger import log
 import random
 from strategy import StrategyBestFirst
 from state import LEVEL
@@ -223,6 +223,7 @@ class CNETAgent(BDIAgent):
 
     def plan(self):
         if self.intentions is None:
+            #TODO: Clear passages and caves and try not to be in the way
             super().plan()
             return
         elif isinstance(self.intentions, Contract):

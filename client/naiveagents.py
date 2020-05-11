@@ -4,7 +4,7 @@ from level import AgentElement, Box
 from state import State, LEVEL
 from strategy import StrategyBestFirst
 from heuristics import Heuristic
-from util import log
+from logger import log
 """
     Example BDI agent.
     

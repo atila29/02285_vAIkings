@@ -8,7 +8,7 @@ from agent import Agent
 from naiveagents import NaiveBDIAgent, NaiveIterativeBDIAgent
 from cnetagent import CNETAgent
 from action import Action, ActionType, Dir, UnfoldedAction
-from util import log
+from logger import log
 from communication.blackboard import BLACKBOARD
 import uuid
 from heuristics import Heuristic2
@@ -99,7 +99,7 @@ class Client:
 
     def run(self, initial_state):
         current_state = initial_state
-        LEVEL.pre_process()
+        LEVEL.pre_process(initial_state)
 
         while True:
             plans = []
@@ -118,6 +118,13 @@ class Client:
             #Otherwise: Execute
             # log('joint actions: ' + str(joint_actions))
             current_state = self.execute_joint_actions(joint_actions, current_state)
+
+            #update occupation status:
+            for passage in LEVEL.passages.values():
+                passage.update_status(current_state)
+            
+            for cave in LEVEL.caves.values():
+                cave.update_status(current_state)
 
             #If we reached goal
             if self.check_goal_status(current_state):

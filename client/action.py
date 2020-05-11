@@ -2,7 +2,7 @@
 
 
 import sys
-from util import log
+from logger import log
 
 # Copied from Warmup assignment
 class Dir:

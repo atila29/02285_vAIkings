@@ -1,4 +1,4 @@
-from util import log
+from logger import log
 from state import LEVEL
 from communication.performative import CfpMoveSpecificBoxTo
 from communication.contract import Contract
