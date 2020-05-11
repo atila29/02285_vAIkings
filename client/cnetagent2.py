@@ -46,9 +46,9 @@ class CNETAgent2(CNETAgent):
        
         #if going back where we came from: start with pull actions
         if dir1 == self.reverse_direction(dir2):  
-            for i in range(1, len(path2)-1):
+            for i in range(1, len(path2)):
                 #check if there is room to turn from pull to push
-                if self.count_free_spaces(path2[i]) >=3:
+                if self.count_free_spaces(path2[i]) >=2:
                     #change to push
                     turn = self.swicth_from_pull_to_push(path2[i-1], path2[i])
                     result = result + turn
@@ -60,7 +60,7 @@ class CNETAgent2(CNETAgent):
         else:
             next_action = self.convert_move_to_push(path1[-1], path2[0].action.agent_dir)
             result.append(next_action)    
-        for i in range(break_point, len(path2)-2):
+        for i in range(break_point, len(path2)-1):
             #push
             next_action = self.convert_move_to_push(path2[i], path2[i+1].action.agent_dir)
             result.append(next_action)

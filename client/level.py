@@ -139,7 +139,9 @@ class Level:
         row, col = location
         count = 0
         for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
-            if isinstance(self.level[row+direction.d_row][col + direction.d_col], Wall):
+            new_row = row+direction.d_row
+            new_col = col + direction.d_col
+            if new_row in range(len(self.level)) and new_col in range(len(self.level[row])) and isinstance(self.level[new_row][new_col], Wall):
                 count = count + 1
         return count
 
