@@ -260,8 +260,8 @@ class Client:
                 box = new_state.boxes.pop(action.box_from)
                 new_state.boxes[action.box_to] = Box(box.id_, box.letter, box.color, action.box_to[0], action.box_to[1])
             #update agent location in state
-            log('new state agent: ' + str(new_state.agents), "EXECUTE", False)
-            log('action.agent_from' + str(action.agent_from), "EXECUTE", False)
+            log('new state agent: ' + str(new_state.agents), "EXECUTE", True)
+            log('action.agent_from' + str(action.agent_from), "EXECUTE", True)
             agent = new_state.agents.pop(action.agent_from)
             new_state.agents[action.agent_to] = AgentElement(agent.id_, agent.color, action.agent_to[0], action.agent_to[1])
             #update agents with their new location

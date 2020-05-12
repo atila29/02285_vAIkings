@@ -270,7 +270,7 @@ class CNETAgent2(CNETAgent):
                         need_to_replan = True
 
             if try_to_retreat:
-                log('try to retreat')
+            
                 # blocked_direction = statisk informasjon (walls - d vi finner i levels) ? 
                 # path_direction: Dir.W
                 path_direction = self.current_plan[0]
@@ -283,7 +283,11 @@ class CNETAgent2(CNETAgent):
                 possible, direction = self.retreat_is_possible(blocked_direction)
 
                 if self.lower_priority(other_agent) and possible:
+                    log('trying retreat_move')
+                    log(self)
+                    log('with direction: ' + str(direction))
                     retreat, duration = self.retreat_move(direction)
+
                     self.current_plan =  retreat + self.current_plan
                     other_agent.wait(duration)
 
@@ -350,11 +354,9 @@ class CNETAgent2(CNETAgent):
     """
     def close_blocked_dir(self): 
         state = self.beliefs
-        log(state)
         row, col = self.row, self.col
         blocked_spaces = []
         for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
-
             if not state.is_free(row + direction.d_row, col + direction.d_col): 
                 blocked_spaces.append(direction)
         return blocked_spaces
@@ -366,17 +368,23 @@ class CNETAgent2(CNETAgent):
     def retreat_move(self, direction):
         original_move = self.current_plan[0].action #unfolded action
         opposite = self.opposite_direction(direction)
-        duration = 0
-        n = 2
-        moves = []
         #is just an agent
         if original_move.action_type == ActionType.Move or original_move.action_type == ActionType.NoOp:
-            moves.append(UnfoldedAction(Action(ActionType.Move, direction, direction), self.id_))
-            #self.current_plan = [UnfoldedAction(Action(ActionType.Move, direction, direction), self.id_)] + self.current_plan
-            #wait(self, n)
-            #self.current_plan = [UnfoldedAction(Action(ActionType.Move, opposite, opposite), self.id_)] + self.current_plan
+            #moves.append(UnfoldedAction(Action(ActionType.Move, direction, direction), self.id_))
+            #self.current_plan = [UnfoldedAction(Action(ActionType.Move, opposite, None), self.id_)] + self.current_plan
+            retreat_move = UnfoldedAction(Action(ActionType.Move, direction, None), self.id_, True, (self.row, self.col))
+            new_location = (self.row + direction.d_row, self.col + direction.d_col)
+            NoOp = UnfoldedAction(Action(ActionType.NoOp, Dir.N, None), self.id_, True, (self.row, self.col) )
+            
+            back_move = UnfoldedAction(Action(ActionType.Move, opposite, None), self.id_, True, new_location)
+            moves = [retreat_move,NoOp,NoOp,back_move]
+            
+            
+            #self.current_plan = [UnfoldedAction(Action(ActionType.Move, direction, None), self.id_)] + self.current_plan
+            return moves, 4
         #has a box
         if original_move.action_type == ActionType.Pull or original_move.action_type ==  ActionType.Push:
+            log('push/pull')
             moves.append(UnfoldedAction(Action(ActionType.NoOp, None, direction), self.id_))
             row, col = self.row, self.col
             new_location = row + direction.d_row, col + direction.d_col 
@@ -384,7 +392,7 @@ class CNETAgent2(CNETAgent):
             possible, second_direction = self.retreat_is_possible(self,ignore_directions, new_location) 
             #if possible:
         
-        return moves, duration
+        return duration
 
     """
         OUTPUT  (True, Dir)
@@ -400,16 +408,11 @@ class CNETAgent2(CNETAgent):
         #TODO: for depth > 1 
         #for depth 1
         for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
-            log(ignore_directions)
             if (direction not in ignore_directions) and state.is_free(row + direction.d_row, col + direction.d_col):
                 return True, direction
         return False, None
 
     """
-    [log] <class 'action.Dir'>
-    [log] N
-    [log] [<bound method CNETAgent2.close_blocked_dir of purple CNET-Agent with id 7 at position (2, 18)>, Move(S)]
-
         OUTPUT:
                 (True, Agent)
             or
@@ -422,7 +425,11 @@ class CNETAgent2(CNETAgent):
         for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
             location = (row + direction.d_row, col + direction.d_col)
             if location in self.beliefs.agents:
-                adjacent_agents.append(self.all_agents[location])
+            #TODO: make more efficient
+                for agent in self.all_agents:
+                    if (agent.row, agent.col) == location:
+                        adjacent_agents.append(agent)
+                        #adjacent_agents.append(self.all_agents[location])
 
         #for each agent check if first action is push or pull
         for agent in adjacent_agents:
