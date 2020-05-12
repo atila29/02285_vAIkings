@@ -268,19 +268,21 @@ class CNETAgent2(CNETAgent):
                             self.wait(1)
                     else:
                         need_to_replan = True
-            
+
             if try_to_retreat:
+                log('try to retreat')
                 # blocked_direction = statisk informasjon (walls - d vi finner i levels) ? 
                 # path_direction: Dir.W
                 path_direction = self.current_plan[0]
 
-                blocked_direction = self.close_blocked_dir
-                
-    
+                blocked_direction = self.close_blocked_dir()
+
 
                 #This agent retreat moves
-                possible, direction = self.retreat_is_possible([blocked_direction, path_direction])
-                if self.lower_priority(other_agent) and possible:        
+                # possible, direction = self.retreat_is_possible([blocked_direction, path_direction])
+                possible, direction = self.retreat_is_possible(blocked_direction)
+
+                if self.lower_priority(other_agent) and possible:
                     retreat, duration = self.retreat_move(direction)
                     self.current_plan =  retreat + self.current_plan
                     other_agent.wait(duration)
@@ -331,8 +333,9 @@ class CNETAgent2(CNETAgent):
                 return True 
             else: 
                 return False 
-    
-    def oposite_direction(direction):
+
+    @staticmethod
+    def opposite_direction(direction):
         if Dir.N:
             return  Dir.S
         if Dir.S: 
@@ -347,9 +350,11 @@ class CNETAgent2(CNETAgent):
     """
     def close_blocked_dir(self): 
         state = self.beliefs
+        log(state)
         row, col = self.row, self.col
         blocked_spaces = []
         for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
+
             if not state.is_free(row + direction.d_row, col + direction.d_col): 
                 blocked_spaces.append(direction)
         return blocked_spaces
@@ -360,19 +365,22 @@ class CNETAgent2(CNETAgent):
     """
     def retreat_move(self, direction):
         original_move = self.current_plan[0].action #unfolded action
-        opposite = opposite_direction(direction)
+        opposite = self.opposite_direction(direction)
         duration = 0
         n = 2
-            #is just an agent 
+        moves = []
+        #is just an agent
         if original_move.action_type == ActionType.Move or original_move.action_type == ActionType.NoOp:
-            self.current_plan = [UnfoldedAction(Action(ActionType.Move, direction, direction), self.id_)] + self.current_plan
-            wait(self, n)
-            self.current_plan = [UnfoldedAction(Action(ActionType.Move, opposite, opposite), self.id_)] + self.current_plan
-            #has a box
+            moves.append(UnfoldedAction(Action(ActionType.Move, direction, direction), self.id_))
+            #self.current_plan = [UnfoldedAction(Action(ActionType.Move, direction, direction), self.id_)] + self.current_plan
+            #wait(self, n)
+            #self.current_plan = [UnfoldedAction(Action(ActionType.Move, opposite, opposite), self.id_)] + self.current_plan
+        #has a box
         if original_move.action_type == ActionType.Pull or original_move.action_type ==  ActionType.Push:
+            moves.append(UnfoldedAction(Action(ActionType.NoOp, None, direction), self.id_))
             row, col = self.row, self.col
             new_location = row + direction.d_row, col + direction.d_col 
-            ignore_directions = self.close_blocked_dir + [oppsite_direction(direction)] #list of blocked directions
+            ignore_directions = self.close_blocked_dir + [self.oppsite_direction(direction)] #list of blocked directions
             possible, second_direction = self.retreat_is_possible(self,ignore_directions, new_location) 
             #if possible:
         
@@ -386,7 +394,7 @@ class CNETAgent2(CNETAgent):
     def retreat_is_possible(self,ignore_directions: list, location=None):
         state = self.beliefs
         if location is None:
-            row, col =self.row, self.col
+            row, col = self.row, self.col
         else:
             row, col = location
         #TODO: for depth > 1 
@@ -434,4 +442,4 @@ class CNETAgent2(CNETAgent):
         OUTPUT: True if this agent has lower priority than other_agent
     """
     def lower_priority(self, other_agent):
-        return self.id_ < other.id_
+        return self.id_ < other_agent.id_
