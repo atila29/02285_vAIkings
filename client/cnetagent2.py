@@ -243,23 +243,26 @@ class CNETAgent2(CNETAgent):
             action = self.current_plan[0]
             # Can/should we do a retreat move?
             try_to_retreat = False
-            rf_loc = action.required_free
+            rf_loc = action.required_free #row,col?
             state = self.beliefs
             #Space is occupied
             if not(state.is_free(*rf_loc)):
                 #If agent at the position
+                #TODO: a more efficient way to find other_agent
                 if rf_loc in state.agents:
-                    other_agent = self.all_agents[rf_loc]
-                    if about_to_crash(agent = other_agent):
+                    for agent in self.all_agents:
+                        if (agent.row, agent.col) == rf_loc:
+                            other_agent = agent
+                    if self.about_to_crash(agent = other_agent):
                         try_to_retreat = True
                     else:
                         self.wait(1)
                 #If box at the location
                 if rf_loc in state.boxes:
                     box = state.boxes[rf_loc]
-                    moving, other_agent = box_on_the_move(box)
+                    moving, other_agent = self.box_on_the_move(box)
                     if moving:
-                        if about_to_crash(box = box, agent = other_agent):
+                        if self.about_to_crash(box = box, agent = other_agent):
                             try_to_retreat = True
                         else:
                             self.wait(1)
@@ -267,14 +270,21 @@ class CNETAgent2(CNETAgent):
                         need_to_replan = True
             
             if try_to_retreat:
-                path_direction, blocked_direction = None, None #TODO
+                # blocked_direction = statisk informasjon (walls - d vi finner i levels) ? 
+                # path_direction: Dir.W
+                path_direction = self.current_plan[0]
+
+                blocked_direction = self.close_blocked_dir
                 
+    
+
                 #This agent retreat moves
-                if self.lower_priority(other_agent) and retreat_is_possible([blocked_direction, path_direction]):        
-                    retreat, duration = self.retreat_move()
+                possible, direction = self.retreat_is_possible([blocked_direction, path_direction])
+                if self.lower_priority(other_agent) and possible:        
+                    retreat, duration = self.retreat_move(direction)
                     self.current_plan =  retreat + self.current_plan
                     other_agent.wait(duration)
-                
+
                 #The other agent retreat moves
                 elif other_agent.retreat_is_possible([None,None]): #TODO: not None None
                     retreat, duration = other_agent.retreat_move()
@@ -301,8 +311,6 @@ class CNETAgent2(CNETAgent):
     def about_to_crash(self, box=None, agent = None):
         my_action = self.current_plan[0]
         other_action = agent.current_plan[0]
-        #TODO:
-
         if my_action.action.action_type == ActionType.Move or  my_action.action.action_type ==  ActionType.Pull:
             my_dir = my_action.action.agent_dir
     
@@ -312,31 +320,61 @@ class CNETAgent2(CNETAgent):
         if box is not None: #is moving 
             #agent box direction 
             other_agent_dir = other_action.action.box_dir
-            if my_dir == reverse_direction(other_agent_dir): 
+            if my_dir == self.reverse_direction(other_agent_dir): 
                 return True
             else: 
                 return False
                 
         else:
             other_agent_dir = other_action.action.agent_dir
-            if my_dir == reverse_direction(other_agent_dir): 
+            if my_dir == self.reverse_direction(other_agent_dir): 
                 return True 
             else: 
                 return False 
-            
-            
-        
     
+    def oposite_direction(direction):
+        if Dir.N:
+            return  Dir.S
+        if Dir.S: 
+             return  Dir.N
+        if Dir.E:
+             return  Dir.W
+        if Dir.W:
+             return  Dir.E
+    
+    """
+        OUTPUT list of blocked directions 
+    """
+    def close_blocked_dir(self): 
+        state = self.beliefs
+        row, col = self.row, self.col
+        blocked_spaces = []
+        for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
+            if not state.is_free(row + direction.d_row, col + direction.d_col): 
+                blocked_spaces.append(direction)
+        return blocked_spaces
+
+
     """
         OUTPUT list of moves, duration (time it takes for self to clear the space, sent to the other agent) 
     """
-    def retreat_move(self):
-        move = self.current_plan[0].action
-        moves = []
+    def retreat_move(self, direction):
+        original_move = self.current_plan[0].action #unfolded action
+        opposite = opposite_direction(direction)
         duration = 0
-            if move.action_type == ActionType.Move or move.action_type == ActionType.NoOp:
-                
-            if move.action_type == ActionType.Pull or move.action_type ==  ActionType.Push:
+        n = 2
+            #is just an agent 
+        if original_move.action_type == ActionType.Move or original_move.action_type == ActionType.NoOp:
+            self.current_plan = [UnfoldedAction(Action(ActionType.Move, direction, direction), self.id_)] + self.current_plan
+            wait(self, n)
+            self.current_plan = [UnfoldedAction(Action(ActionType.Move, opposite, opposite), self.id_)] + self.current_plan
+            #has a box
+        if original_move.action_type == ActionType.Pull or original_move.action_type ==  ActionType.Push:
+            row, col = self.row, self.col
+            new_location = row + direction.d_row, col + direction.d_col 
+            ignore_directions = self.close_blocked_dir + [oppsite_direction(direction)] #list of blocked directions
+            possible, second_direction = self.retreat_is_possible(self,ignore_directions, new_location) 
+            #if possible:
         
         return moves, duration
 
@@ -345,7 +383,8 @@ class CNETAgent2(CNETAgent):
             or
                 (False, None)
     """
-    def retreat_is_possible(self,ignore_directions: List, depth: int, location=None):
+    def retreat_is_possible(self,ignore_directions: list, location=None):
+        state = self.beliefs
         if location is None:
             row, col =self.row, self.col
         else:
@@ -353,11 +392,16 @@ class CNETAgent2(CNETAgent):
         #TODO: for depth > 1 
         #for depth 1
         for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
+            log(ignore_directions)
             if (direction not in ignore_directions) and state.is_free(row + direction.d_row, col + direction.d_col):
                 return True, direction
         return False, None
 
     """
+    [log] <class 'action.Dir'>
+    [log] N
+    [log] [<bound method CNETAgent2.close_blocked_dir of purple CNET-Agent with id 7 at position (2, 18)>, Move(S)]
+
         OUTPUT:
                 (True, Agent)
             or
