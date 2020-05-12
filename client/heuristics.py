@@ -27,6 +27,23 @@ class SimpleHeuristic:
     def f(self, state):
         return self.h(state)
 
+class DepthHeuristic:
+    def __init__(self, agent_id, requests):
+        self.agent_id = agent_id
+        self.requests = requests
+
+    def h(self, state):
+        #find agent in level
+        for location in state.agents:
+            if state.agents[location].id_ == self.agent_id:
+                for request in self.requests:
+                    if location in request.area:
+                        return state.g
+        return 0
+
+    def f(self, state):
+        return self.h(state)
+
 class Heuristic:
     
     def __init__(self, agent: 'BDIAgent'):

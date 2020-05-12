@@ -37,3 +37,11 @@ class Passage:
             log("The last agent left passage {}. So it is now empty".format(self.id_), "PASSAGES", False)
         self.occupied = False
 
+    # region String representations
+    def __repr__(self):
+        return "Passage {}".format(self.id_)
+
+    def __str__(self):
+        return self.__repr__()
+    # endregion
+

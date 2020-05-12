@@ -91,7 +91,7 @@ class Level:
     #Dictionary containing goals corresponding to different letters
     goals = Dict[str, List[Goal]]
     goals_by_pos = {}
-    caves = {} #key is entrance location
+    caves = {} # key is id
     passages = {} #key is id
     map_of_passages: list
     map_of_caves: list
@@ -205,10 +205,11 @@ class Level:
             
             #Cave has no entrance
             if loc is None:
-                log("found no new locations. Cave has no entrance")
-                cave.entrance = None
-                self.caves[location] = cave
-                log("Created the {}th cave. Entrance: {}, goals: {}, locations: {}".format(id_, cave.entrance, cave.goals, cave.locations), "CAVES", False)
+                log("found no new locations. Cave has no entrance. Removing from list", "CAVES", False)
+
+                # cave.entrance = None
+                # self.caves[location] = cave
+                # log("Created the {}th cave. Entrance: {}, goals: {}, locations: {}".format(id_, cave.entrance, cave.goals, cave.locations), "CAVES", False)
                 return
             
             #check if still in cave

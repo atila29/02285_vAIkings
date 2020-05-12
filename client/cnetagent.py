@@ -4,6 +4,7 @@ from communication.message import Message
 from communication.performative import CfpMoveSpecificBoxTo
 from communication.contract import Contract
 from communication.blackboard import BLACKBOARD
+from communication.request import Request
 from action import ActionType, ALL_ACTIONS, UnfoldedAction, Action, Dir
 from logger import log
 import random
@@ -91,8 +92,7 @@ class CNETAgent(BDIAgent):
         self.desires['contracts'].append(contract)
         log("Agent {} contracted agent {} to {}".format(manager.id_, self.id_,self.current_proposal['performative']), "CNET", False)
         #Remove current intentions
-        if self.intentions is not None:
-            BLACKBOARD.remove(self.intentions, self.id_)
+        self.remove_intentions_from_blackboard()
         self.intentions = contract
         BLACKBOARD.add(self.intentions, self.id_)
         return contract
@@ -116,100 +116,37 @@ class CNETAgent(BDIAgent):
     def add_subgoal(self, goal):
         self.desires['goals'].append(goal)
 
-    """
-        Q:  Given the desires (goals / contracts) how do we choose the intention? 
-            What is most important? -> fulfill contract or satisfy goal?
-        Q:  When trying to pick a goal, what should we think about?
-            Is another agent already going for this goal?
-            How close am I?
-        Q:  Given a goal, which box should I try to move?
-            Is somebody else trying to move that box - in that case who gets priority? and how do we communicate that?
-            How close am I to the box?
-            How close is the box to the goal?
-            Can I get to the box easily?
-            Is there a box that has to be moved anyway because it is in the way of somebody else?
-            Does all boxes eventually have to be moved, or do we have a surplus?
-    """
+
     def deliberate(self):
         #Have we succeeded?
         if self.succeeded():
-            log("Agent {} succeeded it's task of {}.".format(self.id_, self.intentions), "BDI", False)
-            #Remove contract from desire and BB
-            if isinstance(self.intentions, Contract):
-                BLACKBOARD.remove(self.intentions, self.id_)
-                self.desires['contracts'].pop(0)
-            #Remove claim on box and goal on BB, if intention is (box,goal)
-            elif self.intentions is not None:
-                box, goal = self.intentions
-                BLACKBOARD.remove((box,goal), self.id_)
-            #Reset intentions
-            self.intentions = None
+            self.remove_intentions_from_blackboard()
         
-        #Contract has priority if there is one
-        if len(self.desires['contracts']) != 0:
-            
-            #Is contract already the intention -> return
-            if self.intentions == self.desires['contracts'][0]:
-                return self.intentions
-            
-            #Did we have another intention we are overwriting -> Update BB
-            if self.intentions is not None:
-                box, goal = self.intentions
-                BLACKBOARD.remove((box,goal), self.id_)
-            
-            #Set intention to be the contract
-            self.intentions = self.desires['contracts'][0]
-            BLACKBOARD.add(self.intentions, self.id_)
-            log("Agent {}'s intention is to fulfill Contract to {}".format(self.id_, self.intentions), "BDI", False)
-            return self.intentions
-        
-        #No contract present, 
+        #If we already have intentions keep them 
+        # TODO: it might be smart to abbandon intentions 
+        # ... and do something else while we e.g. wait for an area to clea 
         if self.intentions is not None:
             return self.intentions
-        
+
+        boxes = self.boxes_of_my_color_not_already_claimed()
+
         #pick box, goal not already used, Start bidding to find best contractor.  
         random.shuffle(self.desires['goals'])
         for goal in self.desires['goals']:
-            if not self.beliefs.is_goal_satisfied(goal) and (goal.row, goal.col) not in BLACKBOARD.claimed_goals and (goal.cave is None or goal.cave.is_next_goal(goal, self.beliefs)):
-                for box in self.beliefs.boxes.values():
-                    if box.color == self.color and box.letter == goal.letter and (box.id_ not in BLACKBOARD.claimed_boxes):
-                        my_box = box
-                        break 
-                location = (goal.row, goal.col)
-                if isinstance(self.heuristic, Heuristic2):
-                    my_cost = self.heuristic.f(self.beliefs, (my_box, location), self)
-                else:
-                    my_cost = self.heuristic.f(self.beliefs, (my_box, location))
-                best_cost = my_cost
-                best_agent = self
-                log("Agent {} is calling for proposals for moving box {} to {}. Own cost: {}".format(self.id_, my_box, location, my_cost), "CNET", False)
-                for agent in self.all_agents:
-                    if agent.id_ != self.id_:
-                        new_cost = agent.calculate_proposal(CfpMoveSpecificBoxTo(my_box, location),best_cost)
-                        if  new_cost is not None and new_cost <= best_cost:
-                            best_cost = new_cost
-                            best_agent = agent
+            if self.goal_qualified(goal):
+                box = self.pick_box(goal, boxes)
+                best_agent = self.bid_box_to_goal(goal, box)
                 
-                for agent in self.all_agents:
-                    if agent.id_ == self.id_:
-                        continue
-                    if agent.id_ == best_agent.id_: 
-                        agent.accept_proposal(self)
-                        continue
-                    agent.reject_proposal()
-
                 if best_agent.id_ == self.id_:
-                    self.intentions = (my_box,goal)
+                    self.intentions = (box,goal)
+                    BLACKBOARD.add(self.intentions, self.id_)
+                    log("Agent {} now has intentions to move box {} to goal {}".format(self.id_, self.intentions[0], self.intentions[1]), "BDI", False)
                     break
 
         #update blackboard (Intentions might be None!)
         if self.intentions is None:
             log("Agent {} has no intentions".format(self.id_), "BDI", False)
-            if self.id_ in BLACKBOARD.claimed_boxes.values() or self.id_ in BLACKBOARD.claimed_goals.values():
-                raise RuntimeError("Agent has no intentions but is still on the blackboard.")
-        else:
-            log("Agent {} now has intentions to move box {} to goal {}".format(self.id_, self.intentions[0], self.intentions[1]), "BDI", False)
-            BLACKBOARD.add(self.intentions, self.id_)
+
     """
         Q:  Given an intention (Contract/goal+box) how do we plan to execute said intention?
         Q:  If the intention is goal+box, how do we search for solution?
@@ -228,7 +165,13 @@ class CNETAgent(BDIAgent):
             return
         elif isinstance(self.intentions, Contract):
             box = self.intentions.performative.box
-            location = self.intentions.performative.location           
+            location = self.intentions.performative.location
+        elif isinstance(self.intentions, Request):
+            if len(self.current_plan) == 0:
+                self.intentions = None
+                super().plan()
+            else:
+                return          
         else:
             box, location = self.intentions       
         plan = self.single_agent_search(self.heuristic, (box, location))
@@ -263,6 +206,8 @@ class CNETAgent(BDIAgent):
     def succeeded(self) -> 'Bool':
         if self.intentions is None:
             return True
+        if isinstance(self.intentions, Request):
+            return len(self.current_plan) == 0
         if isinstance(self.intentions, Contract):
             box = self.intentions.performative.box
             location = self.intentions.performative.location 
@@ -354,8 +299,63 @@ class CNETAgent(BDIAgent):
         self.current_plan.reverse()
         return self.current_plan
 
+    def remove_intentions_from_blackboard(self):
+        if self.succeeded():
+            log("Agent {} succeeded it's task of {}.".format(self.id_, self.intentions), "BDI", False)
+        #Remove contract from desire and BB
+        if isinstance(self.intentions, Contract):
+            BLACKBOARD.remove(self.intentions, self.id_)
+            self.desires['contracts'].pop(0)
+        #Remove claim on box and goal on BB, if intention is (box,goal)
+        elif isinstance(self.intentions, Request):
+            #TODO
+            pass
+        elif self.intentions is not None:
+            box, goal = self.intentions
+            BLACKBOARD.remove((box,goal), self.id_)
+        #Reset intentions
+        self.intentions = None
 
+    def goal_qualified(self, goal):
+        return not self.beliefs.is_goal_satisfied(goal) and (goal.row, goal.col) not in BLACKBOARD.claimed_goals and (goal.cave is None or goal.cave.is_next_goal(goal, self.beliefs))
 
+    def pick_box(self, goal, list_of_boxes):
+        for box in list_of_boxes:
+            if box.letter == goal.letter:
+                return box           
+
+    def boxes_of_my_color_not_already_claimed(self):
+        result = []
+        for box in self.beliefs.boxes.values():
+            if box.color == self.color and (box.id_ not in BLACKBOARD.claimed_boxes):
+                result.append(box)
+        return result
+
+    def bid_box_to_goal(self, goal, box):
+        location = (goal.row, goal.col)
+        if isinstance(self.heuristic, Heuristic2):
+            my_cost = self.heuristic.f(self.beliefs, (box, location), self)
+        else:
+            my_cost = self.heuristic.f(self.beliefs, (box, location))
+        best_cost = my_cost
+        best_agent = self
+        log("Agent {} is calling for proposals for moving box {} to {}. Own cost: {}".format(self.id_, box, location, my_cost), "CNET", False)
+        for agent in self.all_agents:
+            if agent.id_ != self.id_:
+                new_cost = agent.calculate_proposal(CfpMoveSpecificBoxTo(box, location),best_cost)
+                if  new_cost is not None and new_cost <= best_cost:
+                    best_cost = new_cost
+                    best_agent = agent
+        
+        for agent in self.all_agents:
+            if agent.id_ == self.id_:
+                continue
+            if agent.id_ == best_agent.id_: 
+                agent.accept_proposal(self)
+                continue
+            agent.reject_proposal()
+
+        return best_agent
     # region String representations
     def __repr__(self):
         return str(self.color) + " CNET-Agent with id " + str(self.id_) + " at position " + str((self.row, self.col))

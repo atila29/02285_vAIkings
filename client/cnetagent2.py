@@ -1,14 +1,129 @@
 from cnetagent import CNETAgent
 from strategy import StrategyBestFirst
-from heuristics import SimpleHeuristic
+from heuristics import SimpleHeuristic, DepthHeuristic
 from state import State, LEVEL
 from level import AgentElement, Goal
 from action import ALL_MOVE_ACTIONS, UnfoldedAction, Action, ActionType, Dir
 from logger import log
 from util import reverse_direction
 from passage import Passage
+from communication.request import Request
+from communication.blackboard import BLACKBOARD
+import random
+from cave import Cave
 
 class CNETAgent2(CNETAgent):
+    def deliberate(self):
+        #Have we succeeded?
+        if self.succeeded():
+            self.remove_intentions_from_blackboard()
+        
+        #If we already have intentions keep them 
+        # TODO: it might be smart to abbandon intentions 
+        # ... and do something else while we e.g. wait for an area to clea 
+        if self.intentions is not None:
+            if isinstance(self.intentions, Request) and len(self.current_plan) > 0:
+                return self.intentions
+            elif isinstance(self.intentions, Request):
+                self.intentions = None
+                #TODO update BB
+            else:
+                return self.intentions
+        
+        boxes = self.boxes_of_my_color_not_already_claimed()
+
+        # TODO: Look through request, commit to one if any relevant.
+        #requests = self.find_relevant_requests()
+        requests = []
+        for elm in BLACKBOARD.requests.values():
+            requests = requests + elm
+        #find easiest first
+        best_cost, best_request, path = float("inf"), None, None
+        log("Agent {} considering helping the requests.".format(self.id_), "REQUESTS", False)
+        state = self.beliefs
+        for request in requests:
+            cost = float("inf")
+            area = request.area
+            if request.move_boxes:
+                #find boxes in area of my colour
+                for location in area:
+                    if location in state.boxes and state.boxes[location] in boxes:
+                        #if box on goal in cave: leave it:
+                        if location in LEVEL.goals_by_pos and state.is_goal_satisfied(LEVEL.goals_by_pos[location]) and LEVEL.map_of_caves[location[0]][location[1]] is not None:
+                            continue
+                        #If box unreachable: continue
+                        path_to_box = self.find_simple_path((self.row, self.col), location)
+                        if path_to_box is None:
+                            continue
+                        #otherwise find location to move this box to
+                        box_path = self.find_path_to_free_space(location)
+                        if box_path is None or len(box_path) == 0:
+                            continue
+                        #TODO: consider not converting the path yet, is it heavy?
+                        combined_path = self.convert_paths_to_plan(path_to_box, box_path)
+                        # last_location = combined_path[-1].agent_to
+                        # agent_path = self.find_simple_path(last_location, locations[1])
+                        # if agent_path is None:
+                        #     continue
+                        # cost = len(combined_path) + len(agent_path)
+                        cost = len(combined_path)
+                        
+                        if cost < float("inf"):
+                            log("Agent {} can help with moving box {} out of the area in {} moves".format(self.id_, state.boxes[location], cost), "REQUESTS_DETAILED", False)
+                        #If new best, update
+                        if cost < best_cost:
+                            best_cost = cost
+                            best_request = request
+                            #path = combined_path + agent_path
+                            path = combined_path
+
+            if cost == float("inf"):
+                if not request.move_boxes:
+                    log("Agent {} found no boxes it was able to move in the request {}".format(self.id_, request), "REQUESTS_DETAILED", False)
+                if (self.row, self.col) in area:
+                    log("Agent {} in area".format(self.id_))
+                    agent_path = self.find_path_to_free_space((self.row, self.col))
+                    log("Found path: {}".format(agent_path))
+                    if agent_path is None or len(agent_path) == 0:
+                        log("Agent {} found no free space to move to to clear the area in request {}".format(self.id_, request), "REQUESTS_DETAILED", False)
+                    else:
+                        cost = len(agent_path)
+                    
+                        #If new best, update
+                        if cost < best_cost:
+                            best_cost = cost
+                            best_request = request
+                            path = agent_path
+                    if cost == float("inf"):
+                        log("Agent {} is unable to help with request {}".format(self.id_, request), "REQUESTS_DETAILED", False)
+                    else:
+                        log("Agent {} can move out of the area in {} moves".format(self.id_, cost), "REQUESTS_DETAILED", False)
+        if best_cost == float("inf"):
+            log("Agent {} is unable to help with the requests".format(self.id_), "REQUESTS", False)
+        else:
+            self.intentions = best_request
+            #TODO: update blackboard
+            self.current_plan = path
+            log("Agent {} is able to help with the request {} in {} moves.".format(self.id_, best_request, best_cost), "REQUESTS", False)
+            return self.intentions   
+
+        #pick box, goal not already used, Start bidding to find best contractor.  
+        random.shuffle(self.desires['goals'])
+        for goal in self.desires['goals']:
+            if self.goal_qualified(goal):
+                box = self.pick_box(goal, boxes)
+                best_agent = self.bid_box_to_goal(goal, box)
+                
+                if best_agent.id_ == self.id_:
+                    self.intentions = (box,goal)
+                    BLACKBOARD.add(self.intentions, self.id_)
+                    log("Agent {} now has intentions to move box {} to goal {}".format(self.id_, self.intentions[0], self.intentions[1]), "BDI", False)
+                    break
+
+        #update blackboard (Intentions might be None!)
+        if self.intentions is None:
+            log("Agent {} has no intentions".format(self.id_), "BDI", False)
+    
     """
         returns a list of move action from location_from to location_to
         ignores agents
@@ -195,6 +310,7 @@ class CNETAgent2(CNETAgent):
         if not self.beliefs.is_free(*self.current_plan[0].required_free):
             #TODO: Handle this better -> e.g. Ask agent to move
             self.current_plan.insert(0,UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_))
+        self.sound()
         return self.current_plan
         
     
@@ -236,6 +352,18 @@ class CNETAgent2(CNETAgent):
             strategy.add_to_explored(leaf)
 
     def sound(self):
+        #TODO: Check if we are currently waiting for a request, check status. Wait if neccessary
+        #If reqeust not done:
+            #wait 1
+        if self.id_ in BLACKBOARD.requests:
+            #check if request done
+            request = BLACKBOARD.requests[self.id_][0]
+            for location in request.area:
+                if not self.beliefs.is_free(location[0], location[1]):
+                    self.wait(1)
+                    return True
+            BLACKBOARD.remove(request, self.id_)
+
         next_action = self.current_plan[0]
 
         if next_action.action.action_type == ActionType.NoOp:
@@ -261,8 +389,14 @@ class CNETAgent2(CNETAgent):
                 if (row,col) in passage.entrances:
                     if passage.occupied and (old_location not in passage.locations) and passage == wanted_passage:
                         #log("Agent {} is waiting for passage {} to clear".format(self.id_, passage.id_), "CLEARING", False)
+                        #TODO: Make request to clear wanted_passage
+                        
+                        area_required = passage.locations + passage.entrances
+                        request = Request(self.id_, area_required)
+                        BLACKBOARD.add(request, self.id_)
+
                         self.wait(1)
-                        break
+                        return True
                     elif passage == wanted_passage:
                         #TODO: Make this into a function that can be called recursively
                         for index in range(1, len(self.current_plan)-1):
@@ -274,13 +408,29 @@ class CNETAgent2(CNETAgent):
                                    passage2 = LEVEL.map_of_passages[row][col][0]
                                    if passage2.occupied:
                                         log("Agent {} can't move into passage {} since passage {} is occupied".format(self.id_, wanted_passage.id_, passage2.id_), "CLEARING", False) 
+                                        #TODO: Make request to clear wanted passage and passage2
+
+                                        area_required = (passage.locations + passage.entrances) + (passage2.locations + passage2.entrances)
+                                        request = Request(self.id_, area_required)
+                                        BLACKBOARD.add(request, self.id_)
+
                                         self.wait(1)
+                                        return True
                                 #moving into a cave
                                 elif LEVEL.map_of_caves[row][col] is not None:
                                     cave2 = LEVEL.map_of_caves[row][col][0]
                                     if cave2.occupied:
-                                        log("Agent {} can't move into passage {} since cave {} is occupied".format(self.id_, wanted_passage.id_, cave2.id_), "CLEARING", False) 
+                                        log("Agent {} can't move into passage {} since cave {} is occupied".format(self.id_, wanted_passage.id_, cave2.id_), "CLEARING", False)
+                                        #TODO: Make request to clear wanted passage and cave2
+                                        #TODO: Only add needed spaces in cave:
+                                        test = len(self.current_plan[index:])-1
+                                        locations_needed_in_cave = [cave2.entrance] + cave2.locations[-test:]
+                                        area_required = passage.locations + passage.entrances + locations_needed_in_cave
+                                        #area_required = (passage.locations + passage.entrances) + (cave2.locations + [cave2.entrance])
+                                        request = Request(self.id_, area_required)
+                                        BLACKBOARD.add(request, self.id_)
                                         self.wait(1)
+                                        return True
 
 
                         log("Agent {} has claimed passage {}".format(self.id_, wanted_passage.id_), "CLEARING", False)
@@ -291,12 +441,87 @@ class CNETAgent2(CNETAgent):
                 if (row,col) == cave.entrance:
                     if cave.occupied and (old_location not in cave.locations) and cave == wanted_cave:
                         #log("Agent {} is waiting for cave {} to clear".format(self.id_, cave.id_), "CLEARING", False)
+                        #TODO: Make request to clear cave
+                        end = None
+                        #run backwards finding satisfied goal
+                        for i in range(len(cave.locations)):
+                            temp = cave.locations[i]
+                            if temp in LEVEL.goals_by_pos:
+                                if not self.beliefs.is_goal_satisfied(LEVEL.goals_by_pos[temp]):
+                                    break
+                                else:
+                                    end = i
+                        #clear whole cave
+                        if end is None:
+                            area_required = [cave.entrance] + cave.locations
+                        #clear until end
+                        else:
+                            area_required = [cave.entrance] + cave.locations[end+1:]
+                        # test = len(self.current_plan)-1
+                        # locations_needed_in_cave = [cave.entrance] + cave.locations[-test:]
+                        # area_required = locations_needed_in_cave
+                        request = Request(self.id_, area_required)
+                        BLACKBOARD.add(request, self.id_)
                         self.wait(1)
-                        break
+                        return True
 
         return True
 
-    def clear_object_from_()
+    #TODO: 
+    # Question: Should we always only pass one area, or should we be able to pass a list of areas?
+        # benefit to multiple areas: The possibility that the agent might still be in the way after clearing the area is smaller. 
+            # (otherwise we risk loop were it moves between two areas it needs to clear) 
+    # Question: Should we always only pass one box, or should we be able to pass a list of boxes?
+        # benefit to multiple boxes: The agent might use the information that it needs to move more boxes, to make a decision about were to put them
+            #shallow vs deep storing
+    def clear_object_from_area(self, obj, area):
+        
+        if isinstance(obj, Box):
+            pass
+        if isinstance(obj, BDIAgent):
+            pass
+        if isinstance(area, Passage):
+            pass
+        if isinstance(area, Cave):
+            pass
+
+        #Find location to go to
+            #Idea 1: find empty cave with no goals and put it there. (decision: Furthest out or in?)
+            #Idea 2: just search for first empty space not in the area. Problem: might block another area.
+            #Remark: If it is a box, remember to think about space for the agent, and make sure not to block the agent in (so push over pull actions)
+                #Remark how thourough we wanna put the box away could depend on other factors: 
+                    # Will the box ever be needed? (i.e. does it have a goal)
+                    # Does the agent have another important job to go do, or is it just idling?
+                    # How much space do we have in general? (i.e. will we need to store multiple boxes away, then we need to push them deep in the cave)
+
+        
+        #Calculate plan to move object to chosen location 
+            #Idea: find simple paths (reuse code for convert moves to plan)
+
+    def find_path_to_free_space(self, location):
+        #search from location, find spot not in an area requested free
+        #pretend agent is at location_from, and remove agents, and possible target box 
+        state = State(self.beliefs)
+        state.agents.pop((self.row, self.col))
+        state.agents[location] = AgentElement(self.id_, self.color, location[0], location[1])
+        if location in state.boxes:
+            state.boxes.pop(location)
+        
+        #define heuritic to be distance from agent to location_to
+        requests = []
+        for elm in BLACKBOARD.requests.values():
+            requests = requests + elm
+        h = DepthHeuristic(self.id_, requests)
+        return self.best_first_search(h, state)
+
+
+    # def find_relevant_requests(self):
+    #     #return requests where 
+    #         # 1 : the agent is in the area itself
+    #         # 2 : there is a box of the agents color in the area    
+
+        
+    #     return []
 
     def wait(self, duration: int):
         self.current_plan = [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]*duration + self.current_plan

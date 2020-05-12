@@ -34,3 +34,11 @@ class Cave:
             log("The last agent left cave {}. So it is now empty".format(self.id_), "CAVES", False)
         self.occupied = False
 
+    # region String representations
+    def __repr__(self):
+        return "Cave {}".format(self.id_)
+
+    def __str__(self):
+        return self.__repr__()
+    # endregion
+
