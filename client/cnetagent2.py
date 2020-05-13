@@ -368,31 +368,28 @@ class CNETAgent2(CNETAgent):
     def retreat_move(self, direction):
         original_move = self.current_plan[0].action #unfolded action
         opposite = self.opposite_direction(direction)
+        NoOp = UnfoldedAction(Action(ActionType.NoOp, Dir.N, None), self.id_, True, (self.row, self.col))
         #is just an agent
         if original_move.action_type == ActionType.Move or original_move.action_type == ActionType.NoOp:
-            #moves.append(UnfoldedAction(Action(ActionType.Move, direction, direction), self.id_))
-            #self.current_plan = [UnfoldedAction(Action(ActionType.Move, opposite, None), self.id_)] + self.current_plan
             retreat_move = UnfoldedAction(Action(ActionType.Move, direction, None), self.id_, True, (self.row, self.col))
             new_location = (self.row + direction.d_row, self.col + direction.d_col)
-            NoOp = UnfoldedAction(Action(ActionType.NoOp, Dir.N, None), self.id_, True, (self.row, self.col) )
-            
             back_move = UnfoldedAction(Action(ActionType.Move, opposite, None), self.id_, True, new_location)
             moves = [retreat_move,NoOp,NoOp,back_move]
-            
-            
-            #self.current_plan = [UnfoldedAction(Action(ActionType.Move, direction, None), self.id_)] + self.current_plan
-            return moves, 4
+
+            return moves, len(moves)
         #has a box
-        if original_move.action_type == ActionType.Pull or original_move.action_type ==  ActionType.Push:
+        if original_move.action_type == ActionType.Pull or original_move.action_type == ActionType.Push:
             log('push/pull')
+            return NotImplementedError
+            '''
             moves.append(UnfoldedAction(Action(ActionType.NoOp, None, direction), self.id_))
             row, col = self.row, self.col
             new_location = row + direction.d_row, col + direction.d_col 
             ignore_directions = self.close_blocked_dir + [self.oppsite_direction(direction)] #list of blocked directions
             possible, second_direction = self.retreat_is_possible(self,ignore_directions, new_location) 
             #if possible:
-        
-        return duration
+            '''
+        return NotImplementedError
 
     """
         OUTPUT  (True, Dir)
@@ -434,7 +431,7 @@ class CNETAgent2(CNETAgent):
         #for each agent check if first action is push or pull
         for agent in adjacent_agents:
             next_action = agent.current_plan[0]
-            if next_action.action.action_type == ActionType.Pull or move.action_type ==  ActionType.Push:
+            if next_action.action.action_type == ActionType.Pull or next_action.action.action_type ==  ActionType.Push:
                 #check if they are moving the current box
                 if next_action.box_from == (row, col):
                     return (True, agent)
