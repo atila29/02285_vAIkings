@@ -28,13 +28,14 @@ class Passage:
     def update_status(self, state):
         locations = self.locations + self.entrances
         for location in locations:
+            #TODO: What about boxes and goals ?
             if location in state.agents:
                 if not self.occupied:
-                    log("Agent {} entered passage {}. So it is now occupied".format(state.agents[location].id_, self.id_), "PASSAGES", False)
+                    log("Object at location {} entered passage {}. So it is now occupied".format(location, self.id_), "PASSAGES", False)
                 self.occupied = True
                 return
         if self.occupied:
-            log("The last agent left passage {}. So it is now empty".format(self.id_), "PASSAGES", False)
+            log("The last object left passage {}. So it is now empty".format(self.id_), "PASSAGES", False)
         self.occupied = False
 
     # region String representations

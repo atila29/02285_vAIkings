@@ -61,6 +61,7 @@ class CNETAgent2(CNETAgent):
                             continue
                         #TODO: consider not converting the path yet, is it heavy?
                         combined_path = self.convert_paths_to_plan(path_to_box, box_path)
+                        log("Agent {}. \n path to box: {}. \n box path: {} \n combined path: {}".format(self.id_, path_to_box, box_path, combined_path))
                         # last_location = combined_path[-1].agent_to
                         # agent_path = self.find_simple_path(last_location, locations[1])
                         # if agent_path is None:
@@ -112,6 +113,8 @@ class CNETAgent2(CNETAgent):
         for goal in self.desires['goals']:
             if self.goal_qualified(goal):
                 box = self.pick_box(goal, boxes)
+                if box is None:
+                    continue
                 best_agent = self.bid_box_to_goal(goal, box)
                 
                 if best_agent.id_ == self.id_:
@@ -160,7 +163,7 @@ class CNETAgent2(CNETAgent):
         dir1 = path1[-1].action.agent_dir
         dir2 = path2[0].action.agent_dir
         break_point = 0
-       
+        turn = None
         #if going back where we came from: start with pull actions
         if dir1 == reverse_direction(dir2):  
             for i in range(1, len(path2)):
@@ -175,7 +178,7 @@ class CNETAgent2(CNETAgent):
                 next_action = self.convert_move_to_pull(path2[i], path2[i-1].action.agent_dir)
                 result.append(next_action)
             #we couldn't turn and should pull onto goal
-            if break_point == len(path2)-1:
+            if break_point == len(path2)-1 and turn is None:
                 last_action = path2[-1]
                 location = last_action.agent_to
                 for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
@@ -374,6 +377,8 @@ class CNETAgent2(CNETAgent):
 
         if len(self.current_plan) > 1:
             future_action =  self.current_plan[1]
+            if future_action.action.action_type == ActionType.NoOp:
+                return True
             future_location = future_action.required_free
             if LEVEL.map_of_passages[future_location[0]][future_location[1]] is not None:
                 wanted_passage = LEVEL.map_of_passages[future_location[0]][future_location[1]][0]
