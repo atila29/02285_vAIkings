@@ -247,55 +247,79 @@ class CNETAgent2(CNETAgent):
             state = self.beliefs
             #Space is occupied
             if not(state.is_free(*rf_loc)):
+                
                 #If agent at the position
                 #TODO: a more efficient way to find other_agent
                 if rf_loc in state.agents:
+                    log("Agent {} found agent at desired location {}".format(self.id_, rf_loc), "RETREAT", False)
                     for agent in self.all_agents:
                         if (agent.row, agent.col) == rf_loc:
                             other_agent = agent
                     if self.about_to_crash(agent = other_agent):
+                        log("Agent {} thinks it will crash with agent {} and is looking for retreat move".format(self.id_, other_agent.id_), "RETREAT", False)
                         try_to_retreat = True
                     else:
-                        self.wait(1)
+                        if other_agent.current_plan[0].action.action_type == ActionType.NoOp:
+                            log("Agent {} thinks agent {} is standing still so it will try to replan".format(self.id_, other_agent.id_), "RETREAT", False)
+                            need_to_replan = True
+                        else:
+                            log("Agent {} thinks it can wait for agent {} to pass".format(self.id_, other_agent.id_), "RETREAT", False)
+                            self.wait(1)
                 #If box at the location
                 if rf_loc in state.boxes:
+                    log("Agent {} found box at desired location {}".format(self.id_, rf_loc), "RETREAT", False)
                     box = state.boxes[rf_loc] #find the box
                     moving, other_agent = self.box_on_the_move(box)
                     if moving:
-                        if self.about_to_crash(box = box, agent = other_agent):
+                        log("Agent {} thinks agent {} is moving the box {}".format(self.id_, other_agent, box), "RETREAT", False)
+                        if self.about_to_crash(box = box, agent = other_agent): 
+                            log("Agent {} thinks agent {} currently moving the box {} will crash with itself".format(self.id_, other_agent, box), "RETREAT", False)
                             try_to_retreat = True
                         else:
                             self.wait(1)
                     else:
+                        log("Agent {} sees the box {} as static and will try to replan".format(self.id_, box), "RETREAT", False)
                         need_to_replan = True
 
             if try_to_retreat:
             
-                # blocked_direction = statisk informasjon (walls - d vi finner i levels) ? 
-                # path_direction: Dir.W
-                path_direction = self.current_plan[0]
 
-                blocked_direction = self.close_blocked_dir()
+                
 
+                #path_direction = other_agent.current_plan[1].action.
+
+                blocked_direction = self.close_blocked_dir(state, self.row, self.col, other_agent)
+                log("blocked_direction {}".format(blocked_direction))
 
                 #This agent retreat moves
                 # possible, direction = self.retreat_is_possible([blocked_direction, path_direction])
-                possible, direction = self.retreat_is_possible(blocked_direction)
+                #possible, direction = self.move_is_possible(blocked_direction)
+                
+                possible, directions, retreat_type = self.retreat_is_possible(blocked_direction)
+                log("possible: {}, directions: {}, retreat_type:{}".format(possible, directions, retreat_type))
 
                 if self.lower_priority(other_agent) and possible:
-                    log('trying retreat_move')
-                    log(self)
-                    log('with direction: ' + str(direction))
-                    retreat, duration = self.retreat_move(direction)
+
+                    retreat, duration = self.retreat_move(directions, retreat_type)
+                    log("Agent {} is doing a retreat move of type {} to make way for agent {}. (Moves: {})".format(self.id_, retreat_type, other_agent.id_, retreat), "RETREAT", False)
 
                     self.current_plan =  retreat + self.current_plan
-                    other_agent.wait(duration)
+                    other_agent.wait_at_least(duration)
 
                 #The other agent retreat moves
-                elif other_agent.retreat_is_possible([None,None]): #TODO: not None None
-                    retreat, duration = other_agent.retreat_move()
-                    other_agent.current_plan = retreat + other_agent.current_plan
-                    self.wait(duration)
+                else:
+                    blocked_direction = other_agent.close_blocked_dir(state, other_agent.row, other_agent.col, self)
+                    possible, directions, retreat_type = other_agent.retreat_is_possible(blocked_direction) #TODO: not empty
+                    if possible:
+                        log("Agent {} asked agent {} to do a retreat move of type {}".format(self.id_, other_agent.id_, retreat_type), "RETREAT", False)
+                        retreat, duration = other_agent.retreat_move(directions, retreat_type)
+                        other_agent.current_plan = retreat + other_agent.current_plan
+                        self.wait_at_least(duration)
+                    else:
+                        log("Agent {} couldn't find a retreat move to make way for agent {} and will replan".format(self.id_, other_agent.id_), "RETREAT", False)
+                        other_agent.wait(1)
+                        self.deliberate()
+                        self.plan
             #self.current_plan[:0] = [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]
             
 
@@ -309,6 +333,12 @@ class CNETAgent2(CNETAgent):
         if need_to_replan:
             self.deliberate()
             self.plan()
+            return self.get_next_action(self.beliefs)
+
+        if self.impossible():
+            log("Agent {} somehow had impossible move as first move. FIX THIS".format(self.id_))
+            self.wait(1)
+
         return self.current_plan[0] #what if empty?
 
     """
@@ -317,6 +347,8 @@ class CNETAgent2(CNETAgent):
     def about_to_crash(self, box=None, agent = None):
         my_action = self.current_plan[0]
         other_action = agent.current_plan[0]
+        if box is None and agent is None: 
+            return True
         if my_action.action.action_type == ActionType.Move or  my_action.action.action_type ==  ActionType.Pull:
             my_dir = my_action.action.agent_dir
     
@@ -338,36 +370,148 @@ class CNETAgent2(CNETAgent):
             else: 
                 return False 
 
-    @staticmethod
-    def opposite_direction(direction):
-        if Dir.N:
+    def opposite_direction(self, direction):
+        if direction == Dir.N:
             return  Dir.S
-        if Dir.S: 
+        if direction == Dir.S: 
              return  Dir.N
-        if Dir.E:
+        if direction == Dir.E:
              return  Dir.W
-        if Dir.W:
+        if direction == Dir.W:
              return  Dir.E
+    
+
     
     """
         OUTPUT list of blocked directions 
     """
-    def close_blocked_dir(self): 
-        state = self.beliefs
-        row, col = self.row, self.col
+    def close_blocked_dir(self, state, row, col, other_agent):
         blocked_spaces = []
         for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
             if not state.is_free(row + direction.d_row, col + direction.d_col): 
                 blocked_spaces.append(direction)
-        return blocked_spaces
+                        
+        if len(other_agent.current_plan) > 1:
+            a = other_agent.current_plan[1]
+            if a.action.action_type == ActionType.Move or a.action.action_type == ActionType.Pull:
+                direction = [a.action.agent_dir]
+            else:
+                direction = [a.action.box_dir]
+        else:
+            direction = [] 
+        
+        return blocked_spaces + direction
+        
+    def move_direction(state, row, col, ignore_direction): 
+        for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
+            if (direction not in ignore_directions) and state.is_free(row + direction.d_row, col + direction.d_col):
+                return direction
+    
 
+
+    """
+        OUTPUT list of moves, duration (time it takes for self to clear the space, sent to the other agent) 
+    """
+    def retreat_move(self, directions, retreat_type, wait_duration=2):
+        state = self.beliefs
+        NoOp = UnfoldedAction(Action(ActionType.NoOp,Dir.N, None), self.id_,True, (self.row, self.col))
+        has_box, pos_box, relative_pos = self.agent_has_box() #True, box, pos, relative_pos
+        #is just an agent
+        if retreat_type == "move":
+            direction = directions[0]
+            opposite = self.opposite_direction(direction)
+            retreat_move = UnfoldedAction(Action(ActionType.Move, direction, None), self.id_, True, (self.row, self.col))
+            new_location = (self.row + direction.d_row, self.col + direction.d_col)
+            NoOp = UnfoldedAction(Action(ActionType.NoOp,Dir.N, None), self.id_,True, new_location)
+            back_move = UnfoldedAction(Action(ActionType.Move, opposite, None), self.id_, True, new_location)
+            moves = [retreat_move,NoOp,NoOp,back_move]
+            return moves, 1
+        if retreat_type == "push":
+            moves =[]
+            #direction = self.current_plan[0].action.agent_dir
+            direction = relative_pos #where the box is relative to agent # Ex. box is located north of the agent
+            dir1, dir2 = directions[0], directions[1]
+            move1 = UnfoldedAction(Action(ActionType.Move, direction, None), self.id_, True, (self.row, self.col)) 
+            new_location = (self.row + direction.d_row, self.col + direction.d_col)
+            move2 = UnfoldedAction(Action(ActionType.Move, dir1, None), self.id_, True, new_location)
+
+            #convert to push actions
+            moves.append(self.convert_move_to_push(move1, dir1))
+            moves.append(self.convert_move_to_push(move2, dir2))
+
+            end_location = moves[-1].agent_to
+
+            #wait 2 or 3 depending on other agent have box
+            moves = moves +[UnfoldedAction(Action(ActionType.NoOp,Dir.N, None), self.id_,True, end_location)]*wait_duration
+            
+            #pull back
+            moves.append(self.invert_move(moves[1]))
+            moves.append(self.invert_move(moves[0]))
+            return moves, 2
+        if retreat_type == "pull": 
+            moves =[]
+            #direction = self.current_plan[0].action.agent_dir
+            direction = relative_pos #where the box is relative to agent # Ex. box is located north of the agent
+            dir1, dir2 = directions[0], directions[1]
+            move1 = UnfoldedAction(Action(ActionType.Move, dir1, None), self.id_, True, (self.row, self.col)) 
+            new_location = (self.row + dir1.d_row, self.col + dir1.d_col)
+            move2 = UnfoldedAction(Action(ActionType.Move, dir2, None), self.id_, True, new_location)
+
+            #convert to pull actions
+            moves.append(self.convert_move_to_pull(move1, self.opposite_direction(direction)))
+            moves.append(self.convert_move_to_pull(move2, dir1))
+
+            end_location = moves[-1].agent_to
+
+            #wait 2 or 3 depending on other agent have box
+            moves = moves +[UnfoldedAction(Action(ActionType.NoOp,Dir.N, None), self.id_,True, end_location)]*wait_duration
+            
+            #push back
+            moves.append(self.invert_move(moves[1]))
+            moves.append(self.invert_move(moves[0]))
+            return moves, 2
+        
+        '''
+        if has_box:
+            #kan vi gjøre pull action?
+            pull_possible, pull_action = self.pull_actions_possible()
+            if pull_possible:     
+    
+            push_possible, push_action = self.push_actions_possible()
+            #kan vi gjøre push action?
+            elif push_action_possible():
+
+            #hvor agenten står, hvor boksen står og hvor vi ikke får lov til å gå.
+            #the box goes to its intended position
+            #den forrige action ? 
+            retreat_move = UnfoldedAction(Action(ActionType.Move, direction, direction), self.id_, True, (self.row, self.col))
+            new_location_agent = (self.row + direction.d_row, self.col + direction.d_col)
+            new_location_box =  (box.row + direction.d_col, box.col + direction.d_col)
+        #the box is going to crash into the other 
+        
+            moves.append(UnfoldedAction(Action(ActionType.NoOp, None, direction), self.id_))
+            row, col = self.row, self.col
+            new_location = row + direction.d_row, col + direction.d_col 
+            ignore_directions = self.close_blocked_dir + [self.oppsite_direction(direction)] #list of blocked directions
+            possible, second_direction = self.retreat_is_possible(self,ignore_directions, new_location) 
+            #if possible:
+        '''
+    def invert_move(self, action):
+        if action.action.action_type == ActionType.Push:
+            #creat pull action
+            move = UnfoldedAction(Action(ActionType.Move, self.opposite_direction(action.action.agent_dir), None), self.id_, True, action.agent_to)
+            return self.convert_move_to_pull(move, self.opposite_direction(action.action.box_dir)) #opposite from the box, directions from before
+        if action.action.action_type == ActionType.Pull:
+            move = UnfoldedAction(Action(ActionType.Move, self.opposite_direction(action.action.agent_dir), None), self.id_, True, action.agent_to)
+            return self.convert_move_to_push(move, action.action.box_dir) #opposite from the box, directions from before
+    
     def agent_has_box(self):
-        action = self.current_plan[0].action #unfolded action
-        if action.action_type == ActionType.Move or action.action_type == ActionType.NoOp:
-            return False, False, False, False
-        if action.action_type == ActionType.Pull or action.action_type == ActionType.Push:
-            pos = action.required_free
-            box = state.boxes[pos]
+        action = self.current_plan[0] #unfolded action
+        if action.action.action_type == ActionType.Move or action.action.action_type == ActionType.NoOp:
+            return False, False, False
+        if action.action.action_type == ActionType.Pull or action.action.action_type == ActionType.Push:
+            pos = action.box_from
+            #box = state.boxes[pos]
             relative_pos = None
             # Ex. box is located north to the agent
             if (self.row-1,self.col == pos):
@@ -378,84 +522,118 @@ class CNETAgent2(CNETAgent):
                 relative_pos = Dir.E
             if (self.row,self.col+1 == pos):
                 relative_pos = Dir.W
-            return True, box, pos, relative_pos
+            return True, pos, relative_pos
 
     """
-        OUTPUT list of moves, duration (time it takes for self to clear the space, sent to the other agent) 
+        wrapper for action_possible methods
     """
-    def retreat_move(self):
-        NoOp = UnfoldedAction(Action(ActionType.NoOp,Dir.N, None), self.id_,True, (self.row, self.col))
-        has_box, box, pos_box = self.agent_has_box()
-        #is just an agent
-        if not has_box:
-            move_is_possible, direction = self.retreat_is_possible()
-            opposite = self.opposite_direction(direction)
-            retreat_move = UnfoldedAction(Action(ActionType.Move, direction, None), self.id_, True, (self.row, self.col))
-            new_location = (self.row + direction.d_row, self.col + direction.d_col)
-            back_move = UnfoldedAction(Action(ActionType.Move, opposite, None), self.id_, True, new_location)
-            moves = [retreat_move,NoOp,NoOp,back_move]
-            return moves, len(moves)
-        moves =[]
-        if has_box:
-            #kan vi gjøre pull action?
-            possible_pull, pull_action = self.pull_actions_possible()
-            moves.append(pull_action)
-            while possible_pull:
-                possible_pull, moves = self.pull_actions_possible()
-                
+    def retreat_is_possible(self, ignore_directions):
+        next_action = self.current_plan[0]
+        if next_action.action.action_type == ActionType.Move:
+            success, action = self.move_action_possible(ignore_directions)
+            log("move_action_possible({}) = {}".format(ignore_directions, (success, action)))
+            actions = [action]
+            retreat_type = "move"
+        elif self.agent_has_box()[0]:
+            success, actions = self.simple_pull_actions_possible(ignore_directions)
+            log("simple_pull_actions_possible({}) = {}".format(ignore_directions, (success, actions)))
+            retreat_type = "pull"
+            if not success: 
+                success, actions = self.simple_push_actions_possible(ignore_directions)
+                log("simple_push_actions_possible({}) = {}".format(ignore_directions, (success, actions)))
+                retreat_type = "push"
+        else:
+            success, actions, retreat_type = False, [], "No retreat possible"
+        return success, actions, retreat_type
+    
+    def wait_at_least(self, least): 
+        counter = 0
+        for elem in self.current_plan: 
+            if elem.action.action_type == ActionType.NoOp:
+                counter = counter + 1
+            else:
+                break
+        if counter >= least:
+            return
+        else:
+            self.wait(least-counter)
+            return 
 
-            #kan vi gjøre push action?
-            if push_action_possible():
+            
 
-
-            #hvor agenten står, hvor boksen står og hvor vi ikke får lov til å gå.
-            #the box goes to its intended position
-            #den forrige action ? 
-            retreat_move = UnfoldedAction(Action(ActionType.Move, direction, direction), self.id_, True, (self.row, self.col))
-            new_location_agent = (self.row + direction.d_row, self.col + direction.d_col)
-            new_location_box =  (box.row + direction.d_col, box.col + direction.d_col)
-        #the box is going to crash into the other 
-    '''
-            moves.append(UnfoldedAction(Action(ActionType.NoOp, None, direction), self.id_))
-            row, col = self.row, self.col
-            new_location = row + direction.d_row, col + direction.d_col 
-            ignore_directions = self.close_blocked_dir + [self.oppsite_direction(direction)] #list of blocked directions
-            possible, second_direction = self.retreat_is_possible(self,ignore_directions, new_location) 
-            #if possible:
-    '''
 
     """
         returns 2 
     """
-    def pull_action_possible(self, box, relative direction_agent = None, ignore_directions): 
-        row, col = self.row, self.col
+    def push_actions_possible(self, box, relative_pos, ignore_directions):
+        
+        agent_row, agent_col = self.row, self.col
         agent_dir = None
         box_dir = None
         for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
-            if (direction not in ignore_directions) and state.is_free(row + direction.d_row, col + direction.d_col):
-                agent_dir = direction
-                box_dir = 
-                break
-        pull_action = UnfoldedAction(Action(ActionType.Pull, agent_dir, box_dir), self.id_, True, (self.row, self.col))
-        return True, pull_action
+            if (direction not in ignore_directions) and state.is_free(box.row + direction.d_row, box.col + direction.d_col):
+                box_dir = directon
+                #box is situated north of agent, then agent must go north
+                agent_dir = relative_pos
+                push_action = UnfoldedAction(Action(ActionType.Push, agent_dir, box_dir), self.id_, True, (self.row, self.col))
+                return True, push_action
+        return False, None
 
-    def pull_actions_possible2(self, ignore_direction, relative_pos): 
-        move = []
-        original_move = self.current_plan[0].action
-        ignore_direction += [original_move.agent_dir]
-        move_is_possible, direction = move_is_possible(self, ignore_direction)
+    def simple_pull_actions_possible(self, ignore_directions, starting_pos = None):
+        state = self.beliefs
+        if starting_pos is None:
+            starting_pos = (self.row, self.col)
+        
+        success = False
+        #look N, S, E, W of agent and see if we can find two connecting free spots (ignore direction in list)
+        for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
+            if direction in ignore_directions:
+                continue
+            if state.is_free(starting_pos[0] + direction.d_row, starting_pos[1] + direction.d_col):
+                #look for second free spot (ignore where we came from):
+                row, col = starting_pos[0] + direction.d_row, starting_pos[1] + direction.d_col
+                dir1 = direction
+                for dir2 in [Dir.N, Dir.S, Dir.E, Dir.W]:
+                    if dir2 == self.opposite_direction(dir1):
+                        continue
+                    if state.is_free(row + dir2.d_row, col + dir2.d_col):
+                        success = True
+                        return success, [dir1,dir2]
+        return False, None
+            #TODO: Make pull from dir1, dir2
+
+    def simple_push_actions_possible(self, ignore_directions):
+        row, col = self.current_plan[0].box_from
+        return self.simple_pull_actions_possible([], starting_pos = (row,col))
+
+    '''
+    def pull_actions_possible(self, box, relative_pos, ignore_directions): 
+        #close_blocked_dir(state, row, col)
+        out_of_the_way = False
+        ignore_direction = self.close_blocked_dir(self.beliefs, self.row, self.col)
+        state = self.beliefs
+        row, col = self.row, self.col
+        while ! out_of_the_way: 
+            direction = move_direction(row, col)
+    
+        
+            
+        
+        #box is situated north of agent, then it must go south
+        box_dir = self.opposite_direction(relative_pos)
         if move_is_possible: 
-            move = UnfoldedAction(Action(ActionType.Move, direction, relative_pos), self.id_, True, (self.row, self.col))
-            return True, move
-        else: 
-            return False, None
-
+            pull_action = UnfoldedAction(Action(ActionType.Pull, agent_dir, box_dir), self.id_, True, (self.row, self.col))
+            return True, pull_action
+        return False, None
+    '''
     """
         OUTPUT  (True, Dir)
             or
                 (False, None)
     """
-    def move_is_possible(self,ignore_directions: list, location=None):
+    
+
+    def move_action_possible(self,ignore_directions: list, location=None):
         state = self.beliefs
         if location is None:
             row, col = self.row, self.col
@@ -506,3 +684,37 @@ class CNETAgent2(CNETAgent):
     """
     def lower_priority(self, other_agent):
         return self.id_ < other_agent.id_
+
+    """
+        INPUT: UnfoldedAction of move type, direction you wanna push the box
+
+        example:
+            #push
+            location_of_agent = (row, col)
+            action= Action(ActionType.Move, direction_of_agent, None)
+            u_action = UnfoldedAction(action, self.id_, True, location_of_agent)
+            resulting_action = self.convert_move_to_push(u_action, box_direction)
+    """
+    def convert_move_to_push(self, action: UnfoldedAction, direction: Dir):
+        new_action = Action(ActionType.Push, action.action.agent_dir, direction)
+        resulting_action = UnfoldedAction(new_action, action.agent_id)
+        resulting_action.agent_from = action.agent_from
+        resulting_action.agent_to = action.agent_to
+        resulting_action.box_from = action.agent_to
+        resulting_action.box_to = (action.agent_to[0] + direction.d_row, action.agent_to[1] + direction.d_col)
+        resulting_action.required_free = resulting_action.box_to
+        resulting_action.will_become_free = resulting_action.agent_to
+        return resulting_action
+
+    
+    def convert_move_to_pull(self, action: UnfoldedAction, direction: Dir):
+        reversed_direction = self.opposite_direction(direction)
+        new_action = Action(ActionType.Pull, action.action.agent_dir, reversed_direction)
+        resulting_action = UnfoldedAction(new_action, action.agent_id)
+        resulting_action.agent_from = action.agent_from
+        resulting_action.agent_to = action.agent_to
+        resulting_action.box_from =(action.agent_from[0] + reversed_direction.d_row, action.agent_from[1] + reversed_direction.d_col)
+        resulting_action.box_to = action.agent_from
+        resulting_action.required_free = resulting_action.agent_to
+        resulting_action.will_become_free = resulting_action.box_from
+        return resulting_action
