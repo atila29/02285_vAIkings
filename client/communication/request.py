@@ -18,8 +18,8 @@ class Request:
     # region String representations
     def __repr__(self):
         if self.move_boxes:
-            return "Request(Agent: {}): Move boxes and agents from area: {} ".format(self.agent_id, self.area)
-        return "Request(Agent: {}): Move agents from area: {} ".format(self.agent_id, self.area)
+            return "Request(Agent: {}, id: {}): Move boxes and agents from area: {} ".format(self.agent_id, self.id_, self.area)
+        return "Request(Agent: {}, id: {}): Move agents from area: {} ".format(self.agent_id, self.id_, self.area)
 
     def __str__(self):
         return self.__repr__()
@@ -27,4 +27,6 @@ class Request:
     
     def __eq__(self, other):
         return self.id_ == other.id_
+
+    
 

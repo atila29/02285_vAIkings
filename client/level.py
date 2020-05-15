@@ -349,21 +349,21 @@ class Level:
         print("\n".join(lines), file=sys.stderr, flush=True)
 
     def is_corner(self, location):
-        log("Testing if {} is a corner".format(location), "PASSAGES", False)
+        log("Testing if {} is a corner".format(location), "CORNERS", False)
         row,col = location
         wall_directions = []
         for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
             if isinstance(self.level[row + direction.d_row][col + direction.d_col], Wall):
                 wall_directions.append(direction)
         if wall_directions[0] == reverse_direction(wall_directions[1]):
-            log("Walls are opposite, so not a corner", "PASSAGES", False)
+            log("Walls are opposite, so not a corner", "CORNERS", False)
             return False
         test_row, test_col = row, col
         for direction in wall_directions:
             test_row = test_row - direction.d_row
             test_col = test_col - direction.d_col
         if not isinstance(self.level[test_row][test_col], Wall):
-            log("location {} is identified as an open corner".format(location), "PASSAGES", False)
+            log("location {} is identified as an open corner".format(location), "CORNERS", False)
             return True
         else:
             return False

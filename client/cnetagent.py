@@ -69,6 +69,9 @@ class CNETAgent(BDIAgent):
         if len(self.desires['contracts']) != 0:
             log("Agent {} refused because it is occupied with another contract".format(self.id_), "BIDDING", False)
             return None
+        if isinstance(self.intentions, Request):
+            log("Agent {} refused because it is trying to fulfill a request".format(self.id_), "BIDDING", False)
+            return None
         #update current_proposal + return cost or None as refusal
         if isinstance(performative, CfpMoveSpecificBoxTo) and performative.box.color == self.color:            
             if isinstance(self.heuristic, Heuristic2):
