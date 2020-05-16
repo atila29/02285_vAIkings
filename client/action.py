@@ -2,7 +2,7 @@
 
 
 import sys
-from util import log
+from logger import log
 
 # Copied from Warmup assignment
 class Dir:
@@ -152,9 +152,7 @@ class UnfoldedAction:
         new_agent_col = agent.col + action.agent_dir.d_col
         unfolded_action = UnfoldedAction(action, agent.id_)
         unfolded_action.agent_from = (agent.row, agent.col)
-        log('agent from: ' + str(unfolded_action.agent_from))
         unfolded_action.agent_to = (new_agent_row, new_agent_col)
-        log('agent to: ' + str(unfolded_action.agent_to))
         unfolded_action.will_become_free = (agent.row, agent.col)
         unfolded_action.required_free = (new_agent_row, new_agent_col)
         return unfolded_action

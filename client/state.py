@@ -4,7 +4,7 @@ from enum import Enum
 from level import LevelElement, Level, Wall, AgentElement, Box
 from action import Action, ALL_ACTIONS, Dir, ActionType, UnfoldedAction
 import copy
-from util import log
+from logger import log
 
 LEVEL = Level()
 

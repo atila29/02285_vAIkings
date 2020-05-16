@@ -1,20 +1,22 @@
 from logger import log
 
-class Cave:
+class Passage:
 
     id_: int
     locations: list
     goals: list
-    entrance: (int, int)
-    dead_end: (int, int)
+    fst_entrance: (int, int)
+    snd_entrance: (int, int)
     occupied: bool
+    entrances: list
 
-    def __init__(self, id_, dead_end):
-        self.dead_end = dead_end
+    def __init__(self, id_):
         self.occupied = False
         self.id_ = id_
-        self.locations = [dead_end]
+
+        self.locations = []
         self.goals = []
+        self.entrances = []
     
     def is_next_goal(self, goal, state):
         for g in self.goals:
@@ -24,19 +26,21 @@ class Cave:
                 return False
 
     def update_status(self, state):
-        for location in self.locations:
+        locations = self.locations + self.entrances
+        for location in locations:
+            #TODO: What about boxes and goals ?
             if location in state.agents:
                 if not self.occupied:
-                    log("Agent {} entered Cave {} so it is now occupied".format(state.agents[location].id_,self.id_), "CAVES", False)
+                    log("Object at location {} entered passage {}. So it is now occupied".format(location, self.id_), "PASSAGES", False)
                 self.occupied = True
                 return
         if self.occupied:
-            log("The last agent left cave {}. So it is now empty".format(self.id_), "CAVES", False)
+            log("The last object left passage {}. So it is now empty".format(self.id_), "PASSAGES", False)
         self.occupied = False
 
     # region String representations
     def __repr__(self):
-        return "Cave {}".format(self.id_)
+        return "Passage {}".format(self.id_)
 
     def __str__(self):
         return self.__repr__()

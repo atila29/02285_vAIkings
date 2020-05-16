@@ -2,7 +2,7 @@ from level import Goal, Space
 import copy
 from action import Dir
 import time
-from util import log
+from logger import log
 from state import LEVEL
 
 class SimpleHeuristic:
@@ -23,6 +23,23 @@ class SimpleHeuristic:
                 agent_col = agent.col
 
         return abs(agent_row-self.location[0]) + abs(agent_col - self.location[1])
+
+    def f(self, state):
+        return self.h(state)
+
+class DepthHeuristic:
+    def __init__(self, agent_id, requests):
+        self.agent_id = agent_id
+        self.requests = requests
+
+    def h(self, state):
+        #find agent in level
+        for location in state.agents:
+            if state.agents[location].id_ == self.agent_id:
+                for request in self.requests:
+                    if location in request.area:
+                        return state.g
+        return 0
 
     def f(self, state):
         return self.h(state)
@@ -135,7 +152,7 @@ class Heuristic2:
             #Mark unreachable spaces with infinity
             for row in range(len(current_map)):
                 for col in range(len(current_map[row])):
-                    if isinstance(current_map[row][col], Space):
+                    if isinstance(current_map[row][col], Space) or isinstance(current_map[row][col], Goal):
                         current_map[row][col] = float("inf")
             
             #For DEBUG:
