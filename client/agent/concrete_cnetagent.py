@@ -80,10 +80,10 @@ class ConcreteCNETAgent(CNETAgent):
         log("Agent {} commited to help with a request".format(self.id_), "BDI", False)
         self.intentions = request
         if box is not None:
-            log("Agent {} commited to move box {} from area {}".format(self.id_, box, request.area))
+            log("Agent {} commited to move box {} from area {}".format(self.id_, box, request.area), "BDI", False)
             BLACKBOARD.claimed_boxes[box.id_] = self.id_
         else:
-            log("Agent {} commited to move out of area {}".format(self.id_, request.area))
+            log("Agent {} commited to move out of area {}".format(self.id_, request.area), "BDI", False)
     
     def goal_qualified(self, goal):
         return not self.beliefs.is_goal_satisfied(goal) and (goal.row, goal.col) not in BLACKBOARD.claimed_goals and (goal.cave is None or goal.cave.is_next_goal(goal, self.beliefs))

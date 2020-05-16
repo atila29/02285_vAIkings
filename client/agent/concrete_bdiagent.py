@@ -2,6 +2,7 @@ from agent.bdiagent import BDIAgent
 from communication.request import Request
 from communication.contract import Contract
 from action import ActionType
+from logger import log
 
 class ConcreteBDIAgent(BDIAgent):
     
@@ -46,8 +47,10 @@ class ConcreteBDIAgent(BDIAgent):
             return False
         #required_free still free?
         if not(self.beliefs.is_free(*action.required_free)):
+            #log("action.required_free : {} no longer free".format(action.required_free))
             return True
         if action.box_from is not None:
             if not(action.box_from in self.beliefs.boxes and self.beliefs.boxes[action.box_from].color == self.color):
+                log("box not where it was supposed to be: {}. Agent at: {}. Action: {}".format(action.box_from, (self.row, self.col), action))
                 return True 
         return False

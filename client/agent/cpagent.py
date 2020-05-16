@@ -8,6 +8,7 @@ from logger import log
 from cave import Cave
 from passage import Passage
 from action import Action, ActionType, Dir
+from util import is_adjacent
 
 class CPAgent(BDIAgent):
 
@@ -78,7 +79,7 @@ class CPAgent(BDIAgent):
                 for pos in last_passage.locations:
                     if pos == location:
                         break
-                    if self.is_adjacent(pos, end):
+                    if is_adjacent(pos, end):
                         end = pos
                         artificial_cave.locations.insert(1, end)
                         if pos in LEVEL.goals_by_pos:
@@ -98,12 +99,6 @@ class CPAgent(BDIAgent):
     def cave_on_path(self, cave):
         for action in self.current_plan:
             if action.required_free == cave.locations[-1]:
-                return True
-        return False
-
-    def is_adjacent(self, pos1, pos2):
-        for dir in [Dir.N, Dir.S, Dir.E, Dir.W]:
-            if pos1[0] + dir.d_row == pos2[0] and pos1[1] + dir.d_col == pos2[1]:
                 return True
         return False
 

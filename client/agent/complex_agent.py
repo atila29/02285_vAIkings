@@ -2,6 +2,7 @@ from agent.concrete_bdiagent import ConcreteBDIAgent
 from agent.searchagent import SearchAgent
 from agent.concrete_cnetagent import ConcreteCNETAgent
 from agent.cpagent import CPAgent
+from agent.retreat_agent import RetreatAgent
 
 from communication.blackboard import BLACKBOARD
 from communication.contract import Contract
@@ -10,11 +11,12 @@ from communication.request import Request
 from heuristics import Heuristic
 from logger import log
 from state import LEVEL
+from action import ActionType
 
 import random
 
 
-class ComplexAgent(SearchAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
+class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
     color: str  # color of the agent
     id_: str  # agent id
     row: int  # agent row
@@ -53,6 +55,7 @@ class ComplexAgent(SearchAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
 
         self.trigger = "empty plan"
         self.plan_for_current_request = None
+        self.retreating_duration = 0
 
         self.intentions = None
 
@@ -264,19 +267,29 @@ class ComplexAgent(SearchAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
     """
 
     def sound(self) -> 'Bool':  # returns true/false, if sound return true
-
         if self.is_next_action_impossible():
             self.trigger = "next move impossible"
+            log("trigger set to {}".format(self.trigger), "trigger", False)
             return False
+
+        if self.retreating_duration > 0:
+            self.retreating_duration -= 1
+            self.trigger = "all good"
+            log("trigger set to {}".format(self.trigger), "trigger", False)
+            return True
 
         if self.waiting_for_request():
             self.trigger = "waiting for request"
+            log("trigger set to {}".format(self.trigger), "trigger", False)
             return False
 
         if self.is_about_to_enter_cave_or_passage():
             self.trigger = "about to enter cave or passage"
+            log("trigger set to {}".format(self.trigger), "trigger", False)
             return False
 
+        self.trigger = "all good"
+        log("trigger set to {}".format(self.trigger), "trigger", False)
         return True
 
     def waiting_for_request(self):
@@ -359,10 +372,22 @@ class ComplexAgent(SearchAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
 
         elif self.trigger == "next move impossible":
             #TODO try retreat move
-            log("Agent {} thinks next move is impossible. So it will replan".format(self.id_), "PLAN", False)
-            self.current_plan = []
-            self.trigger = "empty plan"
-            self.plan()
+            
+            result, other_agent = self.analyse_situation()
+            log("Agent {} analysing the next move thinks it should {}".format(self.id_, result), "PLAN", False)
+            if result =="wait":
+                self.wait(1)
+            elif result =="try retreat":
+                if not self.try_to_retreat(other_agent):
+                    log("Agent {} couldn't find a retreat move. So it will replan".format(self.id_), "PLAN", False)
+                    self.current_plan = []
+                    self.trigger = "empty plan"
+                    self.plan()  
+            elif result =="need to replan":
+                log("Agent {} thinks next move is impossible. So it will replan".format(self.id_), "PLAN", False)
+                self.current_plan = []
+                self.trigger = "empty plan"
+                self.plan()            
 
         elif self.trigger ==  "about to enter cave or passage":
             
@@ -383,6 +408,97 @@ class ComplexAgent(SearchAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 log("Agent {} thinks path through cave/passage is clear".format(self.id_), "PLAN", False)
         else:
             raise RuntimeError("Agent doesn't know why its planning")
+
+    def try_to_retreat(self, other_agent):
+        state = self.beliefs
+        #path_direction = other_agent.current_plan[1].action.
+
+        blocked_direction = self.close_blocked_dir(state, self.row, self.col, other_agent)
+        log("blocked_direction {}".format(blocked_direction))
+
+        #This agent retreat moves
+        # possible, direction = self.retreat_is_possible([blocked_direction, path_direction])
+        #possible, direction = self.move_is_possible(blocked_direction)
+
+        possible, directions, retreat_type = self.retreat_is_possible(blocked_direction)
+        log("possible: {}, directions: {}, retreat_type:{}".format(possible, directions, retreat_type))
+
+        other_blocked_direction = other_agent.close_blocked_dir(state, other_agent.row, other_agent.col, self)
+        other_possible, other_directions, other_retreat_type = other_agent.retreat_is_possible(other_blocked_direction)
+
+        if possible:            
+            if self.lower_priority(other_agent) or not other_possible:
+                retreat, duration = self.retreat_move(directions, retreat_type)
+                log("Agent {} is doing a retreat move of type {} to make way for agent {}. (Moves: {})".format(self.id_, retreat_type, other_agent.id_, retreat), "RETREAT", False)
+
+                self.retreating_duration = 7
+
+                self.current_plan =  retreat + self.current_plan
+                other_agent.wait_at_least(duration)
+                return True
+        #The other agent retreat moves
+        elif other_possible:
+            log("Agent {} thinks agent {} can do a retreat move of type {} and will wait".format(self.id_, other_agent.id_, retreat_type), "RETREAT", False)
+            # retreat, duration = other_agent.retreat_move(directions, retreat_type)
+            # other_agent.current_plan = retreat + other_agent.current_plan
+            self.wait_at_least(3) #TODO: 3 or ??
+            return True
+        else:
+            log("Agent {} couldn't find a retreat move to make way for agent {}".format(self.id_, other_agent.id_), "RETREAT", False)
+            return False
+    #self.current_plan[:0] = [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]
+
+    """
+        Called when next move is impossible
+        Check if 
+            1. retreat move is possible
+            2. ??
+    """
+    def analyse_situation(self):
+        log("Starting to analyse situation for agent {}".format(self.id_), "ANALYSE", False)
+        action = self.current_plan[0]
+        # Can/should we do a retreat move?
+        rf_loc = action.required_free 
+        state = self.beliefs
+        
+        #Space is occupied
+        if not(state.is_free(*rf_loc)):
+            #If agent at the position
+            #TODO: a more efficient way to find other_agent
+            if rf_loc in state.agents:
+                log("Agent {} found agent at desired location {}".format(self.id_, rf_loc), "ANALYSE", False)
+                for agent in self.all_agents:
+                    if (agent.row, agent.col) == rf_loc:
+                        other_agent = agent
+                if self.about_to_crash(agent = other_agent):
+                    log("Agent {} thinks it will crash with agent {} and is looking for retreat move".format(self.id_, other_agent.id_), "ANALYSE", False)
+                    return "try retreat", other_agent
+                else:
+                    if other_agent.current_plan[0].action.action_type == ActionType.NoOp:
+                        log("Agent {} thinks agent {} is standing still so it will try to replan".format(self.id_, other_agent.id_), "ANALYSE", False)
+                        return "need to replan", None
+                    else:
+                        log("Agent {} thinks it can wait for agent {} to pass".format(self.id_, other_agent.id_), "ANALYSE", False)
+                        return "wait", None
+            #If box at the location
+            if rf_loc in state.boxes:
+                log("Agent {} found box at desired location {}".format(self.id_, rf_loc), "ANALYSE", False)
+                box = state.boxes[rf_loc] #find the box
+                moving, other_agent = self.box_on_the_move(box)
+                if moving:
+                    log("Agent {} thinks agent {} is moving the box {}".format(self.id_, other_agent, box), "ANALYSE", False)
+                    if self.about_to_crash(box = box, agent = other_agent): 
+                        log("Agent {} thinks it will crash with agent {} currently moving the box {}".format(self.id_, other_agent, box), "ANALYSE", False)
+                        return "try retreat", other_agent
+                    else:
+                        return "wait", None
+                else:
+                    log("Agent {} sees the box {} as static and will try to replan".format(self.id_, box), "ANALYSE", False)
+                    return "need to replan", None
+        #When do we get here?
+        return "need to replan", None  
+        
+
 
     def unpack_intentions_to_box_and_location(self):
         if self.intentions is None:
@@ -415,3 +531,7 @@ class ComplexAgent(SearchAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
 
             test, cave_or_passage = self.left_claimed_area()
 # endregion
+
+
+
+
