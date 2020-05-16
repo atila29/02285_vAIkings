@@ -268,6 +268,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
 
     def sound(self) -> 'Bool':  # returns true/false, if sound return true
         if self.is_next_action_impossible():
+            self.retreating_duration = 0
             self.trigger = "next move impossible"
             log("trigger set to {}".format(self.trigger), "trigger", False)
             return False
@@ -431,9 +432,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 retreat, duration = self.retreat_move(directions, retreat_type)
                 log("Agent {} is doing a retreat move of type {} to make way for agent {}. (Moves: {})".format(self.id_, retreat_type, other_agent.id_, retreat), "RETREAT", False)
 
-                self.retreating_duration = 7
+                if retreat_type == "move":
+                    self.retreating_duration = 1
+                else:
+                    self.retreating_duration = 2
 
-                self.current_plan =  retreat + self.current_plan
+                self.current_plan =  retreat
                 other_agent.wait_at_least(duration)
                 return True
         #The other agent retreat moves
@@ -441,7 +445,10 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             log("Agent {} thinks agent {} can do a retreat move of type {} and will wait".format(self.id_, other_agent.id_, retreat_type), "RETREAT", False)
             # retreat, duration = other_agent.retreat_move(directions, retreat_type)
             # other_agent.current_plan = retreat + other_agent.current_plan
-            self.wait_at_least(3) #TODO: 3 or ??
+            if retreat_type == "move":
+                self.wait_at_least(2)
+            else:
+                self.wait_at_least(3) #TODO: 3 or ??
             return True
         else:
             log("Agent {} couldn't find a retreat move to make way for agent {}".format(self.id_, other_agent.id_), "RETREAT", False)
@@ -474,9 +481,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     log("Agent {} thinks it will crash with agent {} and is looking for retreat move".format(self.id_, other_agent.id_), "ANALYSE", False)
                     return "try retreat", other_agent
                 else:
-                    if other_agent.current_plan[0].action.action_type == ActionType.NoOp:
-                        log("Agent {} thinks agent {} is standing still so it will try to replan".format(self.id_, other_agent.id_), "ANALYSE", False)
-                        return "need to replan", None
+                    if len(other_agent.current_plan) == 0 or other_agent.current_plan[0].action.action_type == ActionType.NoOp:
+                        #TODO
+                        request = Request(self.id_, [rf_loc])
+                        BLACKBOARD.add(request, self.id_)
+                        log("Agent {} thinks agent {} is standing still so it will try to make it move".format(self.id_, other_agent.id_), "ANALYSE", False)
+                        return "wait", None
                     else:
                         log("Agent {} thinks it can wait for agent {} to pass".format(self.id_, other_agent.id_), "ANALYSE", False)
                         return "wait", None
@@ -532,6 +542,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             test, cave_or_passage = self.left_claimed_area()
 # endregion
 
+    def wait(self, duration):
+        self.wait_at_least(duration)
 
 
 

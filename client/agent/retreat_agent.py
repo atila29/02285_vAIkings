@@ -28,7 +28,12 @@ class RetreatAgent(SearchAgent):
     """
     def about_to_crash(self, box=None, agent = None):
         my_action = self.current_plan[0]
-        other_action = agent.current_plan[0]
+        if len(agent.current_plan)==0:
+            return False
+        else:
+            other_action = agent.current_plan[0]
+        if other_action.action.action_type == ActionType.NoOp:
+            return False
         if box is None and agent is None: 
             return True
         if my_action.action.action_type == ActionType.Move or  my_action.action.action_type ==  ActionType.Pull:
@@ -95,7 +100,8 @@ class RetreatAgent(SearchAgent):
             new_location = (self.row + direction.d_row, self.col + direction.d_col)
             NoOp = UnfoldedAction(Action(ActionType.NoOp,Dir.N, None), self.id_,True, new_location)
             back_move = UnfoldedAction(Action(ActionType.Move, opposite, None), self.id_, True, new_location)
-            moves = [retreat_move,NoOp,NoOp,back_move]
+            #moves = [retreat_move,NoOp,NoOp,back_move]
+            moves=[retreat_move, NoOp]
             return moves, 1
         if retreat_type == "push":
             moves =[]
@@ -116,8 +122,8 @@ class RetreatAgent(SearchAgent):
             moves = moves +[UnfoldedAction(Action(ActionType.NoOp,Dir.N, None), self.id_,True, end_location)]*wait_duration
 
             #pull back
-            moves.append(self.invert_move(moves[1]))
-            moves.append(self.invert_move(moves[0]))
+            # moves.append(self.invert_move(moves[1]))
+            # moves.append(self.invert_move(moves[0]))
             return moves, 2
         if retreat_type == "pull": 
             moves =[]
@@ -141,8 +147,8 @@ class RetreatAgent(SearchAgent):
             moves = moves +[UnfoldedAction(Action(ActionType.NoOp,Dir.N, None), self.id_,True, end_location)]*wait_duration
 
             #push back
-            moves.append(self.invert_move(moves[1]))
-            moves.append(self.invert_move(moves[0]))
+            # moves.append(self.invert_move(moves[1]))
+            # moves.append(self.invert_move(moves[0]))
             return moves, 2
 
         #[RETREAT] Agent 5 is doing a retreat move of type pull to make way for agent 9. (Moves: [Pull(N,W), Pull(N,N), NoOp, NoOp, Push(S,N), Push(S,W)])
@@ -203,6 +209,7 @@ class RetreatAgent(SearchAgent):
                         has_box = True
                         pos = (box.row, box.col)
 
+
         if has_box or action.action.action_type == ActionType.Pull or action.action.action_type == ActionType.Push:
             if not has_box:
                 log("Agent {} Using box_from : {}".format((self.row, self.col),action.box_from))
@@ -221,6 +228,8 @@ class RetreatAgent(SearchAgent):
             if (self.row,self.col+1) == pos:
                 relative_pos = Dir.E
             return True, pos, relative_pos
+        else:
+            return False, None, None
 
     """
         wrapper for action_possible methods
@@ -254,7 +263,7 @@ class RetreatAgent(SearchAgent):
         if counter >= least:
             return
         else:
-            self.wait(least-counter)
+            self.current_plan = [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]*(least-counter) + self.current_plan
             return 
 
 

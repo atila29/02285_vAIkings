@@ -66,7 +66,7 @@ class CPAgent(BDIAgent):
                     location = self.intentions.performative.location
                 else:
                     raise NotImplementedError("Unrecognized performative")    
-            if self.intentions is not None and not isinstance(self.intentions, Request):
+            elif self.intentions is not None and not isinstance(self.intentions, Request):
                 box, goal = self.intentions
                 location = (goal.row, goal.col)
             
@@ -85,7 +85,7 @@ class CPAgent(BDIAgent):
                         if pos in LEVEL.goals_by_pos:
                             artificial_cave.goals.append(LEVEL.goals_by_pos[pos])    
                 artificial_cave.update_status(self.beliefs)
-                wanted_cave = [artificial_cave, entrance]
+                wanted_cave = [(artificial_cave, entrance)]
                 wanted_passages = wanted_passages[:-1]
 
         return wanted_passages, wanted_cave
