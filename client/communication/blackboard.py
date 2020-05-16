@@ -76,12 +76,14 @@ class Blackboard:
                 self.claimed_goals[performative.location] = agent_id
 
     def add_request(self, request, agent_id):
+        log("Agent {} added request {} ".format(agent_id, request), "BB_UPDATE", False)
         if agent_id in self.requests:
             self.requests[agent_id].append(request)
         else:
             self.requests[agent_id] = [request]
 
     def remove_request(self, request, agent_id):
+        log("Agent {} removed request {} ".format(agent_id, request), "BB_UPDATE", False)
         self.requests[agent_id].remove(request)
         if len(self.requests[agent_id]) == 0:
             self.requests.pop(agent_id)

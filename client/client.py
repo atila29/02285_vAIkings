@@ -4,15 +4,12 @@ import re
 
 from state import State, LEVEL
 from level import LevelElement, Wall, Space, Goal, Level, AgentElement, Box
-from agent import Agent
-from naiveagents import NaiveBDIAgent, NaiveIterativeBDIAgent
-from cnetagent import CNETAgent
 from action import Action, ActionType, Dir, UnfoldedAction
 from logger import log
 from communication.blackboard import BLACKBOARD
 import uuid
 from heuristics import Heuristic2
-from cnetagent2 import CNETAgent2
+from agent.complex_agent import ComplexAgent
 
 class Section(Enum):
     DOMAIN = 1
@@ -252,11 +249,13 @@ class Client:
         
         # TODO: Make sure to pop the action from the agents plan (either directly or through a execute function) 
         # Remark: Don't pop if action is NoOP from conflict resolves
+        agents_to_move =[]
         for action in joint_actions: #list of unfolded actions
             bdi_agent = self.agent_dic[action.agent_id]
             #remove first action in plan if executed)
             if bdi_agent.current_plan[0] == action:
-                temp = bdi_agent.current_plan.pop(0)
+                agents_to_move.append(bdi_agent)
+                temp = bdi_agent.current_plan[0]
                 log("Agent " + str(bdi_agent.id_) + " executed first part of it's plan: " + str(temp.action),"POPPED FROM PLAN", False)
                 if temp.action.action_type == ActionType.NoOp:
                     continue
@@ -273,6 +272,12 @@ class Client:
             new_state.agents[action.agent_to] = AgentElement(agent.id_, agent.color, action.agent_to[0], action.agent_to[1])
             #update agents with their new location
             bdi_agent.row, bdi_agent.col = action.agent_to
+
+        for bdi_agent in agents_to_move:
+            bdi_agent.execute_next_action()
+        
+        for bdi_agent in self.agent_dic.values():
+            bdi_agent.brf(new_state)
 
         return new_state
 
@@ -303,7 +308,7 @@ def main():
 
     #client.init_agents(NaiveBDIAgent, DECOMPOSE = False)
     heuristic = Heuristic2()
-    client.init_agents(CNETAgent2, DECOMPOSE=True, h = heuristic)
+    client.init_agents(ComplexAgent, DECOMPOSE=True, h = heuristic)
     
     #run client
     client.run(client.initial_state)
