@@ -458,10 +458,11 @@ class CNETAgent2(CNETAgent):
             move2 = UnfoldedAction(Action(ActionType.Move, dir2, None), self.id_, True, new_location)
 
             #convert to pull actions
-            moves.append(self.convert_move_to_pull(move1, self.opposite_direction(direction)))
-            moves.append(self.convert_move_to_pull(move2, dir1))
+            moves.append(self.convert_move_to_pull(move1, self.opposite_direction(direction))) #1
+            moves.append(self.convert_move_to_pull(move2, self.opposite_direction(dir1))) #2
 
             end_location = moves[-1].agent_to
+
 
             #wait 2 or 3 depending on other agent have box
             moves = moves +[UnfoldedAction(Action(ActionType.NoOp,Dir.N, None), self.id_,True, end_location)]*wait_duration
@@ -470,7 +471,33 @@ class CNETAgent2(CNETAgent):
             moves.append(self.invert_move(moves[1]))
             moves.append(self.invert_move(moves[0]))
             return moves, 2
-        
+    
+        #[RETREAT] Agent 5 is doing a retreat move of type pull to make way for agent 9. (Moves: [Pull(N,W), Pull(N,N), NoOp, NoOp, Push(S,N), Push(S,W)])
+
+        def convert_move_to_pull(self, action: UnfoldedAction, direction: Dir):
+            box_dir = direction
+            new_action = Action(ActionType.Pull, action.action.agent_dir, box_dir)
+            resulting_action = UnfoldedAction(new_action, action.agent_id)
+            resulting_action.agent_from = action.agent_from
+            resulting_action.agent_to = action.agent_to
+            resulting_action.box_from =(action.agent_from[0] + box_dir.d_row, action.agent_from[1] + box_dir.d_col)
+            resulting_action.box_to = action.agent_from
+            resulting_action.required_free = resulting_action.agent_to
+            resulting_action.will_become_free = resulting_action.box_from
+            return resulting_action
+
+        def convert_move_to_push(self, action: UnfoldedAction, direction: Dir):
+            new_action = Action(ActionType.Push, action.action.agent_dir, direction)
+            resulting_action = UnfoldedAction(new_action, action.agent_id)
+            resulting_action.agent_from = action.agent_from
+            resulting_action.agent_to = action.agent_to
+            resulting_action.box_from = action.agent_to
+            resulting_action.box_to = (action.agent_to[0] + direction.d_row, action.agent_to[1] + direction.d_col)
+            resulting_action.required_free = resulting_action.box_to
+            resulting_action.will_become_free = resulting_action.agent_to
+            return resulting_action
+
+
         '''
         if has_box:
             #kan vi gjøre pull action?
@@ -500,10 +527,10 @@ class CNETAgent2(CNETAgent):
         if action.action.action_type == ActionType.Push:
             #creat pull action
             move = UnfoldedAction(Action(ActionType.Move, self.opposite_direction(action.action.agent_dir), None), self.id_, True, action.agent_to)
-            return self.convert_move_to_pull(move, self.opposite_direction(action.action.box_dir)) #opposite from the box, directions from before
+            return self.convert_move_to_pull(move, action.action.box_dir) #opposite from the box, directions from before
         if action.action.action_type == ActionType.Pull:
             move = UnfoldedAction(Action(ActionType.Move, self.opposite_direction(action.action.agent_dir), None), self.id_, True, action.agent_to)
-            return self.convert_move_to_push(move, action.action.box_dir) #opposite from the box, directions from before
+            return self.convert_move_to_push(move, self.opposite_direction(action.action.box_dir)) #opposite from the box, directions from before
     
     def agent_has_box(self):
         action = self.current_plan[0] #unfolded action
@@ -566,7 +593,6 @@ class CNETAgent2(CNETAgent):
         returns 2 
     """
     def push_actions_possible(self, box, relative_pos, ignore_directions):
-        
         agent_row, agent_col = self.row, self.col
         agent_dir = None
         box_dir = None
@@ -695,26 +721,8 @@ class CNETAgent2(CNETAgent):
             u_action = UnfoldedAction(action, self.id_, True, location_of_agent)
             resulting_action = self.convert_move_to_push(u_action, box_direction)
     """
-    def convert_move_to_push(self, action: UnfoldedAction, direction: Dir):
-        new_action = Action(ActionType.Push, action.action.agent_dir, direction)
-        resulting_action = UnfoldedAction(new_action, action.agent_id)
-        resulting_action.agent_from = action.agent_from
-        resulting_action.agent_to = action.agent_to
-        resulting_action.box_from = action.agent_to
-        resulting_action.box_to = (action.agent_to[0] + direction.d_row, action.agent_to[1] + direction.d_col)
-        resulting_action.required_free = resulting_action.box_to
-        resulting_action.will_become_free = resulting_action.agent_to
-        return resulting_action
-
     
-    def convert_move_to_pull(self, action: UnfoldedAction, direction: Dir):
-        reversed_direction = self.opposite_direction(direction)
-        new_action = Action(ActionType.Pull, action.action.agent_dir, reversed_direction)
-        resulting_action = UnfoldedAction(new_action, action.agent_id)
-        resulting_action.agent_from = action.agent_from
-        resulting_action.agent_to = action.agent_to
-        resulting_action.box_from =(action.agent_from[0] + reversed_direction.d_row, action.agent_from[1] + reversed_direction.d_col)
-        resulting_action.box_to = action.agent_from
-        resulting_action.required_free = resulting_action.agent_to
-        resulting_action.will_become_free = resulting_action.box_from
-        return resulting_action
+    
+    
+
+
