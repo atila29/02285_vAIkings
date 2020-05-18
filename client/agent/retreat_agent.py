@@ -205,14 +205,14 @@ class RetreatAgent(SearchAgent):
             if len(claimed_boxes) > 0:
                 for box in claimed_boxes:
                     if is_adjacent((box.row, box.col), (self.row, self.col)):
-                        log("Agent at {} Found box at {}".format((self.row, self.col),(box.row, box.col)))
+                        log("Agent at {} Found box at {}".format((self.row, self.col),(box.row, box.col)), "HAS_BOX", False)
                         has_box = True
                         pos = (box.row, box.col)
 
 
         if has_box or action.action.action_type == ActionType.Pull or action.action.action_type == ActionType.Push:
             if not has_box:
-                log("Agent {} Using box_from : {}".format((self.row, self.col),action.box_from))
+                log("Agent {} Using box_from : {}".format((self.row, self.col),action.box_from), "HAS_BOX", False)
                 pos = action.box_from
             #box = state.boxes[pos]
             relative_pos = None
@@ -238,16 +238,16 @@ class RetreatAgent(SearchAgent):
         next_action = self.current_plan[0]
         if next_action.action.action_type == ActionType.Move:
             success, action = self.move_action_possible(ignore_directions)
-            log("move_action_possible({}) = {}".format(ignore_directions, (success, action)))
+            log("move_action_possible({}) = {}".format(ignore_directions, (success, action)), "RETREAT_DETAILED", False)
             actions = [action]
             retreat_type = "move"
         elif self.agent_has_box()[0]:
             success, actions = self.simple_pull_actions_possible(ignore_directions)
-            log("simple_pull_actions_possible({}) = {}".format(ignore_directions, (success, actions)))
+            log("simple_pull_actions_possible({}) = {}".format(ignore_directions, (success, actions)), "RETREAT_DETAILED", False)
             retreat_type = "pull"
             if not success: 
                 success, actions = self.simple_push_actions_possible(ignore_directions)
-                log("simple_push_actions_possible({}) = {}".format(ignore_directions, (success, actions)))
+                log("simple_push_actions_possible({}) = {}".format(ignore_directions, (success, actions)), "RETREAT_DETAILED", False)
                 retreat_type = "push"
         else:
             success, actions, retreat_type = False, [], "No retreat possible"

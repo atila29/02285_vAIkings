@@ -15,8 +15,12 @@ class CPAgent(BDIAgent):
     # TODO: refactor function
     def find_wanted_passages_and_cave(self):
         
+        if len(self.current_plan) <2:
+            return [], []
+
         wanted_passages = []
         wanted_cave = []
+        index = 1
 
         next_action = self.current_plan[0]
         if self.will_move_block_passage_entrance(next_action):
@@ -25,20 +29,26 @@ class CPAgent(BDIAgent):
             
             explored_entrances=[(row,col)]
             passages_to_explore = [(p, (row,col)) for p in LEVEL.map_of_passages[row][col]]
-            
+
 
             while len(passages_to_explore) > 0:
-                log("passages_to_explore: {}".format(passages_to_explore), "TEST", False)
+                
                 passage, enter = passages_to_explore.pop()
+                
+                next_on_path, new_index = self.is_passage_next_on_path(passage, index)
+                
                 #Do I want to enter one of them? -> add to list
-                if self.passage_on_path(passage):
+                if next_on_path:
                     wanted_passages.append((passage, enter))
-                    for entrance in passage.entrances:
-                        if entrance in explored_entrances:
-                            continue
-                        new_passages = [(p,entrance) for p in LEVEL.map_of_passages[entrance[0]][entrance[1]] if p != passage]
-                        explored_entrances.append(entrance)
-                        passages_to_explore = passages_to_explore + new_passages
+                    if new_index is not None:
+                        index = new_index +1
+                        entrance = self.current_plan[new_index].required_free
+
+                        if entrance not in explored_entrances:
+                            new_passages = [(p,entrance) for p in LEVEL.map_of_passages[entrance[0]][entrance[1]] if p != passage]
+                            explored_entrances.append(entrance)
+                            passages_to_explore = passages_to_explore + new_passages
+                        
 
         if len(wanted_passages) > 0:
             last_passage, enter = wanted_passages[-1]
@@ -51,7 +61,7 @@ class CPAgent(BDIAgent):
         caves_to_explore= LEVEL.map_of_caves[exit_location[0]][exit_location[1]]
         if caves_to_explore is not None:
             for cave in caves_to_explore:
-                if self.cave_on_path(cave):
+                if self.is_cave_next_on_path(cave, index):
                     wanted_cave.append((cave, exit_location))
 
         if len(wanted_cave) == 0 and len(wanted_passages) > 0:
@@ -96,11 +106,48 @@ class CPAgent(BDIAgent):
                 return True
         return False
 
-    def cave_on_path(self, cave):
-        for action in self.current_plan:
-            if action.required_free == cave.locations[-1]:
-                return True
-        return False
+    def is_passage_next_on_path(self, passage, index):
+        #Is the plan at it's end?
+        if len(self.current_plan) > index:
+            next_action = self.current_plan[index]
+        else:
+            return False, None
+
+       #Is the passage next on path? 
+        if next_action.required_free in passage.locations:
+            #look for possible exit
+            counter = 1
+            for action in self.current_plan[index+1:]:
+                if action.required_free in passage.entrances:
+                    return True, index+counter
+                counter += 1 
+            return True, None
+        return False, None
+
+    # def cave_on_path(self, cave):
+    #     for action in self.current_plan:
+    #         if action.required_free == cave.locations[-1]:
+    #             return True
+    #     return False
+
+    def is_cave_next_on_path(self, cave, index):
+        #Is the plan at it's end?
+        if len(self.current_plan) > index:
+            next_action = self.current_plan[index]
+        else:
+            return False, None
+
+       #Is the Cave next on path? 
+        if next_action.required_free == cave.locations[-1]:
+            
+            #look for possible exit
+            counter = 1
+            for action in self.current_plan[index+1:]:
+                if action.required_free == cave.entrance:
+                    return True, counter
+                counter += 1 
+            return True, None
+        return False, None
 
     def box_is_needed(self, box):       
         #count boxes with box.color and box.letter
@@ -350,7 +397,20 @@ class CPAgent(BDIAgent):
         return True
 
 
+    "does not cound claimed areas the agent is already occupying"
     def have_claims(self):
         log("Testing if agent have claims. result: {}".format(self.id_ in BLACKBOARD.claimed_passages or self.id_ in BLACKBOARD.claimed_caves), "CLAIMS", False)
-        return self.id_ in BLACKBOARD.claimed_passages or self.id_ in BLACKBOARD.claimed_caves
+        if self.id_ in BLACKBOARD.claimed_passages:
+            for pas in BLACKBOARD.claimed_passages[self.id_]:
+                if (self.row, self.col) in pas.locations:
+                    continue
+                else:
+                    return True
+        if self.id_ in BLACKBOARD.claimed_caves:
+            for cave in BLACKBOARD.claimed_caves[self.id_]:
+                if (self.row, self.col) in cave.locations:
+                    continue
+                else:
+                    return True
+        return False
     

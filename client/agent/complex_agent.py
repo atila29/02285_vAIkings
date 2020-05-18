@@ -60,6 +60,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         self.intentions = None
 
         ConcreteBDIAgent.__init__(self, id_, color, row, col, initial_beliefs)
+        self.plan(ignore_all_other_agents=False)
 
 
 
@@ -303,8 +304,15 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 done = True
                 for location in request.area:
                     if not self.beliefs.is_free(location[0], location[1]):
-                        log("Agent {} waiting for request {}".format(
-                            self.id_, request), "TEST", False)
+                        if (self.row, self.col) == location:
+                            continue
+                        if location in self.beliefs.boxes:
+                            elm = self.beliefs.boxes[location]
+                        elif location in self.beliefs.agents:
+                            elm = self.beliefs.agents[location]
+                        else:
+                            elm = None
+                        log("Agent {} waiting for request {}. Location {} occupied by: {}".format(self.id_, request, location, elm), "TEST", False)
                         done = False
                         break
                 if done:
@@ -417,14 +425,14 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         #path_direction = other_agent.current_plan[1].action.
 
         blocked_direction = self.close_blocked_dir(state, self.row, self.col, other_agent)
-        log("blocked_direction {}".format(blocked_direction))
+        log("blocked_direction {}".format(blocked_direction), "RETREAT_DETAILED", False)
 
         #This agent retreat moves
         # possible, direction = self.retreat_is_possible([blocked_direction, path_direction])
         #possible, direction = self.move_is_possible(blocked_direction)
 
         possible, directions, retreat_type = self.retreat_is_possible(blocked_direction)
-        log("possible: {}, directions: {}, retreat_type:{}".format(possible, directions, retreat_type))
+        log("possible: {}, directions: {}, retreat_type:{}".format(possible, directions, retreat_type), "RETREAT_DETAILED", False)
 
         other_blocked_direction = other_agent.close_blocked_dir(state, other_agent.row, other_agent.col, self)
         other_possible, other_directions, other_retreat_type = other_agent.retreat_is_possible(other_blocked_direction)
