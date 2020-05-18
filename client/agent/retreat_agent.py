@@ -373,6 +373,8 @@ class RetreatAgent(SearchAgent):
 
         #for each agent check if first action is push or pull
         for agent in adjacent_agents:
+            if len(agent.current_plan) == 0:
+                continue
             next_action = agent.current_plan[0]
             if next_action.action.action_type == ActionType.Pull or next_action.action.action_type ==  ActionType.Push:
                 #check if they are moving the current box
@@ -389,4 +391,6 @@ class RetreatAgent(SearchAgent):
         OUTPUT: True if this agent has lower priority than other_agent
     """
     def lower_priority(self, other_agent):
+        if other_agent.agent_has_box()[0] and not self.agent_has_box()[0]:
+            return True
         return self.id_ < other_agent.id_

@@ -331,14 +331,14 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             4. Current plan is empty
             5. New intentions
     """
-    def plan(self) -> '[UnfoldedAction, ...]':
+    def plan(self, ignore_all_other_agents=True, move_around_specific_agents=None) -> '[UnfoldedAction, ...]':
         log("Agent {} started planning".format(self.id_), "PLAN", False)
         if self.trigger in ["empty plan", "new intentions"]:
             #TODO FULL REPLAN
             box, location = self.unpack_intentions_to_box_and_location()
             #TODO: what if they are None
             if box is not None and location is not None:
-                simple_plan = self.search_for_simple_plan(self.heuristic, (box,location))
+                simple_plan = self.search_for_simple_plan(self.heuristic, (box,location), ignore_all_other_agents = ignore_all_other_agents, move_around_specific_agents = move_around_specific_agents)
                 if simple_plan is not None and len(simple_plan) > 0:
                     self.current_plan = simple_plan
                     if self.sound():
@@ -388,7 +388,9 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 log("Agent {} thinks next move is impossible. So it will replan".format(self.id_), "PLAN", False)
                 self.current_plan = []
                 self.trigger = "empty plan"
-                self.plan()            
+                self.plan()   
+            elif result =="going around agent":
+                pass         
 
         elif self.trigger ==  "about to enter cave or passage":
             
@@ -481,12 +483,23 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     log("Agent {} thinks it will crash with agent {} and is looking for retreat move".format(self.id_, other_agent.id_), "ANALYSE", False)
                     return "try retreat", other_agent
                 else:
-                    if len(other_agent.current_plan) == 0 or other_agent.current_plan[0].action.action_type == ActionType.NoOp:
-                        #TODO
-                        request = Request(self.id_, [rf_loc])
-                        BLACKBOARD.add(request, self.id_)
-                        log("Agent {} thinks agent {} is standing still so it will try to make it move".format(self.id_, other_agent.id_), "ANALYSE", False)
-                        return "wait", None
+                    if len(other_agent.current_plan) == 0 or other_agent.current_plan[0].action.action_type == ActionType.NoOp or other_agent.is_next_action_impossible():
+                        #TODO: it is not supposed to update the plan here! fix!
+                        old_plan=self.current_plan
+                        #Try to go around:
+                        self.trigger ="empty plan"
+                        self.current_plan = []
+                        self.plan(ignore_all_other_agents=False)
+                        if self.sound() and len(self.current_plan) > 1:
+                            log("Agent {} thinks agent {} is standing still but found a path around. Path: {}".format(self.id_, other_agent.id_, self.current_plan), "ANALYSE", False)
+                            return "going around agent", other_agent
+                        else:
+                            #TODO
+                            request = Request(self.id_, [rf_loc])
+                            BLACKBOARD.add(request, self.id_)
+                            log("Agent {} thinks agent {} is standing still so it will try to make it move".format(self.id_, other_agent.id_), "ANALYSE", False)
+                            self.current_plan = old_plan
+                            return "wait", None
                     else:
                         log("Agent {} thinks it can wait for agent {} to pass".format(self.id_, other_agent.id_), "ANALYSE", False)
                         return "wait", None
