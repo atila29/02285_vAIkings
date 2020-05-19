@@ -342,9 +342,25 @@ class CPAgent(BDIAgent):
             all_locations += self.find_area(elm)
         
         request = Request(self.id_, all_locations)
+        box, location = self.unpack_intentions_to_box_and_location()
+        if location is not None and location in LEVEL.goals_by_pos:
+            request.goal = LEVEL.goals_by_pos[location]
         BLACKBOARD.add(request, self.id_)
 
         return False
+
+    def unpack_intentions_to_box_and_location(self):
+        if self.intentions is None:
+            return None, None
+        elif isinstance(self.intentions, Contract):
+            box = self.intentions.performative.box
+            location = self.intentions.performative.location
+        elif isinstance(self.intentions, Request):
+            return None, None         
+        else:
+            box, goal = self.intentions
+            location = (goal.row, goal.col)
+        return box, location
 
     def left_claimed_area(self):
         next_action = self.current_plan[0]

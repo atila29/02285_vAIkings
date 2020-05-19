@@ -370,6 +370,24 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
     def plan(self, ignore_all_other_agents=True, move_around_specific_agents=None) -> '[UnfoldedAction, ...]':
         log("Agent {} started planning to achieve: {}. trigger: {}".format(self.id_, self.intentions, self.trigger), "PLAN", False)
         if self.trigger in ["empty plan", "new intentions"]:
+            
+            if isinstance(self.intentions, Request):
+                if self.plan_for_current_request is None:
+                    log("Agent {} switched tried plan for request but there was none".format(self.id_), "PLAN", False)
+                    self.wait(1)
+                    return
+                self.current_plan = self.plan_for_current_request
+                self.plan_for_current_request = None
+                if self.is_next_action_impossible():
+                    log("Agent {} switched to plan for request but thinks it isn't sound. plan {}".format(self.id_, self.current_plan), "PLAN", False)
+                    self.wait(1)
+                else:
+                    log("Agent {} switched to plan for request. plan: {}".format(self.id_, self.current_plan), "PLAN", False)
+            
+            if self.intentions is None:
+                log("Agent {} has no intentions. So it will wait".format(self.id_), "PLAN", False)
+                self.wait(1)
+            
             #TODO FULL REPLAN
             box, location = self.unpack_intentions_to_box_and_location()
             log("Searching for a simple plan to move box {} to location {}".format(box, location), "PLAN", False)
@@ -401,21 +419,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                         #Figure out how to make requests to help
                         self.wait(1)
             
-            if isinstance(self.intentions, Request):
-                if self.plan_for_current_request is None:
-                    log("Agent {} switched tried plan for request but there was none".format(self.id_), "PLAN", False)
-                    self.wait(1)
-                    return
-                self.current_plan = self.plan_for_current_request
-                self.plan_for_current_request = None
-                if self.is_next_action_impossible():
-                    log("Agent {} switched to plan for request but thinks it isn't sound. plan {}".format(self.id_, self.current_plan), "PLAN", False)
-                    self.wait(1)
-                else:
-                    log("Agent {} switched to plan for request. plan: {}".format(self.id_, self.current_plan), "PLAN", False)
-            if self.intentions is None:
-                log("Agent {} has no intentions. So it will wait".format(self.id_), "PLAN", False)
-                self.wait(1)
+
 
         elif self.trigger == "waiting for request":
             log("Agent {} waiting for request.".format(self.id_), "PLAN", False)
@@ -571,22 +575,27 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 else:
                     #Try to go around, if not possible make request 
                     #TODO: Try to move around
-                    if self.can_move_around():
-                        log("Agent {} sees the box {} as static and will try to replan".format(self.id_, box), "ANALYSE", False)
-                        return "need to replan", None
-                    else:
-                        request = Request(self.id_, [rf_loc, (self.row, self.col)])
-                        if not BLACKBOARD.request_is_there(self.id_): 
-                            BLACKBOARD.add(request, self.id_)
-                            log(BLACKBOARD.requests)
-                            log("Agent {} sees the box {} as static and sends an request to get it moved".format(self.id_, box), "ANALYSE", False)
-                        return "wait", None
+                    
+                    box, location = self.unpack_intentions_to_box_and_location()
+                    if box is not None and location is not None:
+                        simple_plan = self.search_for_simple_plan(self.heuristic, (box,location), ignore_all_other_agents = False)
+                        if simple_plan is not None and len(simple_plan) > 0:
+                            self.current_plan = simple_plan
+                            if self.sound() and len(self.current_plan) > 1:
+                                log("Agent {} thinks box is static but found a path around. Path: {}".format(self.id_, self.current_plan), "ANALYSE", False)
+                            else:
+                                self.wait(1)
+                            return "going around box", other_agent
+                    request = Request(self.id_, [rf_loc, (self.row, self.col)])
+                    if not BLACKBOARD.request_is_there(self.id_): 
+                        BLACKBOARD.add(request, self.id_)
+                        log(BLACKBOARD.requests)
+                        log("Agent {} sees the box {} as static and sends an request to get it moved".format(self.id_, box), "ANALYSE", False)
+                    return "wait", None
         #When do we get here?
         return "need to replan", None  
         
-    def can_move_around(self):
-        #TODO implement
-        return False
+
 
     def unpack_intentions_to_box_and_location(self):
         if self.intentions is None:
@@ -647,6 +656,15 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
 
         if isinstance(cave_or_passage, Passage):
             return cave_or_passage.locations + cave_or_passage.entrances
+
+    def goal_qualified(self, goal):
+        requests = []
+        for elm in BLACKBOARD.requests.values():
+            for request in elm:
+                if goal ==  request.goal:
+                    return False
+        return not self.beliefs.is_goal_satisfied(goal) and (goal.row, goal.col) not in BLACKBOARD.claimed_goals and (goal.cave is None or goal.cave.is_next_goal(goal, self.beliefs))
+
 
     def wait(self, duration):
         self.wait_at_least(duration)

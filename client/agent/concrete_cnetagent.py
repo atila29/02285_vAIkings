@@ -88,6 +88,7 @@ class ConcreteCNETAgent(CNETAgent):
             log("Agent {} commited to move out of area {}".format(self.id_, request.area), "BDI", False)
     
     def goal_qualified(self, goal):
+        
         return not self.beliefs.is_goal_satisfied(goal) and (goal.row, goal.col) not in BLACKBOARD.claimed_goals and (goal.cave is None or goal.cave.is_next_goal(goal, self.beliefs))
 
     def pick_box(self, goal, list_of_boxes):
