@@ -163,11 +163,14 @@ class SearchAgent(BDIAgent):
                 total_free = total_free + 1
         return total_free
 
-    def find_path_to_free_space(self, location):
+    def find_path_to_free_space(self, location, ignore_all_other_agents = False):
         #search from location, find spot not in an area requested free
         #pretend agent is at location_from, and remove agents, and possible target box 
         state = State(self.beliefs)
-        state.agents = {}
+        if ignore_all_other_agents:
+            state.agents = {}
+        else:
+            state.agents.pop((self.row, self.col))
         state.agents[location] = AgentElement(self.id_, self.color, location[0], location[1])
         if location in state.boxes:
             state.boxes.pop(location)
@@ -176,6 +179,7 @@ class SearchAgent(BDIAgent):
         requests = []
         for elm in BLACKBOARD.requests.values():
             requests = requests + elm
+        log("Agent: {}, Requests: {}".format(self.id_, requests), "PATH_TO_FREE", False)
         h = DepthHeuristic(self.id_, requests)
         return self.best_first_search(h, state)
 

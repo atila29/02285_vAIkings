@@ -61,7 +61,8 @@ class CPAgent(BDIAgent):
         caves_to_explore= LEVEL.map_of_caves[exit_location[0]][exit_location[1]]
         if caves_to_explore is not None:
             for cave in caves_to_explore:
-                if self.is_cave_next_on_path(cave, index):
+                if self.is_cave_next_on_path(cave, index)[0]:
+                    #log("Agent {} thinks cave {} is the next on the path. index: {}, action self.current_plan[index]: {}".format(self.id_, cave, index, self.current_plan[index]), "TEST", False)
                     wanted_cave.append((cave, exit_location))
 
         if len(wanted_cave) == 0 and len(wanted_passages) > 0:
@@ -139,7 +140,7 @@ class CPAgent(BDIAgent):
 
        #Is the Cave next on path? 
         if next_action.required_free == cave.locations[-1]:
-            
+            #log("next action required free {} is inside cave {}. cave.locations[-1]: {}".format(next_action.required_free, cave, cave.locations[-1]), "TEST", False)
             #look for possible exit
             counter = 1
             for action in self.current_plan[index+1:]:
@@ -283,7 +284,7 @@ class CPAgent(BDIAgent):
         log("Cave/passage {} is free".format(cave_or_passage), "IS_FREE", False)
         return True
 
-    def make_request(self, cave_or_passage):
+    def find_area(self, cave_or_passage):
 
         if isinstance(cave_or_passage, Cave):
             cave = cave_or_passage
@@ -302,12 +303,11 @@ class CPAgent(BDIAgent):
             else:
                 area_required = [cave.entrance] + cave.locations[end+1:]
             
-            request = Request(self.id_, area_required)
-            BLACKBOARD.add_request(request, self.id_)
+            return area_required
 
         if isinstance(cave_or_passage, Passage):
-            request = Request(self.id_, cave_or_passage.locations + cave_or_passage.entrances)
-            BLACKBOARD.add_request(request, self.id_)
+            return cave_or_passage.locations + cave_or_passage.entrances
+            
 
     """
         OUTPUT: True if next part of path is clear (connected passages + cave)
@@ -316,7 +316,7 @@ class CPAgent(BDIAgent):
     def clear_path_through_passages_and_cave(self):
         
         wanted_passages, wanted_cave = self.find_wanted_passages_and_cave()
-        log("wanted_passages: {}, wanted_cave: {}".format(wanted_passages, wanted_cave), "TEST", False)
+        #log("wanted_passages: {}, wanted_cave: {}".format(wanted_passages, wanted_cave), "TEST", False)
 
         can_move = True
         for elm, entrance in wanted_passages + wanted_cave:
@@ -330,10 +330,14 @@ class CPAgent(BDIAgent):
                 #TODO: remove claims somewhere!
             return True
         
+        all_locations = []
         #TODO: Maybe the agent should consider taking another route instead of waiting
         for elm, entrance in wanted_passages + wanted_cave:
-            self.make_request(elm)
+            all_locations += self.find_area(elm)
         
+        request = Request(self.id_, all_locations)
+        BLACKBOARD.add(request, self.id_)
+
         return False
 
     def left_claimed_area(self):

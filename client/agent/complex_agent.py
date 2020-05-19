@@ -366,17 +366,18 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     return
                 self.current_plan = self.plan_for_current_request
                 self.plan_for_current_request = None
-                if not self.sound():
-                    log("Agent {} switched to plan for request but thinks it isn't sound".format(self.id_), "PLAN", False)
+                if self.is_next_action_impossible():
+                    log("Agent {} switched to plan for request but thinks it isn't sound. plan {}".format(self.id_, self.current_plan), "PLAN", False)
                     self.wait(1)
                 else:
-                    log("Agent {} switched to plan for request".format(self.id_), "PLAN", False)
+                    log("Agent {} switched to plan for request. plan: {}".format(self.id_, self.current_plan), "PLAN", False)
             if self.intentions is None:
                 log("Agent {} has no intentions. So it will wait".format(self.id_), "PLAN", False)
                 self.wait(1)
 
         elif self.trigger == "waiting for request":
-            log("Agent {} waiting for request".format(self.id_), "PLAN", False)
+            log("Agent {} waiting for request.".format(self.id_), "PLAN", False)
+            log("Agents request on blackboard: {}".format(BLACKBOARD.requests[self.id_]), "PLAN", False)
             self.wait(1)
 
         elif self.trigger == "next move impossible":
