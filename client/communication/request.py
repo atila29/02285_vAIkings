@@ -9,6 +9,9 @@ class Request:
         self.area = area
         self.id_ = request_id
         self.ignore_locations = ignore_locations
+        self.boxes_in_the_area = []
+        self.agents_in_the_area = []
+        self.agents_that_have_checked_request_already = []
         if request_id is None:
             self.id_ = uuid.uuid4()
         else:

@@ -133,6 +133,12 @@ class Blackboard:
             self.remove_claim_passage(agent_id, input)
         else:
             raise NotImplementedError
+
+    def request_is_there(self, request2): 
+        for i in self.requests.keys(): 
+            if i == request2: 
+                return True 
+        return False
         
 
 BLACKBOARD = Blackboard()

@@ -205,9 +205,15 @@ class CPAgent(BDIAgent):
 
             #TODO: If we call this when trying to do a request we will probably not be allowed to enter, since the cave/passage will be blocked by the box we wanna move. How do we handle this?
     def is_free(self, cave_or_passage):
+        
+        if isinstance(self.intentions, Request):
+            if isinstance(cave_or_passage, Cave):
+                return not cave_or_passage.occupied or (self.row, self.col) in (cave_or_passage.locations + [cave_or_passage.entrance])
+            if isinstance(cave_or_passage, Passage):
+                return not cave_or_passage.occupied or (self.row, self.col) in (cave_or_passage.locations + cave_or_passage.entrances)
+
         if isinstance(cave_or_passage, Cave):
-            cave = cave_or_passage
- 
+            cave = cave_or_passage    
             for agent_id, c in BLACKBOARD.claimed_caves.items():
                 if cave in c and agent_id != self.id_:
                     log("Cave {} is not free since it is claimed by another agent".format(cave), "IS_FREE", False)

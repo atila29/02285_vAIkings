@@ -42,6 +42,8 @@ class ConcreteBDIAgent(BDIAgent):
     
     #old impossible from CNETAgent
     def is_next_action_impossible(self):
+        if len(self.current_plan) == 0:
+            return False
         action = self.current_plan[0] #Unfoldedaction
         if action.action.action_type == ActionType.NoOp:
             return False

@@ -18,7 +18,7 @@ class SearchAgent(BDIAgent):
         Returns None if no path exists
         otherwise returns list of UnfoldedActions (only moves)
     """
-    def find_simple_path(self, location_from, location_to, ignore_all_other_agents = True, move_around_specific_agents=None):
+    def find_simple_path(self, location_from, location_to, ignore_all_boxes=False, ignore_all_other_agents = True, move_around_specific_agents=None):
         #pretend agent is at location_from, and remove agents, and possible target box 
         state = State(self.beliefs)
         if ignore_all_other_agents:
@@ -33,10 +33,14 @@ class SearchAgent(BDIAgent):
             #ignore only my self
             state.agents.pop((self.row,self.col))
         state.agents[location_from] = AgentElement(self.id_, self.color, location_from[0], location_from[1])
-        if location_from in state.boxes:
-            state.boxes.pop(location_from)
-        if location_to in state.boxes:
-            state.boxes.pop(location_to)
+        
+        if ignore_all_boxes:
+            state.boxes = {}
+        else:
+            if location_from in state.boxes:
+                state.boxes.pop(location_from)
+            if location_to in state.boxes:
+                state.boxes.pop(location_to)
         
         #define heuritic to be distance from agent to location_to
         h = SimpleHeuristic(self.id_, location_to)
@@ -219,7 +223,7 @@ class SearchAgent(BDIAgent):
             #Add to explored
             strategy.add_to_explored(leaf)
 
-    def search_for_simple_plan(self, heuristic, pair = None, ignore_all_other_agents=True, move_around_specific_agents=None) -> '[UnfoldedAction, ...]':
+    def search_for_simple_plan(self, heuristic, pair = None,ignore_all_boxes=False, ignore_all_other_agents=True, move_around_specific_agents=None) -> '[UnfoldedAction, ...]':
         if pair is None:
             box, goal = self.intentions
             location = (goal.row, goal.col)
@@ -237,7 +241,7 @@ class SearchAgent(BDIAgent):
 
         log("Starting Single Agent Search. Box from location {} to location {}".format((box.row, box.col), location), "SAS", False)
         #Searh for path from agent to box
-        path1= self.find_simple_path((self.row, self.col), (box_row, box_col), ignore_all_other_agents=ignore_all_other_agents, move_around_specific_agents=move_around_specific_agents)
+        path1= self.find_simple_path((self.row, self.col), (box_row, box_col), ignore_all_boxes=ignore_all_boxes, ignore_all_other_agents=ignore_all_other_agents, move_around_specific_agents=move_around_specific_agents)
         log("First part of search done for agent {}. path 1: {}".format(self.id_, path1), "SAS", False)
         
         if path1 is None:
@@ -254,7 +258,7 @@ class SearchAgent(BDIAgent):
             return None
 
         #Search for path from box to goal
-        path2 = self.find_simple_path((box_row, box_col), location, ignore_all_other_agents=ignore_all_other_agents)
+        path2 = self.find_simple_path((box_row, box_col), location, ignore_all_boxes=ignore_all_boxes,ignore_all_other_agents=ignore_all_other_agents)
         log("Second part of search done for agent {}. path 2: {}".format(self.id_, path2), "SAS", False)
         
         if path2 is None:
