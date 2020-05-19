@@ -209,12 +209,17 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                         self.id_, (self.row, self.col), request.area), "REQUESTS_DETAILED", False)
                     agent_path = self.find_path_to_free_space(
                         (self.row, self.col))
-                    log("Found path: {}".format(agent_path),
+                    log("Found path avoiding other agents: {}".format(agent_path),
                         "REQUESTS_DETAILED", False)
                     if agent_path is None or len(agent_path) == 0:
-                        log("Agent {} found no free space to move to to clear the area in request {}".format(
-                            self.id_, request), "REQUESTS_DETAILED", False)
-                    else:
+                        agent_path = self.find_path_to_free_space(
+                        (self.row, self.col), ignore_all_other_agents=True)
+                        log("Found path ignoring other agents: {}".format(agent_path),
+                        "REQUESTS_DETAILED", False)
+                        if agent_path is None or len(agent_path) == 0:
+                            log("Agent {} found no free space to move to to clear the area in request {}".format(
+                                self.id_, request), "REQUESTS_DETAILED", False)
+                    if agent_path is not None and len(agent_path) > 0:
                         cost = len(agent_path)
 
                         # If new best, update
