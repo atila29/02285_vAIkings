@@ -9,6 +9,8 @@ from heuristics import  Heuristic2
 from logger import log
 from state import LEVEL
 
+import heapq 
+
 
 class ConcreteCNETAgent(CNETAgent):
     
@@ -89,26 +91,21 @@ class ConcreteCNETAgent(CNETAgent):
         return not self.beliefs.is_goal_satisfied(goal) and (goal.row, goal.col) not in BLACKBOARD.claimed_goals and (goal.cave is None or goal.cave.is_next_goal(goal, self.beliefs))
 
     def pick_box(self, goal, list_of_boxes):
+        possible_boxes = self.filter_boxes(goal, list_of_boxes)
+        return heapq.heappop(possible_boxes)[1]
+
+    def filter_boxes(self, goal, list_of_boxes):           
         possible_boxes = []
         for box in list_of_boxes:
             if box.letter == goal.letter:
                 if (box.row,box.col) in LEVEL.goals_by_pos:
                     if self.beliefs.is_goal_satisfied(LEVEL.goals_by_pos[(box.row,box.col)]):
                         continue
-                possible_boxes.append((self.heuristic.h(self.beliefs, (box,goal), self), box))
-
-        
+                heapq.heappush(possible_boxes, (self.heuristic.h(self.beliefs, (box,goal), self), box))
         if len(possible_boxes) == 0:
             return None
-
-        best_cost = float("inf")
-        best_box = None
-        for cost, box in possible_boxes:
-            if best_cost > cost:
-                best_box = box
-
-        return best_box           
-
+        return possible_boxes
+        
     def boxes_of_my_color_not_already_claimed(self):
         result = []
         for box in self.beliefs.boxes.values():

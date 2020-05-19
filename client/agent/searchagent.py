@@ -25,7 +25,7 @@ class SearchAgent(BDIAgent):
             state.agents = {}
         elif move_around_specific_agents is not None:
             for pos in state.agents:
-                if state.agents[pos].id_ in move_around_specific_agents + [self.id_]:
+                if state.agents[pos].id_ in move_around_specific_agents:
                     continue
                 else:
                     state.agents.pop(pos)  
@@ -241,10 +241,15 @@ class SearchAgent(BDIAgent):
         log("First part of search done for agent {}. path 1: {}".format(self.id_, path1), "SAS", False)
         
         if path1 is None:
-            # if LEVEL.map_of_caves[box_row][box_col] is not None:
-            #     for cave in LEVEL.map_of_caves[box_row][box_col]:
-            #         self.make_request(cave)
             #TODO
+            #If we can't find a path to the box we need to figure out how to make one!
+            #Find out how to make request! 
+            # ideas:
+                # 1. If the me/box/goal is in a cave, request that free!
+                # 2. Find the path in a level with not boxes, no agents and start moving along that path. 
+                        # Request cave/passages free as we get to it.
+                # How do we handle big clusters of boxes? Request them free one at a time, or a chunks at a time?
+
             log("path 1 in search_for_simple_plan was None", "TEST", False)
             return None
 
@@ -254,6 +259,7 @@ class SearchAgent(BDIAgent):
         
         if path2 is None:
             #TODO
+            #Same idea as above
             log("path 2 in search_for_simple_plan was None", "TEST", False)
             return None
 
