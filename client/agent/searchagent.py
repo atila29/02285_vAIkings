@@ -25,7 +25,7 @@ class SearchAgent(BDIAgent):
             state.agents = {}
         elif move_around_specific_agents is not None:
             for pos in state.agents:
-                if state.agents[pos].id_ in move_around_specific_agents:
+                if state.agents[pos].id_ in move_around_specific_agents + [self.id_]:
                     continue
                 else:
                     state.agents.pop(pos)  
@@ -245,6 +245,7 @@ class SearchAgent(BDIAgent):
             #     for cave in LEVEL.map_of_caves[box_row][box_col]:
             #         self.make_request(cave)
             #TODO
+            log("path 1 in search_for_simple_plan was None", "TEST", False)
             return None
 
         #Search for path from box to goal
@@ -253,6 +254,7 @@ class SearchAgent(BDIAgent):
         
         if path2 is None:
             #TODO
+            log("path 2 in search_for_simple_plan was None", "TEST", False)
             return None
 
         #Convert paths to a plan

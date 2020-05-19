@@ -340,10 +340,11 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             5. New intentions
     """
     def plan(self, ignore_all_other_agents=True, move_around_specific_agents=None) -> '[UnfoldedAction, ...]':
-        log("Agent {} started planning".format(self.id_), "PLAN", False)
+        log("Agent {} started planning to achieve: {}".format(self.id_, self.intentions), "PLAN", False)
         if self.trigger in ["empty plan", "new intentions"]:
             #TODO FULL REPLAN
             box, location = self.unpack_intentions_to_box_and_location()
+            log("Searching for a simple plan to move box {} to location {}".format(box, location), "PLAN", False)
             #TODO: what if they are None
             if box is not None and location is not None:
                 simple_plan = self.search_for_simple_plan(self.heuristic, (box,location), ignore_all_other_agents = ignore_all_other_agents, move_around_specific_agents = move_around_specific_agents)
@@ -353,8 +354,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                         log("Agent {} found simple path and is using it".format(self.id_), "PLAN", False)
                         return
                     else: 
-                        self.wait(1)
-                        log("Agent {} found simple path but it is not sound. So it is waiting".format(self.id_), "PLAN", False)
+                        log("Agent {} found simple path {} but it is not sound. So it is waiting".format(self.current_plan, self.id_), "PLAN", False)
+                        self.wait(1)     
                 else:
                     #TODO:
                     log("Agent {} found no simple path. So it is waiting".format(self.id_), "PLAN", False)
@@ -541,7 +542,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         elif isinstance(self.intentions, Request):
             return None, None         
         else:
-            box, location = self.intentions
+            box, goal = self.intentions
+            location = (goal.row, goal.col)
         return box, location
 
 # region execute

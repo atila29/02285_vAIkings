@@ -3,7 +3,7 @@ import sys
 "BDI", "CNET", "BIDDING", "CONFLICT RESOLUTION", "NEXT_TO_AGENT", "RETREAT", "SAS", "MAP", "CAVES"
 """
 
-log_filter=["ANALYSE", "PLAN"]
+log_filter=["ANALYSE", "PLAN", "TEST"]
 def log(msg, tag = None, ignoreFilter = True):
     if tag is None:
         tag = 'log'
