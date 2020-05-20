@@ -25,6 +25,12 @@ class Trigger:
     def __init__(self, name):
         self.name = name
 
+    def __repr__(self):
+        return self.name
+
+    def __str__(self):
+        return self.__repr__()
+
 Trigger.EMPTY_PLAN = Trigger("empty_plan")
 Trigger.SUCCEDED = Trigger("succeeded")
 Trigger.IMPOSSIBLE = Trigger("impossible")
