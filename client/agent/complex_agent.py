@@ -171,6 +171,9 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             log("Agent {} now has intentions to move box {} to goal {}".format(
                 self.id_, self.intentions[0], self.intentions[1]), "BDI", False)
             return
+        
+        #check if is in cave or passage
+
 
         # Else pick None
         self.intentions = None
@@ -286,9 +289,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         boxes = self.boxes_of_my_color_not_already_claimed()
         # pick box, goal not already used, Start bidding to find best contractor.
         # random.shuffle(self.desires['goals'])
+        
+        self.reprioritise_goals()
+        
         for goal in self.desires['goals']:
             if self.goal_qualified(goal):
-                box = self.pick_box(goal, boxes) # får med counter 
+                box = self.pick_box(goal, boxes) 
                 if box is None:
                     continue
                 best_agent = self.bid_box_to_goal(goal, box)
@@ -296,7 +302,50 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 if best_agent.id_ == self.id_:
                     return (box, goal)
         return None, None
-# endregion
+
+    
+    #1. caves
+    #2. others 
+    #3. passages
+    def reprioritise_goals(self):
+        other = []
+        cave_goals = []
+        passage_goals = []
+
+        passage_locations = []
+        cave_locations = []
+        #passage_locations = [p.locations for p in LEVEL.passages.values()]
+        for passage in LEVEL.passages.values(): 
+            passage_locations = passage_locations+passage.locations 
+        
+        #utgangspunkt i en liste som inneholder goals som ikke er i caves eller passages 
+        for caves in LEVEL.caves.values(): 
+            cave_locations = cave_locations + caves.locations  
+        
+        for location in cave_locations:
+            for goal in self.desires['goals']:
+                if (goal.row, goal.col) == location:
+                    cave_goals.append(goal)
+
+        for location in passage_locations:
+            for goal in self.desires['goals']:
+                if (goal.row, goal.col) == location:
+                    passage_goals.append(goal)       
+
+        for goal in self.desires['goals']:
+            if ((goal.row, goal.col) not in passage_locations) and ((goal.row, goal.col) not in cave_locations): 
+                other.append(goal) #normal goals 
+            
+            #if (goal.row, goal.col) in passage_locations: #last
+            #    passage_goals.append(goal) #passages
+                
+            #if (goal.row, goal.col) in cave_locations:  #first
+            #    cave_goals.append(goal)
+        
+        self.desires['goals'] = cave_goals + other + passage_goals
+        
+        
+
 
     def reconsider(self):
         return self.waiting_for_request()
@@ -501,6 +550,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             if not clear:
                 log("Agent {} waiting. Request clearing of path.".format(self.id_), "PLAN", False)
                 log("Agents request on blackboard: {}".format(BLACKBOARD.requests[self.id_]), "PLAN", False)
+                
                 self.wait(1)
             else:
                 log("Agent {} thinks path through cave/passage is clear".format(self.id_), "PLAN", False)
