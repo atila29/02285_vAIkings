@@ -17,6 +17,20 @@ from passage import Passage
 
 import random
 
+class Trigger:
+    name: str
+
+    EMPTY_PLAN = SUCCEDED = IMPOSSIBLE = RECONSIDER = NEW_INTENTIONS = None
+
+    def __init__(self, name):
+        self.name = name
+
+Trigger.EMPTY_PLAN = Trigger("empty_plan")
+Trigger.SUCCEDED = Trigger("succeeded")
+Trigger.IMPOSSIBLE = Trigger("impossible")
+Trigger.RECONSIDER = Trigger("reconsider")
+Trigger.NEW_INTENTIONS = Trigger("new_intentions")
+
 
 class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
     color: str  # color of the agent
@@ -55,7 +69,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         self.desires['goals'] = []
         self.desires['contracts'] = []
 
-        self.trigger = "empty plan"
+        self.trigger = Trigger.EMPTY_PLAN
         self.plan_for_current_request = None
         self.retreating_duration = 0
 
@@ -70,10 +84,10 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
     """
         Method inherited from the BDI agent.
         It will be run if one of the following triggers:
-            (trigger = "empty plan"):   The agents current plan is empty and needs a new one and should reconsider its intentions
-            (trigger = "succeeded"):    The agents current intentions have been fulfilled and needs new intentions
-            (trigger = "impossible"):   The agents current set of intentions have become impossible to fulfill
-            (trigger = "reconsider"):   The agent might have an advange in abandonning the current intentions
+            (trigger = Trigger.EMPTY_PLAN):   The agents current plan is empty and needs a new one and should reconsider its intentions
+            (trigger = Trigger.SUCCEDED):    The agents current intentions have been fulfilled and needs new intentions
+            (trigger = Trigger.IMPOSSIBLE):   The agents current set of intentions have become impossible to fulfill
+            (trigger = Trigger.RECONSIDER):   The agent might have an advange in abandonning the current intentions
 
         OUTPUT: update intentions (and info of intentions on bb)
     """
@@ -81,11 +95,11 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
     def deliberate(self):
         self.test_for_trigger()
         log("Agent {} is deliberating because {}".format(self.id_, self.trigger), "BDI", False)
-        if self.trigger in ["succeeded", "impossible", "reconsider"]:
+        if self.trigger in [Trigger.SUCCEDED, Trigger.IMPOSSIBLE, Trigger.RECONSIDER]:
             self.remove_intentions_from_blackboard()
             # TODO: remove also resets intentions, change!
 
-        elif self.trigger == "empty plan":
+        elif self.trigger == Trigger.EMPTY_PLAN:
             if self.succeeded():
                 self.remove_intentions_from_blackboard()
             elif self.impossible():
@@ -96,19 +110,19 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
 
         if self.intentions is None:
             self.pick_intentions_from_scratch()
-            self.trigger = "new intentions"
+            self.trigger = Trigger.NEW_INTENTIONS
 
         return self.intentions
 
     def test_for_trigger(self):
         if len(self.current_plan) == 0:
-            self.trigger = "empty plan"
+            self.trigger = Trigger.EMPTY_PLAN
         elif self.succeeded():
-            self.trigger = "succeeded"
+            self.trigger = Trigger.SUCCEDED
         elif self.impossible():
-            self.trigger = "impossible"
+            self.trigger = Trigger.IMPOSSIBLE
         elif self.reconsider():
-            self.trigger = "reconsider"
+            self.trigger = Trigger.RECONSIDER
         
 
         
@@ -374,7 +388,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
     """
     def plan(self, ignore_all_other_agents=True, move_around_specific_agents=None) -> '[UnfoldedAction, ...]':
         log("Agent {} started planning to achieve: {}. trigger: {}".format(self.id_, self.intentions, self.trigger), "PLAN", False)
-        if self.trigger in ["empty plan", "new intentions"]:
+        if self.trigger in [Trigger.EMPTY_PLAN, Trigger.NEW_INTENTIONS]:
             
             if isinstance(self.intentions, Request):
                 if self.plan_for_current_request is None or len(self.plan_for_current_request):
@@ -447,12 +461,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 if not self.try_to_retreat(other_agent):
                     log("Agent {} couldn't find a retreat move. So it will replan".format(self.id_), "PLAN", False)
                     self.current_plan = []
-                    self.trigger = "empty plan"
+                    self.trigger = Trigger.EMPTY_PLAN
                     self.plan()  
             elif result =="need to replan":
                 log("Agent {} thinks next move is impossible. So it will replan".format(self.id_), "PLAN", False)
                 self.current_plan = []
-                self.trigger = "empty plan"
+                self.trigger = Trigger.EMPTY_PLAN
                 self.plan()   
             elif result =="going around agent":
                 pass
