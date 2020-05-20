@@ -662,6 +662,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                                 if self.sound() and len(self.current_plan) > 1:
                                     log("Agent {} thinks agent {} is standing still but found a path around. Path: {}".format(self.id_, other_agent.id_, self.current_plan), "ANALYSE", False)
                                 else:
+                                    log("Agent {} thinks agent {} is standing still but path found is not sound. Path: {}".format(self.id_, other_agent.id_, self.current_plan), "ANALYSE", False)
                                     self.wait(1)
                                 return "going around agent", other_agent
                         
@@ -762,6 +763,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 if temp in LEVEL.goals_by_pos:
                     if location is not None and temp == location:
                         break
+                if temp in self.beliefs.agents and self.beliefs.agents[temp].id_ != self.id_:
+                    break 
                 end = i
             #clear whole cave
             if end is None:

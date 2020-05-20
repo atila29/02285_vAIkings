@@ -51,7 +51,7 @@ class SearchAgent(BDIAgent):
                 Such that the first move in path2 is from the location of the box
                 The last move in path1 is moving onto the box
     """
-    def convert_paths_to_plan(self, path1, path2, action=ActionType.Push):
+    def convert_paths_to_plan(self, path1, path2, action=ActionType.Push, ignore_all_other_agents = True):
         if action != ActionType.Push:
             raise NotImplementedError
         
@@ -65,9 +65,9 @@ class SearchAgent(BDIAgent):
         if dir1 == reverse_direction(dir2):  
             for i in range(1, len(path2)):
                 #check if there is room to turn from pull to push
-                if self.count_free_spaces(path2[i]) >=3:
+                if self.count_free_spaces(path2[i], ignore_all_other_agents=ignore_all_other_agents) >=3:
                     #change to push
-                    turn = self.swicth_from_pull_to_push(path2[i-1], path2[i])
+                    turn = self.swicth_from_pull_to_push(path2[i-1], path2[i], ignore_all_other_agents = ignore_all_other_agents)
                     result = result + turn
                     break_point = i
                     break
@@ -127,7 +127,7 @@ class SearchAgent(BDIAgent):
     """
         OUTPUT: list of two unfolded actions, one pull and one push
     """
-    def swicth_from_pull_to_push(self, action_before: UnfoldedAction, action_after: UnfoldedAction):
+    def swicth_from_pull_to_push(self, action_before: UnfoldedAction, action_after: UnfoldedAction, ignore_all_other_agents = True):
         box_direction = reverse_direction(action_before.action.agent_dir)
         agent_dir = action_after.action.agent_dir
         row, col = action_after.agent_from
@@ -137,7 +137,7 @@ class SearchAgent(BDIAgent):
                 continue
             new_row = row + direction.d_row
             new_col = col + direction.d_col
-            if not (self.beliefs.is_free(new_row, new_col) or (new_row, new_col) in self.beliefs.agents):
+            if not (self.beliefs.is_free(new_row, new_col) or (ignore_all_other_agents and (new_row, new_col) in self.beliefs.agents)):
                 continue
             turn_dir = direction
             break
@@ -156,14 +156,14 @@ class SearchAgent(BDIAgent):
         
         return [resulting_action1, resulting_action2]
 
-    def count_free_spaces(self, action):
+    def count_free_spaces(self, action, ignore_all_other_agents=True):
         row, col = action.agent_from
         total_free = 0
         current_state = self.beliefs
         for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
             new_row = row + direction.d_row
             new_col = col + direction.d_col
-            if current_state.is_free(new_row, new_col) or (new_row, new_col) in current_state.agents:
+            if current_state.is_free(new_row, new_col) or (ignore_all_other_agents and (new_row, new_col) in current_state.agents):
                 total_free = total_free + 1
         return total_free
 
@@ -271,7 +271,7 @@ class SearchAgent(BDIAgent):
             return None
 
         #Convert paths to a plan
-        plan = self.convert_paths_to_plan(path1, path2)
+        plan = self.convert_paths_to_plan(path1, path2, ignore_all_other_agents=ignore_all_other_agents)
         log("Combined and converted paths for agent {}. Result: {}".format(self.id_, plan), "SAS", False)
         
         
