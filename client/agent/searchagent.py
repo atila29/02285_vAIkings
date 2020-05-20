@@ -167,7 +167,7 @@ class SearchAgent(BDIAgent):
                 total_free = total_free + 1
         return total_free
 
-    def find_path_to_free_space(self, location, ignore_all_other_agents = False):
+    def find_path_to_free_space(self, location, ignore_all_other_agents = False, ignore_all_boxes = False):
         #search from location, find spot not in an area requested free
         #pretend agent is at location_from, and remove agents, and possible target box 
         state = State(self.beliefs)
@@ -176,7 +176,10 @@ class SearchAgent(BDIAgent):
         else:
             state.agents.pop((self.row, self.col))
         state.agents[location] = AgentElement(self.id_, self.color, location[0], location[1])
-        if location in state.boxes:
+        
+        if ignore_all_boxes:
+            state.boxes = {}
+        elif location in state.boxes:
             state.boxes.pop(location)
         
         #define heuritic to be distance from agent to location_to

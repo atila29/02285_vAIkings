@@ -134,10 +134,11 @@ class Blackboard:
         else:
             raise NotImplementedError
 
-    def request_is_there(self, request2): 
-        for i in self.requests.keys(): 
-            if i == request2: 
-                return True 
+    def request_is_there(self, agent_id, request): 
+        if agent_id in self.requests:
+            for req in self.requests[agent_id]:
+                if set(req.area) == set(request.area):
+                    return True
         return False
         
 

@@ -11,7 +11,7 @@ from communication.request import Request
 from heuristics import Heuristic
 from logger import log
 from state import LEVEL
-from action import ActionType
+from action import ActionType, UnfoldedAction, Action, Dir
 from cave import Cave
 from passage import Passage
 
@@ -128,6 +128,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             self.commit_to_request(request, box)
             log("Agent {} commited to request {}".format(self.id_, self.intentions), "BDI", False)
             self.current_plan = self.plan_for_current_request
+            if len(self.current_plan) > 0:
+                self.current_plan.append(UnfoldedAction(Action(ActionType.NoOp,Dir.N, None), self.id_,True, self.current_plan[-1].agent_to))
             return
 
         # check for contract
@@ -189,7 +191,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                         combined_path = self.convert_paths_to_plan(
                             path_to_box, box_path)
                         log("Agent {}. \n path to box: {}. \n box path: {} \n combined path: {}".format(
-                            self.id_, path_to_box, box_path, combined_path), "REQUESTS_DETAILED", False)
+                            self.id_, path_to_box, box_path, combined_path), "TEST", False)
                         # last_location = combined_path[-1].agent_to
                         # agent_path = self.find_simple_path(last_location, locations[1])
                         # if agent_path is None:
@@ -220,13 +222,15 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     log("Found path avoiding other agents: {}".format(agent_path),
                         "REQUESTS_DETAILED", False)
                     if agent_path is None or len(agent_path) == 0:
-                        agent_path = self.find_path_to_free_space(
-                        (self.row, self.col), ignore_all_other_agents=True)
-                        log("Found path ignoring other agents: {}".format(agent_path),
-                        "REQUESTS_DETAILED", False)
-                        if agent_path is None or len(agent_path) == 0:
-                            log("Agent {} found no free space to move to to clear the area in request {}".format(
-                                self.id_, request), "REQUESTS_DETAILED", False)
+                        agent_path = self.find_path_to_free_space((self.row, self.col), ignore_all_other_agents=True)
+                        if agent_path is not None and len(agent_path)>0:
+                            log("Found path ignoring other agents {}".format(agent_path),"REQUESTS_DETAILED", False)
+                        else:
+                            agent_path = self.find_path_to_free_space((self.row, self.col), ignore_all_other_agents=True, ignore_all_boxes = True)
+                            if agent_path is not None and len(agent_path)>0:
+                                log("Found path ignoring other agents and boxes: {}".format(agent_path),"REQUESTS_DETAILED", False)
+                            else:
+                                log("Agent {} found no free space to move to to clear the area in request {}".format(self.id_, request), "REQUESTS_DETAILED", False)
                     if agent_path is not None and len(agent_path) > 0:
                         cost = len(agent_path)
 
@@ -324,15 +328,16 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 done = True
                 for location in request.area:
                     if not self.beliefs.is_free(location[0], location[1]):
-                        if (self.row, self.col) == location:
-                            agents_in_the_area.append(self.id_)
-                            continue
                         if location in self.beliefs.boxes:
                             elm = self.beliefs.boxes[location]
                             boxes_in_the_area.append(elm.id_)
+                            if request.box == elm or (elm.id_ in BLACKBOARD.claimed_boxes and BLACKBOARD.claimed_boxes[elm.id_] == self.id_) :
+                                continue
                         elif location in self.beliefs.agents:
                             elm = self.beliefs.agents[location]
                             agents_in_the_area.append(elm.id_)
+                            if elm.id_ == self.id_:
+                                continue
                         else:
                             elm = None
                         log("Agent {} waiting for request {}. Location {} occupied by: {}".format(self.id_, request, location, elm), "TEST", False)
@@ -372,7 +377,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         if self.trigger in ["empty plan", "new intentions"]:
             
             if isinstance(self.intentions, Request):
-                if self.plan_for_current_request is None:
+                if self.plan_for_current_request is None or len(self.plan_for_current_request):
                     log("Agent {} switched tried plan for request but there was none".format(self.id_), "PLAN", False)
                     self.wait(1)
                     return
@@ -381,14 +386,17 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 if self.is_next_action_impossible():
                     log("Agent {} switched to plan for request but thinks it isn't sound. plan {}".format(self.id_, self.current_plan), "PLAN", False)
                     self.wait(1)
+                    
                 else:
                     log("Agent {} switched to plan for request. plan: {}".format(self.id_, self.current_plan), "PLAN", False)
+                return
             
             if self.intentions is None:
                 log("Agent {} has no intentions. So it will wait".format(self.id_), "PLAN", False)
                 self.wait(1)
+                return
             
-            #TODO FULL REPLAN
+            #TODO FULL REPLAN. (Intention not request or None)
             box, location = self.unpack_intentions_to_box_and_location()
             log("Searching for a simple plan to move box {} to location {}".format(box, location), "PLAN", False)
             #TODO: what if they are None
@@ -401,7 +409,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                         return
                     else: 
                         log("Agent {} found simple path {} but it is not sound. So it is waiting".format(self.current_plan, self.id_), "PLAN", False)
-                        self.wait(1)     
+                        self.wait(1)
+                        return     
                 else:
                     #TODO:
                     log("Agent {} found no simple path. So it is ignoring all boxes and agents".format(self.id_), "PLAN", False)
@@ -418,17 +427,18 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                         log("Agent {} could not find a plan at all".format(self.id_), "PLAN", False)
                         #Figure out how to make requests to help
                         self.wait(1)
-            
-
+                        return
+        
 
         elif self.trigger == "waiting for request":
             log("Agent {} waiting for request.".format(self.id_), "PLAN", False)
             log("Agents request on blackboard: {}".format(BLACKBOARD.requests[self.id_]), "PLAN", False)
             self.wait(1)
+            return
 
         elif self.trigger == "next move impossible":
-            #TODO try retreat move
             
+            #TODO try retreat move
             result, other_agent = self.analyse_situation()
             log("Agent {} analysing the next move thinks it should {}".format(self.id_, result), "PLAN", False)
             if result =="wait":
@@ -445,7 +455,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 self.trigger = "empty plan"
                 self.plan()   
             elif result =="going around agent":
-                pass         
+                pass
+            return         
 
         elif self.trigger ==  "about to enter cave or passage":
             
@@ -453,6 +464,10 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 #Assuming that if agents have claims, they are relevant for current action
                 log("Agent {} testing claims".format(self.id_), "CLAIM", False)
                 if not self.claims_are_sound():
+                    if self.id_ in BLACKBOARD.claimed_passages:
+                        BLACKBOARD.claimed_passages.pop(self.id_)
+                    if self.id_ in BLACKBOARD.claimed_caves:
+                        BLACKBOARD.claimed_caves.pop(self.id_)
                     self.wait(1)
                 return 
 
@@ -460,10 +475,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             log("Found at location: Caves: {}, passages: {}".format(LEVEL.map_of_caves[row][col], LEVEL.map_of_passages[row][col]), "CP", False)
             clear = self.clear_path_through_passages_and_cave()
             if not clear:
-                log("Agent {} waiting. Request clearing of path".format(self.id_), "PLAN", False)
+                log("Agent {} waiting. Request clearing of path.".format(self.id_), "PLAN", False)
+                log("Agents request on blackboard: {}".format(BLACKBOARD.requests[self.id_]), "PLAN", False)
                 self.wait(1)
             else:
                 log("Agent {} thinks path through cave/passage is clear".format(self.id_), "PLAN", False)
+            return
         else:
             raise RuntimeError("Agent doesn't know why its planning")
 
@@ -481,7 +498,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         possible, directions, retreat_type = self.retreat_is_possible(blocked_direction)
         log("possible: {}, directions: {}, retreat_type:{}".format(possible, directions, retreat_type), "RETREAT_DETAILED", False)
 
-        other_blocked_direction = other_agent.close_blocked_dir(state, other_agent.row, other_agent.col, self)
+        if len(self.current_plan) > 1:
+            #TODO add our relative position to the blocked directions. 
+            future_action = self.current_plan[1]
+
+
+        other_blocked_direction = other_agent.close_blocked_dir(state, other_agent.row, other_agent.col, self) + []
         other_possible, other_directions, other_retreat_type = other_agent.retreat_is_possible(other_blocked_direction)
 
         if possible:            
@@ -500,13 +522,13 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         #The other agent retreat moves
         elif other_possible:
             log("Agent {} thinks agent {} can do a retreat move of type {} and will wait".format(self.id_, other_agent.id_, retreat_type), "RETREAT", False)
-            # retreat, duration = other_agent.retreat_move(directions, retreat_type)
-            # other_agent.current_plan = retreat + other_agent.current_plan
-            if retreat_type == "move":
-                self.wait_at_least(2)
-            else:
-                self.wait_at_least(3) #TODO: 3 or ??
-            return True
+            # retreat, duration = other_agent.retreat_move(other_directions, other_retreat_type)
+            # other_agent.current_plan = retreat 
+            # if retreat_type == "move":
+            #     self.wait_at_least(2)
+            # else:
+            #     self.wait_at_least(3) #TODO: 3 or ??
+            # return True
         else:
             log("Agent {} couldn't find a retreat move to make way for agent {}".format(self.id_, other_agent.id_), "RETREAT", False)
             return False
@@ -521,8 +543,17 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
     def analyse_situation(self):
         log("Starting to analyse situation for agent {}".format(self.id_), "ANALYSE", False)
         action = self.current_plan[0]
+        if action.action.action_type == ActionType.NoOp:
+            return "", None
+        
+
         # Can/should we do a retreat move?
         rf_loc = action.required_free 
+        if rf_loc == (self.row, self.col):
+            log("self.id_: {}, rf_loc: {}, (self.row, self.col): {}, action: {}".format(self.id_, rf_loc, (self.row, self.col), action))
+            self.current_plan = []
+            self.remove_intentions_from_blackboard()
+            self.wait(1)
         state = self.beliefs
         
         #Space is occupied
@@ -553,9 +584,13 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                                 return "going around agent", other_agent
                         
                         #TODO
-                        request = Request(self.id_, [rf_loc,(self.row, self.col)])
-                        BLACKBOARD.add(request, self.id_)
-                        log("Agent {} thinks agent {} is standing still so it will try to make it move".format(self.id_, other_agent.id_), "ANALYSE", False)
+                        area_required = [action.required_free for action in self.current_plan[:5] if action.action.action_type != ActionType.NoOp] 
+                        request = Request(self.id_, area_required)
+                        #TODO: check if request is there!
+                        if not BLACKBOARD.request_is_there(self.id_, request):
+                            BLACKBOARD.add(request, self.id_)
+                            log("Agent {} added request ({}) to make agent {} move".format(self.id_,request, other_agent.id_), "ANALYSE", False)
+                        log("Agent {} is waiting for agent {} to move".format(self.id_, other_agent.id_), "ANALYSE", False)
                         return "wait", None
                     else:
                         log("Agent {} thinks it can wait for agent {} to pass".format(self.id_, other_agent.id_), "ANALYSE", False)
@@ -586,11 +621,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                             else:
                                 self.wait(1)
                             return "going around box", other_agent
-                    request = Request(self.id_, [rf_loc, (self.row, self.col)])
-                    if not BLACKBOARD.request_is_there(self.id_): 
+                    area_required = [action.required_free for action in self.current_plan[:5] if action.action.action_type != ActionType.NoOp]
+                    request = Request(self.id_, area_required)
+                    if not BLACKBOARD.request_is_there(self.id_, request): 
                         BLACKBOARD.add(request, self.id_)
-                        log(BLACKBOARD.requests)
-                        log("Agent {} sees the box {} as static and sends an request to get it moved".format(self.id_, box), "ANALYSE", False)
+                        log("Agent {} added request ({}) to make box {} move".format(self.id_,request, box), "ANALYSE", False)
+                    log("Agent {} is waiting for box {} to move".format(self.id_, box), "ANALYSE", False)
                     return "wait", None
         #When do we get here?
         return "need to replan", None  
