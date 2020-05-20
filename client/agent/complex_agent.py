@@ -16,6 +16,7 @@ from cave import Cave
 from passage import Passage
 
 import random
+import heapq
 
 class Trigger:
     name: str
@@ -293,6 +294,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         self.reprioritise_goals()
         
         for goal in self.desires['goals']:
+            heapq.heappush(goals, (self.heuristic.distances[(goal.row, goal.col)][self.row][self.col], goal))
+
+        while True:
+            if len(goals) == 0:
+                break
+            goal = heapq.heappop(goals)[1]
             if self.goal_qualified(goal):
                 box = self.pick_box(goal, boxes) 
                 if box is None:
@@ -301,6 +308,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
 
                 if best_agent.id_ == self.id_:
                     return (box, goal)
+            
         return None, None
 
     
@@ -775,6 +783,23 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     return False
         return not self.beliefs.is_goal_satisfied(goal) and (goal.row, goal.col) not in BLACKBOARD.claimed_goals and (goal.cave is None or goal.cave.is_next_goal(goal, self.beliefs))
 
+
+    def filter_boxes(self, goal, list_of_boxes):           
+        possible_boxes = []
+        for box in list_of_boxes:
+            if box.letter == goal.letter:
+                if (box.row,box.col) in LEVEL.goals_by_pos:
+                    if self.beliefs.is_goal_satisfied(LEVEL.goals_by_pos[(box.row,box.col)]):
+                        continue
+                path=self.find_simple_path(location_from = (self.row, self.col), location_to = (box.row, box.col))
+                if path is not None and len(path) > 0:
+                    box_cost = self.heuristic.distances[(goal.row, goal.col)][box.row][box.col]
+                    heapq.heappush(possible_boxes, (len(path) + box_cost, box))
+                else:
+                    heapq.heappush(possible_boxes, (4*self.heuristic.h(self.beliefs, (box,goal), self), box))
+        if len(possible_boxes) == 0:
+            return None
+        return possible_boxes
 
     def wait(self, duration):
         self.wait_at_least(duration)

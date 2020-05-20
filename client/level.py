@@ -33,6 +33,9 @@ class Goal(LevelElement):
     def __str__(self):
         return str.lower(self.letter)
 
+    def __lt__(self, other):
+        return self.row < other.row or self.col < other.col
+
  
 class AgentElement:
 
@@ -81,6 +84,9 @@ class Box:
 
     def __eq__(self, other):
         return other is not None and self.id_ == other.id_
+
+    def __lt__(self, other):
+        return self.id_ < other.id_
 
    
 
