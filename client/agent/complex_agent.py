@@ -260,7 +260,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         random.shuffle(self.desires['goals'])
         for goal in self.desires['goals']:
             if self.goal_qualified(goal):
-                box = self.pick_box(goal, boxes)
+                box = self.pick_box(goal, boxes) # får med counter 
                 if box is None:
                     continue
                 best_agent = self.bid_box_to_goal(goal, box)
@@ -553,7 +553,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                                 return "going around agent", other_agent
                         
                         #TODO
-                        request = Request(self.id_, [rf_loc])
+                        request = Request(self.id_, [rf_loc,(self.row, self.col)])
                         BLACKBOARD.add(request, self.id_)
                         log("Agent {} thinks agent {} is standing still so it will try to make it move".format(self.id_, other_agent.id_), "ANALYSE", False)
                         return "wait", None

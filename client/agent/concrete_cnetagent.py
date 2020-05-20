@@ -10,9 +10,14 @@ from logger import log
 from state import LEVEL
 
 import heapq 
+import itertools
 
 
 class ConcreteCNETAgent(CNETAgent):
+    counter = itertools.count()
+    #count = next(ConcreteCNETAgent.counter)
+    #entry = [priority, count, state]
+    #heapq.heappush(self.frontier, entry)
     
     #Copied from CNETAgent
     def calculate_proposal(self, performative, cost):
@@ -93,7 +98,10 @@ class ConcreteCNETAgent(CNETAgent):
 
     def pick_box(self, goal, list_of_boxes):
         possible_boxes = self.filter_boxes(goal, list_of_boxes)
-        return heapq.heappop(possible_boxes)[1]
+        if possible_boxes is None: 
+            return None 
+        else:
+            return heapq.heappop(possible_boxes)[2]
 
     def filter_boxes(self, goal, list_of_boxes):           
         possible_boxes = []
@@ -102,7 +110,7 @@ class ConcreteCNETAgent(CNETAgent):
                 if (box.row,box.col) in LEVEL.goals_by_pos:
                     if self.beliefs.is_goal_satisfied(LEVEL.goals_by_pos[(box.row,box.col)]):
                         continue
-                heapq.heappush(possible_boxes, (self.heuristic.h(self.beliefs, (box,goal), self), box))
+                heapq.heappush(possible_boxes,(self.heuristic.h(self.beliefs, (box,goal), self), next(ConcreteCNETAgent.counter),box))
         if len(possible_boxes) == 0:
             return None
         return possible_boxes
