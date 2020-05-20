@@ -285,7 +285,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
     def look_for_box_and_goal(self):
         boxes = self.boxes_of_my_color_not_already_claimed()
         # pick box, goal not already used, Start bidding to find best contractor.
-        random.shuffle(self.desires['goals'])
+        # random.shuffle(self.desires['goals'])
         for goal in self.desires['goals']:
             if self.goal_qualified(goal):
                 box = self.pick_box(goal, boxes) # får med counter 
