@@ -20,7 +20,7 @@ import random
 class Trigger:
     name: str
 
-    EMPTY_PLAN = SUCCEDED = IMPOSSIBLE = RECONSIDER = NEW_INTENTIONS = None
+    EMPTY_PLAN = SUCCEDED = IMPOSSIBLE = RECONSIDER = NEW_INTENTIONS = NEXT_MOVE_IMPOSSIBLE = ALL_GOOD = WAITING_FOR_REQUEST = ABOUT_ENTER_CAVE_OR_PASSAGE = None
 
     def __init__(self, name):
         self.name = name
@@ -36,6 +36,10 @@ Trigger.SUCCEDED = Trigger("succeeded")
 Trigger.IMPOSSIBLE = Trigger("impossible")
 Trigger.RECONSIDER = Trigger("reconsider")
 Trigger.NEW_INTENTIONS = Trigger("new_intentions")
+Trigger.NEXT_MOVE_IMPOSSIBLE = Trigger("next_move_impossible")
+Trigger.ALL_GOOD = Trigger("all_good")
+Trigger.WAITING_FOR_REQUEST = Trigger("waiting_for_request")
+Trigger.ABOUT_ENTER_CAVE_OR_PASSAGE = Trigger("about_to_enter_cave_or_passage")
 
 
 class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
@@ -311,13 +315,13 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
     def sound(self) -> 'Bool':  # returns true/false, if sound return true
         if self.is_next_action_impossible():
             self.retreating_duration = 0
-            self.trigger = "next move impossible"
+            self.trigger = Trigger.NEXT_MOVE_IMPOSSIBLE
             log("trigger set to {}".format(self.trigger), "trigger", False)
             return False
 
         if self.retreating_duration > 0:
             self.retreating_duration -= 1
-            self.trigger = "all good"
+            self.trigger = Trigger.ALL_GOOD
             log("trigger set to {}".format(self.trigger), "trigger", False)
             return True
 
@@ -327,11 +331,11 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         #     return False
 
         if self.is_about_to_enter_cave_or_passage():
-            self.trigger = "about to enter cave or passage"
+            self.trigger = Trigger.ABOUT_ENTER_CAVE_OR_PASSAGE
             log("trigger set to {}".format(self.trigger), "trigger", False)
             return False
 
-        self.trigger = "all good"
+        self.trigger = Trigger.ALL_GOOD
         log("trigger set to {}".format(self.trigger), "trigger", False)
         return True
 
@@ -456,7 +460,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             self.wait(1)
             return
 
-        elif self.trigger == "next move impossible":
+        elif self.trigger == Trigger.NEXT_MOVE_IMPOSSIBLE:
             
             #TODO try retreat move
             result, other_agent = self.analyse_situation()
@@ -478,7 +482,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 pass
             return         
 
-        elif self.trigger ==  "about to enter cave or passage":
+        elif self.trigger ==  Trigger.ABOUT_ENTER_CAVE_OR_PASSAGE:
             
             if self.have_claims():
                 #Assuming that if agents have claims, they are relevant for current action
