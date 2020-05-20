@@ -91,7 +91,7 @@ class Blackboard:
     def claim_cave(self, agent_id, cave):
         if agent_id in self.claimed_caves:
             if cave in self.claimed_caves[agent_id]:
-                raise RuntimeError("Cave {} already claimed".format(cave.id_))
+                log("Cave {} already claimed by the agent".format(cave.id_), "ERROR?")
         else:
             self.claimed_caves[agent_id] = []
 
@@ -133,6 +133,12 @@ class Blackboard:
             self.remove_claim_passage(agent_id, input)
         else:
             raise NotImplementedError
+
+    def request_is_there(self, request2): 
+        for i in self.requests.keys(): 
+            if i == request2: 
+                return True 
+        return False
         
 
 BLACKBOARD = Blackboard()

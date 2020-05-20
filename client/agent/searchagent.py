@@ -18,15 +18,29 @@ class SearchAgent(BDIAgent):
         Returns None if no path exists
         otherwise returns list of UnfoldedActions (only moves)
     """
-    def find_simple_path(self, location_from, location_to):
+    def find_simple_path(self, location_from, location_to, ignore_all_boxes=False, ignore_all_other_agents = True, move_around_specific_agents=None):
         #pretend agent is at location_from, and remove agents, and possible target box 
         state = State(self.beliefs)
-        state.agents = {}
+        if ignore_all_other_agents:
+            state.agents = {}
+        elif move_around_specific_agents is not None:
+            for pos in state.agents:
+                if state.agents[pos].id_ in move_around_specific_agents:
+                    continue
+                else:
+                    state.agents.pop(pos)  
+        else:
+            #ignore only my self
+            state.agents.pop((self.row,self.col))
         state.agents[location_from] = AgentElement(self.id_, self.color, location_from[0], location_from[1])
-        if location_from in state.boxes:
-            state.boxes.pop(location_from)
-        if location_to in state.boxes:
-            state.boxes.pop(location_to)
+        
+        if ignore_all_boxes:
+            state.boxes = {}
+        else:
+            if location_from in state.boxes:
+                state.boxes.pop(location_from)
+            if location_to in state.boxes:
+                state.boxes.pop(location_to)
         
         #define heuritic to be distance from agent to location_to
         h = SimpleHeuristic(self.id_, location_to)
@@ -153,11 +167,14 @@ class SearchAgent(BDIAgent):
                 total_free = total_free + 1
         return total_free
 
-    def find_path_to_free_space(self, location):
+    def find_path_to_free_space(self, location, ignore_all_other_agents = False):
         #search from location, find spot not in an area requested free
         #pretend agent is at location_from, and remove agents, and possible target box 
         state = State(self.beliefs)
-        state.agents = {}
+        if ignore_all_other_agents:
+            state.agents = {}
+        else:
+            state.agents.pop((self.row, self.col))
         state.agents[location] = AgentElement(self.id_, self.color, location[0], location[1])
         if location in state.boxes:
             state.boxes.pop(location)
@@ -166,6 +183,7 @@ class SearchAgent(BDIAgent):
         requests = []
         for elm in BLACKBOARD.requests.values():
             requests = requests + elm
+        log("Agent: {}, Requests: {}".format(self.id_, requests), "PATH_TO_FREE", False)
         h = DepthHeuristic(self.id_, requests)
         return self.best_first_search(h, state)
 
@@ -205,7 +223,7 @@ class SearchAgent(BDIAgent):
             #Add to explored
             strategy.add_to_explored(leaf)
 
-    def search_for_simple_plan(self, heuristic, pair = None) -> '[UnfoldedAction, ...]':
+    def search_for_simple_plan(self, heuristic, pair = None,ignore_all_boxes=False, ignore_all_other_agents=True, move_around_specific_agents=None) -> '[UnfoldedAction, ...]':
         if pair is None:
             box, goal = self.intentions
             location = (goal.row, goal.col)
@@ -223,22 +241,30 @@ class SearchAgent(BDIAgent):
 
         log("Starting Single Agent Search. Box from location {} to location {}".format((box.row, box.col), location), "SAS", False)
         #Searh for path from agent to box
-        path1= self.find_simple_path((self.row, self.col), (box_row, box_col))
+        path1= self.find_simple_path((self.row, self.col), (box_row, box_col), ignore_all_boxes=ignore_all_boxes, ignore_all_other_agents=ignore_all_other_agents, move_around_specific_agents=move_around_specific_agents)
         log("First part of search done for agent {}. path 1: {}".format(self.id_, path1), "SAS", False)
         
         if path1 is None:
-            # if LEVEL.map_of_caves[box_row][box_col] is not None:
-            #     for cave in LEVEL.map_of_caves[box_row][box_col]:
-            #         self.make_request(cave)
             #TODO
+            #If we can't find a path to the box we need to figure out how to make one!
+            #Find out how to make request! 
+            # ideas:
+                # 1. If the me/box/goal is in a cave, request that free!
+                # 2. Find the path in a level with not boxes, no agents and start moving along that path. 
+                        # Request cave/passages free as we get to it.
+                # How do we handle big clusters of boxes? Request them free one at a time, or a chunks at a time?
+
+            log("path 1 in search_for_simple_plan was None", "TEST", False)
             return None
 
         #Search for path from box to goal
-        path2 = self.find_simple_path((box_row, box_col), location)
+        path2 = self.find_simple_path((box_row, box_col), location, ignore_all_boxes=ignore_all_boxes,ignore_all_other_agents=ignore_all_other_agents)
         log("Second part of search done for agent {}. path 2: {}".format(self.id_, path2), "SAS", False)
         
         if path2 is None:
             #TODO
+            #Same idea as above
+            log("path 2 in search_for_simple_plan was None", "TEST", False)
             return None
 
         #Convert paths to a plan
