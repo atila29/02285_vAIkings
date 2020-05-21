@@ -1,0 +1,34 @@
+#domain
+hospital
+#levelname
+MAThree
+#colors
+blue: 0, U, N
+red: 1, M, C, R
+grey: 2, O, P, A
+cyan: Z
+#initial
++++++++++++++++
++0  R       UP+
+++     Z     ++
+++     Z   C ++
++   M   N    1+
+++  + ++ +  +++
+++   ++++    ++
+  +  + O +   ++
+  +A   2    +
+  +++      ++
+   +++++++++
+#goal
++++++++++++++++
++     U N     +
+++     Z     ++
+++     Z     ++
++    M C R    +
+++  + ++ +  +++
+++   ++++    ++
+  +  +   +   ++
+  +         +
+  +++ O P A++
+   +++++++++
+#end

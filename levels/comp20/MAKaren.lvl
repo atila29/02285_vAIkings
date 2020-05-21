@@ -1,0 +1,88 @@
+#domain
+hospital
+#levelname
+MAKaren
+#colors
+blue: 0, A
+pink: 1, C
+green: 2, B
+cyan: 3, D, F
+brown: 4, P
+purple: 5, K
+orange: X
+red: O
+lightblue: 6, E, G
+grey: Y
+#initial
+++++++++++++++++++++++++++++++
++                            +
++ +++                    +++ +
++ ++X+                  +X++ +
++ ++XX++              ++XX++ +
++ ++XXXX+            +XXXX++ +
++  +XXXXX++ F++++G ++XXXXX+  +
++  +XXXXXXX++XXXX++XXXXXXX+  +
++  +XXXXXXXXXXXXXXXXXXXXXX+  +
++   +XXXXXXXXXXXXXXXXXXXX+   +
++    +X+XXXXXXXXXXXXXX+X+    +
++     +XXXXXXXXXXXXXXXX+     +
++     +XXXXXXXXXXXXXXXX+     +
++    +XXX  XXXXXXXX  XXX+    +
++    +XX+ ++XXXXXX+ ++XX+    +
++    +XX++++XXXXXX++++XX+    +
++    +XXX++XXX++XXX++XXX+    +
++ +++XXOOXXXXXXXXXXXXOOXX+++ +
++ + +XOOOOXX+X++X+XXOOOOX+ + +
++ + +XOOOOXXX++++XXXOOOOX+ + +
++ +  +XOOXXXX+OO+XXXXOOX+  + +
++ +  E+XXXXXX+OO+XXXXXX+D  + +
++ +    ++XXXXX++XXXXX++    + +
++ +      +++XXXXXX+++      + +
++         6 ++++++ 3         +
+++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++
++++++  C  A++ 4++++++ ++++++++
++++++ +++++++ +++++++P++++++++
+++     1  0++ +++++++ ++++ +++
++++++++++++++              +++
++    B     ++K++++++++++++P+++
++ B    2  B++ +5           +++
++ B        ++ ++++++++++++++++
+++++++++++++++++++++++++++++++
+#goal
+++++++++++++++++++++++++++++++
++                            +
++ +++G                  F+++ +
++ ++X+                  +X++ +
++ ++XX++D             ++XX++ +
++ ++XXXX+           E+XXXX++ +
++  +XXXXX++  ++++  ++XXXXX+  +
++  +XXXXXXX++XXXX++XXXXXXX+  +
++  +XXXXXXXXXXXXXXXXXXXXXX+  +
++   +XXXXXXXXXXXXXXXXXXXX+   +
++    +X+XXXXXXXXXXXXXX+X+    +
++     +XXXXXXXXXXXXXXXX+     +
++     +XXXXXXXXXXXXXXXX+     +
++    +XXX  XXXXXXXX  XXX+    +
++    +XX+ ++XXXXXX+ ++XX+    +
++    +XX++++XXXXXX++++XX+    +
++    +XXX++XXX++XXX++XXX+    +
++ +++XXOOXXXXXXXXXXXXOOXX+++ +
++ + +XOOOOXX+X++X+XXOOOOX+ + +
++ + +XOOOOXXX++++XXXOOOOX+ + +
++ +  +XOOXXXX+OO+XXXXOOX+  + +
++ +   +XXXXXX+OO+XXXXXX+   + +
++ +    ++XXXXX++XXXXX++    + +
++ +      +++XXXXXX+++      + +
++           ++++++           +
+++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++
++++++      ++  ++++++P++++++++
++++++ +++++++ +++++++ ++++++++
+++CA       ++ +++++++ ++++P+++
++++++++++++++              +++
++      B   ++ ++++++++++++ +++
++          ++K+            +++
++         B++ ++++++++++++++++
+++++++++++++++++++++++++++++++
+#end

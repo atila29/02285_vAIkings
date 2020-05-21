@@ -1,0 +1,113 @@
+#domain
+hospital
+#levelname
+MAReftAI
+#colors
+blue: 0, A
+red: 1, B, G
+cyan: 2, C
+green: 3, 6, 7, D, E, F
+orange: 4, H
+purple: 5, I, O
+pink: 8, 9, K
+#initial
++++++++++++++++++++++++++++++++++++++++++++++++++
++            FEDA               BDEF            +
++ ++A+B+C+BAB+CAA               B++A+B+C+BAB+CA +
++3              A               B              7+
++ ++C+A+B+BCA+AAA       O       B++C+A+B+BCA+AA +
++               A      OOO      B               +
++CBA+BBC++CBBAABA     OOOOO     BCBA+BBC++CBBAAB+
++               A    OOOOOOO    B               +
++               A    OOOIOOO    B               +
++               A    OOOOOOO    B               +
++               A     OOOOO     B               +
++               A      OOO      B               +
++               A       O       B               +
++               AD             DB               +
++               AE      6      EB               +
++               AF      5      FB               +
++CCCCCCCCCCCCCCCACCCCCCCCCCCCCCCBCCCCCCCCCCCCCCC+
++1      B       A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A      4        B       0       +
++            DCDA               BAAA            +
++          ACDCAA               BAAAAA          +
++       ACDDDCCCA   G       G   BAAAAAAAA       +
++       DADA    AG  G       G  GB    AAAA       +
++       ACC   C AG  GH HGH HG  GB     AAA       +
++       A     D AGG  GHG GHG  GGB       A       +
++      DC     A AGGG  G   G  GGGB       AA      +
++    CACD     D AGGGG       GGGGB       AAAA    +
++   G         C AGGGGG     GGGGGB           A   +
++DDDDDDDDDDDDDDDADDDDDDDDDDDDDDDBDDDDDDDDDDDDDDD+
++               AC CAC CCC CAC CB               +
++               AC CAC C2C CAC CB               +
++               AC CAC CCC CAC CB               +
++             KKAC CACAAAAACAC CBKK             +
++            KKKAC CACCCCCCCAC CBKKK            +
++          KKKK AC CAAAAAAAAAC CB KKKK          +
++        KKKK   AC CCCCCCCCCCC CB   KKKK        +
++      KKKKK    AC             CB    KKKKK      +
++     KKKKK     AC             CB     KKKKK     +
++               AC             CB               +
++       8       AC             CB       9       +
++               AC             CB               +
++               AC             CB               +
++               AC             CB               +
++               ACCCCCCCCCCCCCCCB               +
++++++++++++++++++++++++++++++++++++++++++++++++++
+#goal
++++++++++++++++++++++++++++++++++++++++++++++++++
++               ADEF         FEDB               +
++ ++ + + +   +  A               B++ + + +   +   +
++               A               B               +
++ ++ + + +   +  A               B++ + + +   +   +
++            FEDA               BDEF            +
++   +   ++      A               B   +   ++      +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A       I       B               +
++CCCCCCCCCCCCCCCACCCCCCCCCCCCCCCBCCCCCCCCCCCCCCC+
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A       H       B               +
++               A      H H      B               +
++              GA               BA              +
++              BA               BA              +
++DDDDDDDDDDDDDDDADDDDDDDDDDDDDDDBDDDDDDDDDDDDDDD+
++               A               B               +
++               A               B               +
++               A      CCC      B               +
++               A     AAAAA     B               +
++               A    CCCCCCC    B               +
++               A   AAAAAAAAA   B               +
++               A  CCCCCCCCCCC  B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++               A               B               +
++++++++++++++++++++++++++++++++++++++++++++++++++
+#end

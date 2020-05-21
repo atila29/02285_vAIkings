@@ -1,0 +1,42 @@
+#domain
+hospital
+#levelname
+MAIIOO
+#colors
+red: 0, A, B, C
+green: 1, D, E, F
+blue: 2, G, H, I
+brown: 3, J, K, L
+#initial
++++++++++++++++
++ADGJ         +
++             +
++        BEHK +
++ 0  12     3 +
++             +
++ B  E H    K +
++ C  F I    L +
++             +
++             +
++   C  F  I  L+
+ + ++ +++ ++ +
+ + ++ +++ ++ +
+ + ++ +++ ++ +
+ +++++++++++++
+#goal
++++++++++++++++
++             +
++             +
++             +
++             +
++             +
++             +
++             +
++             +
++             +
++             +
+ +C++F+++I++L+
+ +B++E+++H++K+
+ +A++D+++G++J+
+ +++++++++++++
+#end

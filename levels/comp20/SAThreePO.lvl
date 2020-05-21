@@ -1,0 +1,33 @@
+#domain
+hospital
+#levelname
+SAThreePO
+#colors
+blue: 0, A, B, C, D, E, F, G, H
+#initial
++++++++++++
++0ABCDEFGH+
++         +
++         +
++         +
++     +++++
++         +
++     +++++
++         +
++     +++++
++         +
++++++++++++
+#goal
++++++++++++
++         +
++         +
++         +
++         +
++     +++++
++      GDA+
++     +++++
++      HEB+
++     +++++
++       FC+
++++++++++++
+#end

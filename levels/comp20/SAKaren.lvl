@@ -1,0 +1,48 @@
+#domain
+hospital
+#levelname
+SAKaren
+#colors
+red: 0, B, A, C, D
+cyan: X
+green: Y, L
+blue: Z, W
+pink: P
+brown: H
+purple: R
+orange: Q
+#initial
+++++++++++++++++++++++++++++++++++++++++++++++++++
++                              0ZB               +
++ XXXXX+++RRRRZZXXXX+ RRRRRRRR+ ZZZZZZZZZZ+++ZZZ +
++ +                   L         Z                +
++ +                   L        AZ YYYYYYY+YYYYYYY+
++ +                   ++PPPLLR++Z                +
++  QQQQQQQQQQQQQQQQQQQ          +     LLLLLL     +
++                               X    LLLLLLLL    +
++ LLLLLLLLLLLLLLLL++LLLLLLLLLL+ +  Q LHHHHHHL Q  +
++                   +           X  Q HHHHHHHH Q  +
++                   +           Y  QQHQLQQLQHQQ  +
++                  D+           X  QQHQHQQHQHQQ  +
++ PPPPPPPPPQQQQQ+++QPPPPPQPQPQP+Z+  QQQQQQQQQQ   +
++                               ++  LLQQHHQQLL   +
++                                   HHHQQQQLL    +
+++++++++++++++++++++++++++++++++++++++++++++++++++
+#goal
+++++++++++++++++++++++++++++++++++++++++++++++++++
++                               Z                +
++ XXXXX+++RRRRZZXXXX+ RRRRRRRR+ ZZZZZZZZZZ+++ZZZ +
++ +                   LB        Z                +
++ +                   L         Z YYYYYYY+YYYYYYY+
++ +                   ++PPPLLR++Z              A +
++  QQQ     QQQQQQQQQQQ          +                +
++                               X                +
++ LLLLLLLLLLLLLLLL++LLLLLLLLLL+ +                +
++                   +           X                +
++                   +           Y                +
++                   +D          X                +
++ PPPPPPPPPQQQQQ+++QPPPPPQPQPQP+Z+               +
++                               ++               +
++                                                +
+++++++++++++++++++++++++++++++++++++++++++++++++++
+#end

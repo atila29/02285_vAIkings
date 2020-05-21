@@ -1,0 +1,74 @@
+#domain
+hospital
+#levelname
+MABaguettes
+#colors
+red: 0, 1, A
+cyan: B
+#initial
+++++++++++++++++++++++++++++++++++++++++
++                                  +   +
++ + +++BBBBBBBBBBBBBBBBBBBBBBBBBBB + + +
++ + +A+                            + + +
++ + +A+ BBBBBBBBBBBBBBBBBBBBBBBBBBB+ + +
++ + +A+                            + + +
++ + +A+BBBBBBBBBBBBBBBBBBBBBBBBBBB + + +
++ + +A+                            + + +
++ + +A+ BBBBBBBBBBBBBBBBBBBBBBBBBBB+ + +
++ + +A+                            + + +
++ + +A+BBBBBBBBBBBBBBBBBBBBBBBBBBB + + +
++ + +A+                            + + +
++ + +A+ BBBBBBBBBBBBBBBBBBBBBBBBBBB+ + +
++ + +A+                            + + +
++ + +A+BBBBBBBBBBBBBBBBBBBBBBBBBBB + + +
++ + +A+                            + + +
++ + +A+ BBBBBBBBBBBBBBBBBBBBBBBBBBB+ + +
++ + +A+                            + + +
++ + +A+BBBBBBBBBBBBBBBBBBBBBBBBBBB + + +
++ + +A+                            + + +
++ + +A+ BBBBBBBBBBBBBBBBBBBBBBBBBBB+ + +
++ + +A+                            + + +
++ + +A+BBBBBBBBBBBBBBBBBBBBBBBBBBB + + +
++ + +A+                            + + +
++ + +A+                          + + + +
++ + +A+                          + + + +
++ + +A+      A   A AAA AAA AAA   + + + +
++ + +A+      AA  A  A  A   A     + + + +
++ + +A+      A A A  A  A   AA    + + + +
++ +++++      A  AA  A  A   A     + + + +
++0+ A        A   A AAA AAA AAA   +   +1+
+++++++++++++++++++++++++++++++++++++++++
+#goal
+++++++++++++++++++++++++++++++++++++++++
++                                  +   +
++ + +++BBBBBBBBBBBBBBBBBBBBBBBBBBB + + +
++ + +A+                            + + +
++ + +A+ BBBBBBBBBBBBBBBBBBBBBBBBBBB+ + +
++ + +A+                            + + +
++ + +A+BBBBBBBBBBBBBBBBBBBBBBBBBBB + + +
++ + +A+                            + + +
++ + +A+ BBBBBBBBBBBBBBBBBBBBBBBBBBB+ + +
++ + +A+                            + + +
++ + +A+BBBBBBBBBBBBBBBBBBBBBBBBBBB + + +
++ + +A+                            + + +
++ + +A+ BBBBBBBBBBBBBBBBBBBBBBBBBBB+ + +
++ + +A+                            + + +
++ + +A+BBBBBBBBBBBBBBBBBBBBBBBBBBB + + +
++ + +A+                            + + +
++ + +A+ BBBBBBBBBBBBBBBBBBBBBBBBBBB+ + +
++ + +A+                            + + +
++ + +A+BBBBBBBBBBBBBBBBBBBBBBBBBBB + + +
++ + +A+                            + + +
++ + +A+ BBBBBBBBBBBBBBBBBBBBBBBBBBB+ + +
++ + +A+                            + + +
++ + +A+BBBBBBBBBBBBBBBBBBBBBBBBBBB + + +
++ + +A+                            + + +
++ + +A+                          + + + +
++ + +A+                          + + + +
++ + +A+      A   A AAA AAA AAA   + + + +
++ + +A+      AA  A  A  A   A     + + + +
++ + +A+      A A A  A  A   AA    + + + +
++ +++++      A  AA  A  A   A     + + + +
++0+A         A   A AAA AAA AAA   +   +1+
+++++++++++++++++++++++++++++++++++++++++
+#end
