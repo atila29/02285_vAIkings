@@ -9,6 +9,7 @@ from cave import Cave
 from passage import Passage
 from action import Action, ActionType, Dir
 from util import is_adjacent
+from level import AgentGoal
 
 class CPAgent(BDIAgent):
 
@@ -77,6 +78,8 @@ class CPAgent(BDIAgent):
                     location = self.intentions.performative.location
                 else:
                     raise NotImplementedError("Unrecognized performative")    
+            elif isinstance(self.intentions, AgentGoal):
+                location = (self.intentions.row, self.intentions.col)
             elif self.intentions is not None and not isinstance(self.intentions, Request):
                 box, goal = self.intentions
                 location = (goal.row, goal.col)
@@ -356,7 +359,7 @@ class CPAgent(BDIAgent):
         elif isinstance(self.intentions, Contract):
             box = self.intentions.performative.box
             location = self.intentions.performative.location
-        elif isinstance(self.intentions, Request):
+        elif isinstance(self.intentions, Request) or isinstance(self.intentions, AgentGoal):
             return None, None         
         else:
             box, goal = self.intentions

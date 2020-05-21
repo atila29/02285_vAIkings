@@ -14,7 +14,7 @@ from state import LEVEL
 from action import ActionType, UnfoldedAction, Action, Dir
 from cave import Cave
 from passage import Passage
-
+from level import AgentElement, AgentGoal
 import random
 
 class Trigger:
@@ -78,10 +78,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         self.desires = {}
         self.desires['goals'] = []
         self.desires['contracts'] = []
+        self.desires['end location'] = None
 
         self.trigger = Trigger.EMPTY_PLAN
         self.plan_for_current_request = None
         self.retreating_duration = 0
+        self.all_my_goals_satisfied = False
 
         self.intentions = None
 
@@ -111,6 +113,10 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
 
         elif self.trigger == Trigger.EMPTY_PLAN:
             if self.succeeded():
+                if self.check_if_all_my_goals_are_satisfied():
+                     #TODO: what if we destroy a goal at some point?
+                     log("Agent {} thinks it is done with all its goals".format(self.id_), "AGENT_GOALS", False)
+                     self.all_my_goals_satisfied = True
                 self.remove_intentions_from_blackboard()
             elif self.impossible():
                 self.remove_intentions_from_blackboard()
@@ -134,7 +140,11 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         elif self.reconsider():
             self.trigger = Trigger.RECONSIDER
         
-
+    def check_if_all_my_goals_are_satisfied(self):
+        for goal in self.desires['goals']:
+            if not self.beliefs.is_goal_satisfied(goal):
+                return False
+        return True
         
 
     """
@@ -164,21 +174,25 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             return
 
         # check for box and goal
-        box, goal = self.look_for_box_and_goal()
-        if not (box is None or goal is None):
-            self.intentions = (box, goal)
-            self.add_intentions_to_blackboard()
-            log("Agent {} now has intentions to move box {} to goal {}".format(
-                self.id_, self.intentions[0], self.intentions[1]), "BDI", False)
-            return
+        if not self.all_my_goals_satisfied:
+            box, goal = self.look_for_box_and_goal()
+            if not (box is None or goal is None):
+                self.intentions = (box, goal)
+                self.add_intentions_to_blackboard()
+                log("Agent {} now has intentions to move box {} to goal {}".format(
+                    self.id_, self.intentions[0], self.intentions[1]), "BDI", False)
+                return
         
-        #check if is in cave or passage
+        elif self.desires['end location'] is not None:
+            log("Agent {} have intentions to move to end location. desires: {}".format(self.id_, self.desires['end location']), "AGENT_GOALS", False)
+            self.intentions = self.desires['end location']
+            return
 
+        
 
         # Else pick None
         self.intentions = None
         log("Agent {} has no intentions".format(self.id_), "BDI", False)
-        return
 
     def check_for_request_to_fulfill(self):
         boxes = self.boxes_of_my_color_not_already_claimed()
@@ -343,7 +357,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             #    cave_goals.append(goal)
         
         self.desires['goals'] = cave_goals + other + passage_goals
-        
+    #endregion    
         
 
 
@@ -462,6 +476,26 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     
                 else:
                     log("Agent {} switched to plan for request. plan: {}".format(self.id_, self.current_plan), "PLAN", False)
+                return
+
+            if isinstance(self.intentions, AgentGoal):
+                agent_path = self.find_simple_path(location_from = (self.row, self.col), location_to = (self.intentions.row, self.intentions.col), ignore_all_other_agents = False)
+                log("Agent {} wants to move to its end location {}. And found path {}".format(self.id_,  (self.intentions.row, self.intentions.col), agent_path), "PLAN", False)
+                if agent_path is None or len(agent_path) == 0:
+                    log("Agent {} failed to find a simple path moving around agents and boxes. It will now ignore agents and try again".format(self.id_), "PLAN", False)
+                    agent_path = self.find_simple_path(location_from = (self.row, self.col), location_to = (self.intentions.row, self.intentions.col), ignore_all_other_agents = True)
+                    if agent_path is None or len(agent_path) == 0:
+                        log("Agent {} failed to find a path ignoring agents, and will look for one ignore agents and boxes".format(self.id_), "PLAN", False)
+                        agent_path = self.find_simple_path(location_from = (self.row, self.col), location_to = (self.intentions.row, self.intentions.col), ignore_all_other_agents = True, ignore_all_boxes=True)
+                        if agent_path is None or len(agent_path) == 0:
+                            log("Agent {} failed to find a path at all".format(self.id_), "PLAN", False)
+                            self.current_plan = []
+                            self.wait(1)
+                            return
+                self.current_plan = agent_path
+                if not self.sound():
+                    self.wait(1)
+                    log("Agent {} thinks the plan isn't sound, so it will wait one turn".format(self.id_), "PLAN", False)
                 return
             
             if self.intentions is None:
@@ -714,7 +748,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         elif isinstance(self.intentions, Contract):
             box = self.intentions.performative.box
             location = self.intentions.performative.location
-        elif isinstance(self.intentions, Request):
+        elif isinstance(self.intentions, Request) or isinstance(self.intentions, AgentGoal):
             return None, None         
         else:
             box, goal = self.intentions

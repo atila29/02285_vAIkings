@@ -8,6 +8,7 @@ from communication.contract import Contract
 from heuristics import  Heuristic2
 from logger import log
 from state import LEVEL
+from level import AgentGoal
 
 
 import heapq 
@@ -57,6 +58,8 @@ class ConcreteCNETAgent(CNETAgent):
         #Remove claim on box and goal on BB, if intention is (box,goal)
         elif isinstance(self.intentions, Request):
             self.completed_request(self.intentions)
+        elif isinstance(self.intentions, AgentGoal):
+            pass
         elif self.intentions is not None:
             box, goal = self.intentions
             BLACKBOARD.remove((box,goal), self.id_)
@@ -68,6 +71,8 @@ class ConcreteCNETAgent(CNETAgent):
         if isinstance(self.intentions, Contract):
             BLACKBOARD.add(self.intentions, self.id_)
         #add claim on box and goal on BB, if intention is (box,goal)
+        elif isinstance(self.intentions, AgentGoal):
+            pass
         elif isinstance(self.intentions, Request):
             self.commit_to_request(self.intentions)
         elif self.intentions is not None:
