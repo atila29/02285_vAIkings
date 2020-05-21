@@ -1,0 +1,26 @@
+#domain
+hospital
+#levelname
+MAMulle
+#colors
+blue: 0, A
+red: 1, B
+#initial
+++++++++
++0 A +B+
++  + + +
++  + + +
++  + + +
++  + + +
++1B+ A +
+++++++++
+#goal
+++++++++
++    + +
++  + + +
++ B+A+A+
++ B+ + +
++  + + +
++  +   +
+++++++++
+#end

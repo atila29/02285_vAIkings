@@ -1,0 +1,25 @@
+#domain
+hospital
+#levelname
+SAMulle
+#colors
+blue: 0, A, B
+#initial
+++++++++
++0 A +B+
++  + + +
++  + + +
++  + + +
++  + + +
++  + A +
+++++++++
+#goal
+++++++++
++    + +
++  + + +
++ B+A+A+
++  + + +
++  + + +
++  +   +
+++++++++
+#end

@@ -1,0 +1,19 @@
+#domain
+hospital
+#levelname
+SACoronAI
+#colors
+orange: 0, W, E, R, A, N, O, U, T, F, I, M
+#initial
+++++++++++++++++++++
++0 EW    UTO       +
++    NAR     FO    +
++              MITE+
+++++++++++++++++++++
+#goal
+++++++++++++++++++++
++                  +
++                  +
++WE RAN OUT OF TIME+
+++++++++++++++++++++
+#end

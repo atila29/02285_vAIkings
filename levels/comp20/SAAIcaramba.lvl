@@ -1,0 +1,21 @@
+#domain
+hospital
+#levelname
+SAAIcaramba
+#colors
+red: 0, A, B, C
+#initial
+++++++++++
++0C    BA+
++++++ ++++
+    + +
+    + +
+    +++
+#goal
+++++++++++
++        +
++++++B++++
+    +C+
+    +A+
+    +++
+#end

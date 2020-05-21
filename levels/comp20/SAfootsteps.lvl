@@ -1,0 +1,25 @@
+#domain
+hospital
+#levelname
+SAfootsteps
+#colors
+red: 0, A, B, C, D, E, F, G, H, I
+#initial
+++++++++
++0     +
++      +
++      +
++C+D+I++
++B+E+H++
++A+F+G++
+++++++++
+#goal
+++++++++
++      +
++      +
++      +
++G+A+E++
++I+B+F++
++H+C+D++
+++++++++
+#end

@@ -1,0 +1,25 @@
+#domain
+hospital
+#levelname
+MADeepMinds
+#colors
+red: 0, A
+blue: 1, B
+green: 2, C
+#initial
+++++++++
++      +
++0+ +  +
++1+ +AC+
++++ ++++
++ 2  B +
+++++++++
+#goal
+++++++++
++A   B +
++ + +  +
++ + +  +
++++ ++++
++C     +
+++++++++
+#end

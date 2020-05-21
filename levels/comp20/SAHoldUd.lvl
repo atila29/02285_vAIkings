@@ -1,0 +1,41 @@
+#domain
+hospital
+#levelname
+SAHoldUd
+#colors
+red:0,A,C
+#initial
+++++++++++++++++++++++++++++++++++++++++++++++
++                 0+A                        +
++                 CAC                        +
++                 CCC                        +
++                 CCC                        +
++                 CCC                        +
++                 CCC                        +
++                 CCC                        +
++                 CCC                        +
++                 CCC                        +
++                 CCC                        +
++                 CCC                        +
++                 CCC                        +
++   CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC    +
++                                            +
+++++++++++++++++++++++++++++++++++++++++++++++
+#goal
+++++++++++++++++++++++++++++++++++++++++++++++
++                 A+0                        +
++                 CCC                        +
++                 CCC                        +
++                 CCC                        +
++                 CCC                        +
++                                            +
++                                            +
++                                            +
++                                            +
++                                            +
++                                            +
++                                            +
++                                            +
++                                            +
+++++++++++++++++++++++++++++++++++++++++++++++
+#end

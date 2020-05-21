@@ -1,0 +1,32 @@
+#domain
+hospital
+#levelname
+MAOptimalSolution
+#colors
+red: 0, D
+blue: 1, 2, O
+green: 3, T
+purple: 4, R
+grey: 5, P
+pink: 6, U
+#initial
++++++++++++++++++
++ D   O         +
++ 0   1   2 U 3 +
++             T +
++               +
++         O     +
++   4   5   6   +
++   R   P       +
++++++++++++++++++
+#goal
++++++++++++++++++
++               +
++               +
++               +
++ D R O P O U T +
++               +
++               +
++               +
++++++++++++++++++
+#end
