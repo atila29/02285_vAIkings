@@ -497,6 +497,9 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                         else:
                             log("Agent {} found a path.".format(self.id_), "PLAN", False)
                     else:
+                        if len(self.beliefs.agents) == 1:
+                            self.current_plan = self.single_agent_search(self.heuristic, self.intentions)
+                            return
                         log("Agent {} could not find a plan at all".format(self.id_), "PLAN", False)
                         #Figure out how to make requests to help
                         self.wait(1)
