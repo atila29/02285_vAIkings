@@ -289,20 +289,23 @@ class Level:
             #find next spaces()
             row, col = loc
             for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
-                if isinstance(self.level[row+direction.d_row][col + direction.d_col], Wall):
-                    continue
-                loc = (row+direction.d_row, col + direction.d_col)
-                if loc in passage.locations:
-                    continue
-                else:
-                    #check if part of passage or entrance
-                    if passages[loc[0]][loc[1]]: 
-                        passage.locations.append(loc)
-                        temp.append(loc)
-                        passages[loc[0]][loc[1]] = False
+                try:
+                    if isinstance(self.level[row+direction.d_row][col + direction.d_col], Wall):
+                        continue
+                    loc = (row+direction.d_row, col + direction.d_col)
+                    if loc in passage.locations:
+                        continue
                     else:
-                        log("Found entrance for passage {} at location {}".format(id_, loc), "PASSAGES", False)
-                        passage.entrances.append(loc)
+                        #check if part of passage or entrance
+                        if passages[loc[0]][loc[1]]: 
+                            passage.locations.append(loc)
+                            temp.append(loc)
+                            passages[loc[0]][loc[1]] = False
+                        else:
+                            log("Found entrance for passage {} at location {}".format(id_, loc), "PASSAGES", False)
+                            passage.entrances.append(loc)
+                except IndexError:
+                    pass
         
         log("Done creating passage {}. Locations: {}. Entrances: {}".format(id_, passage.locations, passage.entrances), "PASSAGES", False)
         self.passages[id_] = passage
@@ -353,8 +356,20 @@ class Level:
         row,col = location
         wall_directions = []
         for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
-            if isinstance(self.level[row + direction.d_row][col + direction.d_col], Wall):
-                wall_directions.append(direction)
+            log("Is this location part of the level?")
+            log("Row is_corner: " + str(row))
+            log("Col is_corner: " + str(col))
+            log("Row is_corner: " + str(row + direction.d_row))
+            log("Col is_corner: " + str(col + direction.d_col))
+            # log(self.level[row + direction.d_row][col + direction.d_col])
+            try:
+                if isinstance(self.level[row + direction.d_row][col + direction.d_col], Wall):
+                    wall_directions.append(direction)
+            except IndexError:
+                pass
+            #if isinstance(self.level[row + direction.d_row][col + direction.d_col], Wall):
+                #log("appending")
+                #wall_directions.append(direction)
         if wall_directions[0] == reverse_direction(wall_directions[1]):
             log("Walls are opposite, so not a corner", "CORNERS", False)
             return False
@@ -362,10 +377,13 @@ class Level:
         for direction in wall_directions:
             test_row = test_row - direction.d_row
             test_col = test_col - direction.d_col
-        if not isinstance(self.level[test_row][test_col], Wall):
-            log("location {} is identified as an open corner".format(location), "CORNERS", False)
-            return True
-        else:
-            return False
+        try: 
+            if not isinstance(self.level[test_row][test_col], Wall):
+                log("location {} is identified as an open corner".format(location), "CORNERS", False)
+                return True
+            else: 
+                return False
+        except IndexError:
+            pass
 
                 

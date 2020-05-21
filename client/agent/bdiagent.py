@@ -1,6 +1,6 @@
 from agent.agent import Agent
 from action import UnfoldedAction, Action, ActionType, Dir
-
+from logger import log
 """
     "Interface" for implementation of BDI Agent
 """
@@ -59,11 +59,19 @@ class BDIAgent(Agent):
                 self.deliberate()
             if not(self.sound()):
                 self.plan()
+        
         else:
             self.deliberate()
             self.plan()
+        try:
+            next_action = self.current_plan[0]
+        except IndexError:
+            log("This agent does not have a plan")
+            log(str(self))
+            self.wait(1)
+            next_action = self.current_plan[0]
         # TODO: Make sure to check that plan cannot return an empty plan
-        return self.current_plan[0]
+        return next_action
     # endregion
 
     def wait(self, duration: int):
