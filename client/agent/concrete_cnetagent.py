@@ -103,7 +103,7 @@ class ConcreteCNETAgent(CNETAgent):
         if possible_boxes is None: 
             return None 
         else:
-            return heapq.heappop(possible_boxes)[1]
+            return heapq.heappop(possible_boxes)[2]
 
     def filter_boxes(self, goal, list_of_boxes):           
         possible_boxes = []

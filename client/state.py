@@ -86,7 +86,7 @@ class State(object):
         if (agent_row, agent_col) not in self.agents or self.agents[agent_row, agent_col].id_ != agent_id:
             raise RuntimeError("Mismatch between agent ID and position")
         agent = self.agents[agent_row, agent_col]
-        #random.shuffle(set_of_actions) 
+        random.shuffle(set_of_actions) 
         for action in set_of_actions:
 
             # Determine if action is applicable.
