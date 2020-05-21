@@ -28,17 +28,23 @@ class SimpleHeuristic:
         return self.h(state)
 
 class DepthHeuristic:
-    def __init__(self, agent_id, requests):
+    def __init__(self, agent_id, requests, depth = 1):
         self.agent_id = agent_id
         self.requests = requests
+        self.depth = depth
 
     def h(self, state):
         #find agent in level
         for location in state.agents:
             if state.agents[location].id_ == self.agent_id:
                 for request in self.requests:
-                    if location in request.area:
-                        return state.g 
+                    if (location in request.area) or (LEVEL.map_of_passages[location[0]][location[1]] is not None):
+                        #TODO: At least depth into cave
+                        return state.g
+                if LEVEL.map_of_caves[location[0]][location[1]] is not None:
+                    for cave in LEVEL.map_of_caves[location[0]][location[1]]:
+                        if cave.entrance == location or location in cave.locations[(-self.depth):]:
+                            return state.g + len(cave.goals)
         return 0
 
     def f(self, state):

@@ -219,7 +219,7 @@ class CPAgent(BDIAgent):
             cave = cave_or_passage    
             for agent_id, c in BLACKBOARD.claimed_caves.items():
                 if cave in c and agent_id != self.id_:
-                    log("Cave {} is not free since it is claimed by another agent".format(cave), "IS_FREE", False)
+                    log("Cave {} is not free since it is claimed by agent {}".format(cave, agent_id), "IS_FREE", False)
                     return False
             
 
@@ -325,7 +325,7 @@ class CPAgent(BDIAgent):
     def clear_path_through_passages_and_cave(self):
         
         wanted_passages, wanted_cave = self.find_wanted_passages_and_cave()
-        #log("wanted_passages: {}, wanted_cave: {}".format(wanted_passages, wanted_cave), "TEST", False)
+        log("wanted_passages: {}, wanted_cave: {}".format(wanted_passages, wanted_cave), "CP", False)
 
         can_move = True
         for elm, entrance in wanted_passages + wanted_cave:
@@ -375,15 +375,18 @@ class CPAgent(BDIAgent):
             #was in claimed area
 
         free = next_action.will_become_free
-        old_location = next_action.agent_from
+        old_locations = [next_action.agent_from]
+        if next_action.box_from is not None:
+            old_locations.append(next_action.box_from)
+        
         if LEVEL.map_of_caves[free[0]][free[1]] is not None:
             for cave in LEVEL.map_of_caves[free[0]][free[1]]:
-                if free == cave.entrance and old_location in cave.locations + [cave.entrance]:
+                if free == cave.entrance and not set(old_locations).isdisjoint(set(cave.locations + [cave.entrance])):
                     if self.id_ in BLACKBOARD.claimed_caves and cave in BLACKBOARD.claimed_caves[self.id_]:
                         return (True, cave)
         if LEVEL.map_of_passages[free[0]][free[1]] is not None:
             for pas in LEVEL.map_of_passages[free[0]][free[1]]:
-                if free in pas.entrances and old_location in pas.locations + pas.entrances:
+                if free in pas.entrances and not set(old_locations).isdisjoint(set(pas.locations + pas.entrances)):
                     if self.id_ in BLACKBOARD.claimed_passages and pas in BLACKBOARD.claimed_passages[self.id_]:
                         return (True, pas)
 

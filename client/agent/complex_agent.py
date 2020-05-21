@@ -113,10 +113,10 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
 
         elif self.trigger == Trigger.EMPTY_PLAN:
             if self.succeeded():
-                if self.check_if_all_my_goals_are_satisfied():
-                     #TODO: what if we destroy a goal at some point?
-                     log("Agent {} thinks it is done with all its goals".format(self.id_), "AGENT_GOALS", False)
-                     self.all_my_goals_satisfied = True
+                self.all_my_goals_satisfied = self.check_if_all_my_goals_are_satisfied()
+                if self.all_my_goals_satisfied:
+                    log("Agent {} thinks it is done with all its goals".format(self.id_), "AGENT_GOALS", False)
+                     
                 self.remove_intentions_from_blackboard()
             elif self.impossible():
                 self.remove_intentions_from_blackboard()
@@ -163,7 +163,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             log("Agent {} commited to request {}".format(self.id_, self.intentions), "BDI", False)
             self.current_plan = self.plan_for_current_request
             if len(self.current_plan) > 0:
-                self.current_plan.append(UnfoldedAction(Action(ActionType.NoOp,Dir.N, None), self.id_,True, self.current_plan[-1].agent_to))
+                self.current_plan += [UnfoldedAction(Action(ActionType.NoOp,Dir.N, None), self.id_,True, self.current_plan[-1].agent_to)]*2
             return
 
         # check for contract
@@ -225,9 +225,13 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                         if path_to_box is None:
                             continue
                         # otherwise find location to move this box to
-                        box_path = self.find_path_to_free_space(location)
+                        box_path = self.find_path_to_free_space(location, ignore_all_other_agents = False, ignore_all_boxes = False, depth=2)
                         if box_path is None or len(box_path) == 0:
-                            continue
+                            box_path = self.find_path_to_free_space(location, ignore_all_other_agents = True, ignore_all_boxes = False, depth=2)
+                            if box_path is None or len(box_path) == 0:
+                                box_path = self.find_path_to_free_space(location, ignore_all_other_agents = True, ignore_all_boxes = True, depth=2)
+                                if box_path is None or len(box_path) == 0:
+                                    continue
                         # TODO: consider not converting the path yet, is it heavy?
                         combined_path = self.convert_paths_to_plan(
                             path_to_box, box_path)
@@ -258,8 +262,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 if (self.row, self.col) in area:
                     log("Agent {} at position {} in area {}".format(
                         self.id_, (self.row, self.col), request.area), "REQUESTS_DETAILED", False)
-                    agent_path = self.find_path_to_free_space(
-                        (self.row, self.col))
+                    agent_path = self.find_path_to_free_space((self.row, self.col))
                     log("Found path avoiding other agents: {}".format(agent_path),
                         "REQUESTS_DETAILED", False)
                     if agent_path is None or len(agent_path) == 0:
@@ -362,7 +365,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
 
 
     def reconsider(self):
-        return self.waiting_for_request()
+        return not self.sound() and self.waiting_for_request()
 
 # region sound
     """
@@ -460,7 +463,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             5. New intentions
     """
     def plan(self, ignore_all_other_agents=True, move_around_specific_agents=None) -> '[UnfoldedAction, ...]':
-        log("Agent {} started planning to achieve: {}. trigger: {}".format(self.id_, self.intentions, self.trigger), "PLAN", False)
+        log("Agent {} at location {} started planning to achieve: {}. trigger: {}".format(self.id_, (self.row, self.col),self.intentions, self.trigger), "PLAN", False)
         if self.trigger in [Trigger.EMPTY_PLAN, Trigger.NEW_INTENTIONS]:
             
             if isinstance(self.intentions, Request):
@@ -555,6 +558,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     log("Agent {} couldn't find a retreat move. So it will replan".format(self.id_), "PLAN", False)
                     self.current_plan = []
                     self.trigger = Trigger.EMPTY_PLAN
+                    self.remove_intentions_from_blackboard()
+                    self.deliberate()
                     self.plan()  
             elif result =="need to replan":
                 log("Agent {} thinks next move is impossible. So it will replan".format(self.id_), "PLAN", False)
@@ -582,7 +587,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             log("Found at location: Caves: {}, passages: {}".format(LEVEL.map_of_caves[row][col], LEVEL.map_of_passages[row][col]), "CP", False)
             clear = self.clear_path_through_passages_and_cave()
             if not clear:
-                log("Agent {} waiting. Request clearing of path.".format(self.id_), "PLAN", False)
+                log("Agent {} waiting. Request clearing of path. plan: {}".format(self.id_, self.current_plan), "PLAN", False)
                 log("Agents request on blackboard: {}".format(BLACKBOARD.requests[self.id_]), "PLAN", False)
                 
                 self.wait(1)
@@ -630,8 +635,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         #The other agent retreat moves
         elif other_possible:
             log("Agent {} thinks agent {} can do a retreat move of type {} and will wait".format(self.id_, other_agent.id_, retreat_type), "RETREAT", False)
-            # retreat, duration = other_agent.retreat_move(other_directions, other_retreat_type)
-            # other_agent.current_plan = retreat 
+            retreat, duration = other_agent.retreat_move(other_directions, other_retreat_type)
+            other_agent.current_plan = retreat 
             # if retreat_type == "move":
             #     self.wait_at_least(2)
             # else:
@@ -781,17 +786,33 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         if isinstance(cave_or_passage, Cave):
             cave = cave_or_passage
             end = None
-            for i in range(len(cave.locations)):
-                temp = cave.locations[i]
-                if temp in self.beliefs.boxes:
-                    if box is not None and box == self.beliefs.boxes[temp]:
-                        break
-                if temp in LEVEL.goals_by_pos:
-                    if location is not None and temp == location:
-                        break
-                if temp in self.beliefs.agents and self.beliefs.agents[temp].id_ != self.id_:
-                    break 
-                end = i
+            
+            #If goal is in the cave, make sure to not block in other agents, goals or boxes
+            if location in cave.locations + [cave.entrance]:
+                for i in range(len(cave.locations)):
+                    temp = cave.locations[i]
+                    if temp in self.beliefs.boxes:
+                        box_in_cave = self.beliefs.boxes[temp]
+                        if box_in_cave is not None and self.box_is_needed(box_in_cave):
+                            break
+                    if temp in LEVEL.goals_by_pos:
+                        if self.beliefs.is_goal_satisfied(LEVEL.goals_by_pos[temp]):
+                            break
+                    if temp in self.beliefs.agents and self.beliefs.agents[temp].id_ != self.id_:
+                        break 
+                    end = i
+            #If goal not in cave, clear until the wanted box/position
+            else:
+                if box is None:
+                    #TODO: How far do I need to clear?
+                    end = len(cave.locations)
+                else:
+                    for i in range(len(cave.locations)):
+                        temp = cave.locations[i]
+                        if temp in self.beliefs.boxes and box == self.beliefs.boxes[temp]:
+                            break
+                        end = i
+
             #clear whole cave
             if end is None:
                 area_required = [cave.entrance] + cave.locations

@@ -71,6 +71,7 @@ class BDIAgent(Agent):
             self.wait(1)
             next_action = self.current_plan[0]
         # TODO: Make sure to check that plan cannot return an empty plan
+        log("Agent {} is doing: {}".format(self.id_, next_action), "NEXT_ACTION", False)
         return next_action
     # endregion
 
