@@ -9,6 +9,7 @@ from heuristics import  Heuristic2
 from logger import log
 from state import LEVEL
 
+
 import heapq 
 import itertools
 
@@ -96,8 +97,9 @@ class ConcreteCNETAgent(CNETAgent):
         
         return not self.beliefs.is_goal_satisfied(goal) and (goal.row, goal.col) not in BLACKBOARD.claimed_goals and (goal.cave is None or goal.cave.is_next_goal(goal, self.beliefs))
 
-    def pick_box(self, goal, list_of_boxes):
+    def pick_box(self, goal, list_of_boxes): 
         possible_boxes = self.filter_boxes(goal, list_of_boxes)
+        log('possible boxes ' + str(possible_boxes))
         if possible_boxes is None: 
             return None 
         else:
@@ -105,12 +107,15 @@ class ConcreteCNETAgent(CNETAgent):
 
     def filter_boxes(self, goal, list_of_boxes):           
         possible_boxes = []
+        
         for box in list_of_boxes:
             if box.letter == goal.letter:
                 if (box.row,box.col) in LEVEL.goals_by_pos:
                     if self.beliefs.is_goal_satisfied(LEVEL.goals_by_pos[(box.row,box.col)]):
                         continue
-                heapq.heappush(possible_boxes,(self.heuristic.h(self.beliefs, (box,goal), self), next(ConcreteCNETAgent.counter),box))
+                
+                h = self.heuristic.h(self.beliefs, (box,goal), self)
+                heapq.heappush(possible_boxes,(h, next(ConcreteCNETAgent.counter),box))
         if len(possible_boxes) == 0:
             return None
         return possible_boxes

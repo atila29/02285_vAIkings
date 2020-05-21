@@ -13,6 +13,7 @@ class Request:
         self.agents_in_the_area = []
         self.agents_that_have_checked_request_already = []
         self.goal = None
+        self.box = None
         if request_id is None:
             self.id_ = uuid.uuid4()
         else:

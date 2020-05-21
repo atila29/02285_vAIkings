@@ -189,7 +189,7 @@ class CPAgent(BDIAgent):
         return False
 
     def will_move_block_cave_entrance(self, next_action=None):
-        if next_action is None:
+        if next_action is None and len(self.current_plan) > 0:
             next_action = self.current_plan[0]
         if next_action.action.action_type == ActionType.NoOp:
             #TODO
@@ -345,6 +345,7 @@ class CPAgent(BDIAgent):
         box, location = self.unpack_intentions_to_box_and_location()
         if location is not None and location in LEVEL.goals_by_pos:
             request.goal = LEVEL.goals_by_pos[location]
+            request.box = box
         BLACKBOARD.add(request, self.id_)
 
         return False

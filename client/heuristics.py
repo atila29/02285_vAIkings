@@ -38,11 +38,21 @@ class DepthHeuristic:
             if state.agents[location].id_ == self.agent_id:
                 for request in self.requests:
                     if location in request.area:
-                        return state.g
+                        return state.g 
         return 0
 
     def f(self, state):
         return self.h(state)
+
+    def count_free_spaces(self, current_state, location):
+        row, col = location
+        total_free = 0
+        for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
+            new_row = row + direction.d_row
+            new_col = col + direction.d_col
+            if current_state.is_free(new_row, new_col):
+                total_free = total_free + 1
+        return total_free
 
 class Heuristic:
     

@@ -13,7 +13,6 @@ class Passage:
     def __init__(self, id_):
         self.occupied = False
         self.id_ = id_
-
         self.locations = []
         self.goals = []
         self.entrances = []
