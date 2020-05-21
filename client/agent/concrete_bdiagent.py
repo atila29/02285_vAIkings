@@ -3,6 +3,7 @@ from communication.request import Request
 from communication.contract import Contract
 from action import ActionType
 from logger import log
+from level import AgentGoal
 
 class ConcreteBDIAgent(BDIAgent):
     
@@ -21,6 +22,8 @@ class ConcreteBDIAgent(BDIAgent):
             return True
         if isinstance(self.intentions, Request):
             return len(self.current_plan) == 0
+        if isinstance(self.intentions, AgentGoal):
+            return (self.row, self.col) == (self.intentions.row, self.intentions.col)
         if isinstance(self.intentions, Contract):
             box = self.intentions.performative.box
             location = self.intentions.performative.location 

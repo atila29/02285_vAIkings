@@ -33,6 +33,16 @@ class Goal(LevelElement):
     def __str__(self):
         return str.lower(self.letter)
 
+class AgentGoal(Goal):
+    #TODO: We need to parse this when we read it
+    def __init__(self, id_, row, col):
+        self.id_ = id_
+        super().__init__(id_, row, col)
+
+    def __str__(self):
+        return "AgentGoal {}".format((self.row, self.col))
+
+
  
 class AgentElement:
 
@@ -95,6 +105,7 @@ class Level:
     passages = {} #key is id
     map_of_passages: list
     map_of_caves: list
+    agent_goals={} 
 
     wall_count = []
 
@@ -112,6 +123,12 @@ class Level:
             self.goals[char] = [goal]
         #Add goal to goal list 2
         self.goals_by_pos[(row,col)] = goal
+
+    def add_agent_goal(self, char, row, col):
+        agent_goal = AgentGoal(char, row, col)
+
+        self.level[row][col] = agent_goal
+        self.agent_goals[char] = agent_goal
 
     def pre_process(self, state):
         log("Starting preprocessing of caves", "CAVES", False)

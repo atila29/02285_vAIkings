@@ -87,7 +87,8 @@ class Client:
                         # print((row, col, char), file=sys.stderr, flush=True)
                         if(re.match(r"[A-Z]", char)):
                             LEVEL.add_goal(char, row, col)
-
+                        if(re.match(r"\d", char)):
+                            LEVEL.add_agent_goal(char, row, col)
                     row += 1
 
 
@@ -173,6 +174,9 @@ class Client:
                 return False
             if current_state.boxes[goal_pos].letter != LEVEL.goals_by_pos[goal_pos].letter:
                 return False
+        for id_, agent_goal in LEVEL.agent_goals.items():
+            if agent_goal is not None and ((agent_goal.row, agent_goal.col) not in current_state.agents or current_state.agents[(agent_goal.row, agent_goal.col)].id_ != id_):
+                return False
         return True
 
     def init_agents(self, agent_type, args=None, DECOMPOSE=False, h = None):
@@ -193,6 +197,10 @@ class Client:
                 if box.letter not in letters_by_color[box.color]:
                     letters_by_color[box.color].append(box.letter)
             for agent in self.agents:
+                agent.all_my_goals_satisfied = False
+                if agent.id_ in LEVEL.agent_goals:
+                    agent.desires['end location'] = LEVEL.agent_goals[agent.id_]
+
                 if agent.color in letters_by_color:
                     for letter in letters_by_color[agent.color]:
                         if letter not in LEVEL.goals:
@@ -204,7 +212,7 @@ class Client:
                                     agent.add_subgoal(goal)
                             else:
                                 agent.add_subgoal(goal)
-            log("Agent " + str(agent.id_) + " now has desires to move boxes onto " + str(agent.desires), "DECOMPOSITION", False)
+                log("Agent {} now has desires: goals {}, end location {}".format(agent.id_, agent.desires['goals'], agent.desires['end location']), "DECOMPOSITION", False)
 
     def send_message(self, msg):
         print(msg, flush = True)
