@@ -232,8 +232,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                         if box_path is None or len(box_path) == 0:
                             continue
                         # TODO: consider not converting the path yet, is it heavy?
-                        combined_path = self.convert_paths_to_plan(
-                            path_to_box, box_path)
+                        combined_path = self.convert_paths_to_plan(path_to_box, box_path)
+                        if combined_path is None or len(combined_path) == 0:
+                            combined_path = self.convert_paths_to_plan(path_to_box, box_path, ignore_all_other_agents = True)
+                            if combined_path is None or len(combined_path) == 0:
+                                continue
+                        
                         log("Agent {}. \n path to box: {}. \n box path: {} \n combined path: {}".format(
                             self.id_, path_to_box, box_path, combined_path), "TEST", False)
                         # last_location = combined_path[-1].agent_to
@@ -328,6 +332,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
 
         #pick best choice    
         best_pair = choices[0]
+        best_cost = float("inf")
         for box, goal in choices:
             box_location = (box.row, box.col)
             goal_location = (goal.row, goal.col)
@@ -347,9 +352,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
 
             if (not self.beliefs.is_free(goal.row, goal.col)) and goal_location != (self.row, self.col):
                 continue
-
-            best_pair = (box,goal)
-            break
+            dist_agent_to_box = abs(self.row - box.row) + abs(self.col - box.col)
+            dist_box_to_goal = 0 #self.heuristic.distances[goal_location][box.row][box.col]
+            cost = dist_agent_to_box + dist_box_to_goal
+            if cost < best_cost:
+                best_cost = cost
+                best_pair = (box,goal)
         
         return best_pair
 
@@ -439,9 +447,10 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         #     return False
 
         if self.is_about_to_enter_cave_or_passage():
-            self.trigger = Trigger.ABOUT_ENTER_CAVE_OR_PASSAGE
-            log("trigger set to {}".format(self.trigger), "trigger", False)
-            return False
+            if not self.is_way_clear():
+                self.trigger = Trigger.ABOUT_ENTER_CAVE_OR_PASSAGE
+                log("trigger set to {}".format(self.trigger), "trigger", False)
+                return False
 
         self.trigger = Trigger.ALL_GOOD
         log("trigger set to {}".format(self.trigger), "trigger", False)
@@ -449,6 +458,29 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
 
     def waiting_for_request(self):
         return self.id_ in BLACKBOARD.requests
+
+    def is_way_clear(self):
+        if self.have_claims():
+            #Assuming that if agents have claims, they are relevant for current action
+            log("Agent {} testing claims".format(self.id_), "CLAIM", False)
+            if not self.claims_are_sound():
+                if self.id_ in BLACKBOARD.claimed_passages:
+                    BLACKBOARD.claimed_passages.pop(self.id_)
+                if self.id_ in BLACKBOARD.claimed_caves:
+                    BLACKBOARD.claimed_caves.pop(self.id_)
+                return False
+
+        row,col = self.current_plan[0].required_free
+        log("Found at location: Caves: {}, passages: {}".format(LEVEL.map_of_caves[row][col], LEVEL.map_of_passages[row][col]), "CP", False)
+        clear = self.clear_path_through_passages_and_cave()
+        if not clear:
+            log("Agent {} waiting. Request clearing of path.".format(self.id_), "PLAN", False)
+            log("Agents request on blackboard: {}".format(BLACKBOARD.requests[self.id_]), "PLAN", False)
+            
+            return False
+        else:
+            log("Agent {} thinks path through cave/passage is clear".format(self.id_), "PLAN", False)
+            return True
 
     def update_requests(self):
         if self.id_ in BLACKBOARD.requests:
@@ -580,6 +612,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                             self.current_plan = self.single_agent_search(self.heuristic, self.intentions)
                             return
                         log("Agent {} could not find a plan at all".format(self.id_), "PLAN", False)
+                        if location in LEVEL.goals_by_pos:
+                            goal = LEVEL.goals_by_pos[location]
+                            if goal.cave is not None:
+                                request = Request(self.id_, self.find_area(goal.cave))
+                                BLACKBOARD.add(request, self.id_)
+                                self.remove_intentions_from_blackboard()
                         #Figure out how to make requests to help
                         self.wait(1)
                         return
@@ -614,29 +652,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             return         
 
         elif self.trigger ==  Trigger.ABOUT_ENTER_CAVE_OR_PASSAGE:
-            
-            if self.have_claims():
-                #Assuming that if agents have claims, they are relevant for current action
-                log("Agent {} testing claims".format(self.id_), "CLAIM", False)
-                if not self.claims_are_sound():
-                    if self.id_ in BLACKBOARD.claimed_passages:
-                        BLACKBOARD.claimed_passages.pop(self.id_)
-                    if self.id_ in BLACKBOARD.claimed_caves:
-                        BLACKBOARD.claimed_caves.pop(self.id_)
-                    self.wait(1)
-                return 
+            self.wait(1)
 
-            row,col = self.current_plan[0].required_free
-            log("Found at location: Caves: {}, passages: {}".format(LEVEL.map_of_caves[row][col], LEVEL.map_of_passages[row][col]), "CP", False)
-            clear = self.clear_path_through_passages_and_cave()
-            if not clear:
-                log("Agent {} waiting. Request clearing of path.".format(self.id_), "PLAN", False)
-                log("Agents request on blackboard: {}".format(BLACKBOARD.requests[self.id_]), "PLAN", False)
-                
-                self.wait(1)
-            else:
-                log("Agent {} thinks path through cave/passage is clear".format(self.id_), "PLAN", False)
-            return
         else:
             raise RuntimeError("Agent doesn't know why its planning")
 
@@ -823,35 +840,35 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             test, cave_or_passage = self.left_claimed_area()
 # endregion
 
-    def find_area(self, cave_or_passage, pair = None):
-        if pair is None:
-            box, location = self.unpack_intentions_to_box_and_location()
+    # def find_area(self, cave_or_passage, pair = None):
+    #     if pair is None:
+    #         box, location = self.unpack_intentions_to_box_and_location()
 
-        if isinstance(cave_or_passage, Cave):
-            cave = cave_or_passage
-            end = None
-            for i in range(len(cave.locations)):
-                temp = cave.locations[i]
-                if temp in self.beliefs.boxes:
-                    if box is not None and box == self.beliefs.boxes[temp]:
-                        break
-                if temp in LEVEL.goals_by_pos:
-                    if location is not None and temp == location:
-                        break
-                if temp in self.beliefs.agents and self.beliefs.agents[temp].id_ != self.id_:
-                    break 
-                end = i
-            #clear whole cave
-            if end is None:
-                area_required = [cave.entrance] + cave.locations
-            #clear until end
-            else:
-                area_required = [cave.entrance] + cave.locations[end+1:]
+    #     if isinstance(cave_or_passage, Cave):
+    #         cave = cave_or_passage
+    #         end = None
+    #         for i in range(len(cave.locations)):
+    #             temp = cave.locations[i]
+    #             if temp in self.beliefs.boxes:
+    #                 if box is not None and box == self.beliefs.boxes[temp]:
+    #                     break
+    #             if temp in LEVEL.goals_by_pos:
+    #                 if location is not None and temp == location:
+    #                     break
+    #             if temp in self.beliefs.agents and self.beliefs.agents[temp].id_ != self.id_:
+    #                 break 
+    #             end = i
+    #         #clear whole cave
+    #         if end is None:
+    #             area_required = [cave.entrance] + cave.locations
+    #         #clear until end
+    #         else:
+    #             area_required = [cave.entrance] + cave.locations[end+1:]
             
-            return area_required
+    #         return area_required
 
-        if isinstance(cave_or_passage, Passage):
-            return cave_or_passage.locations + cave_or_passage.entrances
+    #     if isinstance(cave_or_passage, Passage):
+    #         return cave_or_passage.locations + cave_or_passage.entrances
 
     def goal_qualified(self, goal):
         requests = []

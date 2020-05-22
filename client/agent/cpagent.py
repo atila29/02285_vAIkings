@@ -293,18 +293,50 @@ class CPAgent(BDIAgent):
         log("Cave/passage {} is free".format(cave_or_passage), "IS_FREE", False)
         return True
 
-    def find_area(self, cave_or_passage):
+    # def find_area(self, cave_or_passage):
+
+    #     if isinstance(cave_or_passage, Cave):
+    #         cave = cave_or_passage
+    #         end = None
+    #         for i in range(len(cave.locations)):
+    #             temp = cave.locations[i]
+    #             if temp in LEVEL.goals_by_pos:
+    #                 if not self.beliefs.is_goal_satisfied(LEVEL.goals_by_pos[temp]):
+    #                     break
+    #                 else:
+    #                     end = i
+    #         #clear whole cave
+    #         if end is None:
+    #             area_required = [cave.entrance] + cave.locations
+    #         #clear until end
+    #         else:
+    #             area_required = [cave.entrance] + cave.locations[end+1:]
+            
+    #         return area_required
+
+    #     if isinstance(cave_or_passage, Passage):
+    #         return cave_or_passage.locations + cave_or_passage.entrances
+
+    def find_area(self, cave_or_passage, pair = None):
+        if pair is None:
+            box, location = self.unpack_intentions_to_box_and_location()
+        else:
+            box, location = pair
 
         if isinstance(cave_or_passage, Cave):
             cave = cave_or_passage
             end = None
             for i in range(len(cave.locations)):
                 temp = cave.locations[i]
-                if temp in LEVEL.goals_by_pos:
-                    if not self.beliefs.is_goal_satisfied(LEVEL.goals_by_pos[temp]):
+                if temp in self.beliefs.boxes:
+                    if box is not None and box == self.beliefs.boxes[temp]:
                         break
-                    else:
-                        end = i
+                if temp in LEVEL.goals_by_pos:
+                    if location is not None and temp == location:
+                        break
+                if temp in self.beliefs.agents and (location is not None and location in cave.locations):
+                    break 
+                end = i
             #clear whole cave
             if end is None:
                 area_required = [cave.entrance] + cave.locations
@@ -323,33 +355,40 @@ class CPAgent(BDIAgent):
                 False otherwise
     """
     def clear_path_through_passages_and_cave(self):
-        
         wanted_passages, wanted_cave = self.find_wanted_passages_and_cave()
         #log("wanted_passages: {}, wanted_cave: {}".format(wanted_passages, wanted_cave), "TEST", False)
 
         can_move = True
+
+        all_locations = []
         for elm, entrance in wanted_passages + wanted_cave:
-            if not self.is_free(elm):
+            all_locations += self.find_area(elm)
+
+        for loc in all_locations:
+            if loc == (self.row, self.col):
+                continue
+
+            if not self.beliefs.is_free(loc[0], loc[1]):
+                if loc in self.beliefs.boxes:
+                    box = self.beliefs.boxes[loc]
+                    if box.id_ in BLACKBOARD.claimed_boxes and BLACKBOARD.claimed_boxes[box.id_] == self.id_:
+                        continue
+                log("Agent {} sees that location {} blocked".format(self.id_, loc))
                 can_move = False
                 break
-        
+
         if can_move:
             for elm, entrance in wanted_passages + wanted_cave:
                 BLACKBOARD.claim(self.id_, elm)
                 #TODO: remove claims somewhere!
             return True
-        
-        all_locations = []
-        #TODO: Maybe the agent should consider taking another route instead of waiting
-        for elm, entrance in wanted_passages + wanted_cave:
-            all_locations += self.find_area(elm)
-        
-        request = Request(self.id_, all_locations)
-        box, location = self.unpack_intentions_to_box_and_location()
-        if location is not None and location in LEVEL.goals_by_pos:
-            request.goal = LEVEL.goals_by_pos[location]
-            request.box = box
-        BLACKBOARD.add(request, self.id_)
+        else:
+            request = Request(self.id_, all_locations)
+            box, location = self.unpack_intentions_to_box_and_location()
+            if location is not None and location in LEVEL.goals_by_pos:
+                request.goal = LEVEL.goals_by_pos[location]
+                request.box = box
+            BLACKBOARD.add(request, self.id_)
 
         return False
 

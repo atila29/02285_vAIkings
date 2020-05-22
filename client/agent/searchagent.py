@@ -65,7 +65,7 @@ class SearchAgent(BDIAgent):
         if dir1 == reverse_direction(dir2):  
             for i in range(1, len(path2)):
                 #check if there is room to turn from pull to push
-                if self.count_free_spaces(path2[i], ignore_all_other_agents=ignore_all_other_agents) >=3:
+                if (i == 1 and self.count_free_spaces(path2[i], ignore_all_other_agents=ignore_all_other_agents) >=2) or self.count_free_spaces(path2[i], ignore_all_other_agents=ignore_all_other_agents) >=3:
                     #change to push
                     turn = self.swicth_from_pull_to_push(path2[i-1], path2[i], ignore_all_other_agents = ignore_all_other_agents)
                     result = result + turn
@@ -78,17 +78,21 @@ class SearchAgent(BDIAgent):
             if break_point == len(path2)-1 and turn is None:
                 last_action = path2[-1]
                 location = last_action.agent_to
+                move_direction = None
                 for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
                     
                     if direction == reverse_direction(last_action.action.agent_dir):
                         continue
                     row, col = location[0] + direction.d_row, location[1] + direction.d_col
                     if self.beliefs.is_free(row,col):
+                        move_direction = direction
                         action = Action(ActionType.Move, direction, None)
                         unfolded_action = UnfoldedAction(action, self.id_, True, location)
                         next_action = self.convert_move_to_pull(unfolded_action, last_action.action.agent_dir)
                         result.append(next_action)
                         break
+                if move_direction is None:
+                    return None
                 return result
         else:
             next_action = self.convert_move_to_push(path1[-1], path2[0].action.agent_dir)
@@ -272,6 +276,11 @@ class SearchAgent(BDIAgent):
 
         #Convert paths to a plan
         plan = self.convert_paths_to_plan(path1, path2, ignore_all_other_agents=ignore_all_other_agents)
+        if plan is None or len(plan) == 0:
+            #couldn't find turn.
+            plan = self.convert_paths_to_plan(path1, path2, ignore_all_other_agents=True)
+            if plan is None or len(plan) == 0:
+                return None
         log("Combined and converted paths for agent {}. Result: {}".format(self.id_, plan), "SAS", False)
         
         
