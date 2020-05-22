@@ -97,7 +97,6 @@ class Client:
 
     def run(self, initial_state):
         current_state = initial_state
-        LEVEL.pre_process(initial_state)
 
         while True:
             plans = []
@@ -315,6 +314,7 @@ def main():
     client = Client(server_messages)
 
     #client.init_agents(NaiveBDIAgent, DECOMPOSE = False)
+    LEVEL.pre_process(client.initial_state)
     heuristic = Heuristic2()
     client.init_agents(ComplexAgent, DECOMPOSE=True, h = heuristic)
     
