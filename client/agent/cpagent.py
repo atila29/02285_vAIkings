@@ -154,6 +154,8 @@ class CPAgent(BDIAgent):
         return False, None
 
     def box_is_needed(self, box):       
+        if (box.row, box.col) in LEVEL.goals_by_pos and self.beliefs.is_goal_satisfied(LEVEL.goals_by_pos[(box.row, box.col)]):
+            return False
         #count boxes with box.color and box.letter
         box_count = 0
         for b in self.beliefs.boxes.values():
@@ -253,6 +255,13 @@ class CPAgent(BDIAgent):
                     elif self.box_is_needed(box) or self.box_is_claimed_by_other(box):
                         end = i - 1 #TODO: CHECK INDEX? 
                         break
+
+                # #check for agent
+                # elif temp in self.beliefs.agents:
+                #     agent = self.beliefs.agents[temp]
+                #     if agent.id_ != self.id_:
+                #         end= i
+                #         break
 
             #clear whole cave
             if end is None:

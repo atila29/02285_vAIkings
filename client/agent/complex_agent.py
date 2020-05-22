@@ -680,18 +680,30 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 self.current_plan =  retreat
                 other_agent.wait_at_least(duration)
                 return True
-        #The other agent retreat moves
-        elif other_possible:
-            log("Agent {} thinks agent {} can do a retreat move of type {} and will wait".format(self.id_, other_agent.id_, retreat_type), "RETREAT", False)
-            # retreat, duration = other_agent.retreat_move(other_directions, other_retreat_type)
-            # other_agent.current_plan = retreat 
-            # if retreat_type == "move":
-            #     self.wait_at_least(2)
-            # else:
-            #     self.wait_at_least(3) #TODO: 3 or ??
-            # return True
+        # #The other agent retreat moves
+        # elif other_possible:
+        #     log("Agent {} thinks agent {} can do a retreat move of type {}. It made request to clear area".format(self.id_, other_agent.id_, retreat_type), "RETREAT", False)
+        #     area_required = [action.required_free for action in self.current_plan[:2] if action.action.action_type != ActionType.NoOp] 
+        #     request = Request(self.id_, area_required)
+        #     #TODO: check if request is there!
+        #     if not BLACKBOARD.request_is_there(self.id_, request):
+        #         BLACKBOARD.add(request, self.id_)
+        #         log("Agent {} added request ({}) to make agent {} move".format(self.id_,request, other_agent.id_), "ANALYSE", False)
+            
+        #     # retreat, duration = other_agent.retreat_move(other_directions, other_retreat_type)
+        #     # other_agent.current_plan = retreat 
+        #     # if retreat_type == "move":
+        #     #     self.wait_at_least(2)
+        #     # else:
+        #     #     self.wait_at_least(3) #TODO: 3 or ??
+        #     return False
         else:
             log("Agent {} couldn't find a retreat move to make way for agent {}".format(self.id_, other_agent.id_), "RETREAT", False)
+            area_required = [self.current_plan[0].required_free, (self.row, self.col)] 
+            request = Request(self.id_, area_required)
+            if not BLACKBOARD.request_is_there(self.id_, request):
+                BLACKBOARD.add(request, self.id_)
+                log("Agent {} added request ({}) to make agent {} move".format(self.id_,request, other_agent.id_), "ANALYSE", False)
             return False
     #self.current_plan[:0] = [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]
 
@@ -784,12 +796,22 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                             else:
                                 self.wait(1)
                             return "going around box", other_agent
-                    area_required = [action.required_free for action in self.current_plan[:5] if action.action.action_type != ActionType.NoOp]
-                    request = Request(self.id_, area_required)
+                    
+                    box_cave = None
+                    if box is not None and LEVEL.map_of_caves[box.row][box.col] is not None:
+                        for cave in LEVEL.map_of_caves[box.row][box.col]:
+                            if (box.row, box.col) in cave.locations:
+                                box_cave = cave
+                    if box_cave is not None:
+                        request = Request(self.id_, self.find_area(box_cave))
+                    else:
+                        area_required = [action.required_free for action in self.current_plan[:5] if action.action.action_type != ActionType.NoOp]
+                        request = Request(self.id_, area_required)
+                    
                     if not BLACKBOARD.request_is_there(self.id_, request): 
                         BLACKBOARD.add(request, self.id_)
                         log("Agent {} added request ({}) to make box {} move".format(self.id_,request, box), "ANALYSE", False)
-                    log("Agent {} is waiting for box {} to move".format(self.id_, box), "ANALYSE", False)
+                    log("Agent {} is waiting for box {} to move (request already there)".format(self.id_, box), "ANALYSE", False)
                     return "wait", None
         #When do we get here?
         return "need to replan", None  
