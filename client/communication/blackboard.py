@@ -105,7 +105,8 @@ class Blackboard:
     def claim_passage(self, agent_id, passage):
         if agent_id in self.claimed_passages:
             if passage in self.claimed_passages[agent_id]:
-                raise RuntimeError("passage {} already claimed".format(passage.id_))
+                log("passage {} already claimed".format(passage.id_), "ERROR?")
+                return
         else:
             self.claimed_passages[agent_id] = []
 

@@ -18,7 +18,7 @@ class SearchAgent(BDIAgent):
         Returns None if no path exists
         otherwise returns list of UnfoldedActions (only moves)
     """
-    def find_simple_path(self, location_from, location_to, ignore_all_boxes=False, ignore_all_other_agents = True, move_around_specific_agents=None):
+    def find_simple_path(self, location_from, location_to, ignore_all_boxes=False, ignore_all_other_agents = True, move_around_specific_agents=None, ignore_boxes_of_other_color = False):
         #pretend agent is at location_from, and remove agents, and possible target box 
         state = State(self.beliefs)
         if ignore_all_other_agents:
@@ -36,11 +36,16 @@ class SearchAgent(BDIAgent):
         
         if ignore_all_boxes:
             state.boxes = {}
-        else:
-            if location_from in state.boxes:
-                state.boxes.pop(location_from)
-            if location_to in state.boxes:
-                state.boxes.pop(location_to)
+        elif ignore_boxes_of_other_color:
+            boxes = [box for box in state.boxes.values()]
+            for box in boxes:
+                if box.color != self.color:
+                    state.boxes.pop((box.row, box.col))
+
+        if location_from in state.boxes:
+            state.boxes.pop(location_from)
+        if location_to in state.boxes:
+            state.boxes.pop(location_to)
         
         #define heuritic to be distance from agent to location_to
         h = SimpleHeuristic(self.id_, location_to)
@@ -65,7 +70,7 @@ class SearchAgent(BDIAgent):
         if dir1 == reverse_direction(dir2):  
             for i in range(1, len(path2)):
                 #check if there is room to turn from pull to push
-                if self.count_free_spaces(path2[i], ignore_all_other_agents=ignore_all_other_agents) >=3:
+                if (len(path1)<2 and i == 1 and self.count_free_spaces(path2[i], ignore_all_other_agents=ignore_all_other_agents) >=2) or self.count_free_spaces(path2[i], ignore_all_other_agents=ignore_all_other_agents) >=3:
                     #change to push
                     turn = self.swicth_from_pull_to_push(path2[i-1], path2[i], ignore_all_other_agents = ignore_all_other_agents)
                     result = result + turn
@@ -226,7 +231,7 @@ class SearchAgent(BDIAgent):
             #Add to explored
             strategy.add_to_explored(leaf)
 
-    def search_for_simple_plan(self, heuristic, pair = None,ignore_all_boxes=False, ignore_all_other_agents=True, move_around_specific_agents=None) -> '[UnfoldedAction, ...]':
+    def search_for_simple_plan(self, heuristic, pair = None,ignore_all_boxes=False, ignore_all_other_agents=True, move_around_specific_agents=None, ignore_boxes_of_other_color = False) -> '[UnfoldedAction, ...]':
         if pair is None:
             box, goal = self.intentions
             location = (goal.row, goal.col)
@@ -244,10 +249,15 @@ class SearchAgent(BDIAgent):
 
         log("Starting Single Agent Search. Box from location {} to location {}".format((box.row, box.col), location), "SAS", False)
         #Searh for path from agent to box
-        path1= self.find_simple_path((self.row, self.col), (box_row, box_col), ignore_all_boxes=ignore_all_boxes, ignore_all_other_agents=ignore_all_other_agents, move_around_specific_agents=move_around_specific_agents)
+        path1= self.find_simple_path((self.row, self.col), (box_row, box_col), ignore_all_boxes=False, ignore_all_other_agents=False, ignore_boxes_of_other_color = ignore_boxes_of_other_color)
+        if path1 is None or len(path1) == 0:
+            path1= self.find_simple_path((self.row, self.col), (box_row, box_col), ignore_all_boxes=False, ignore_all_other_agents=True, ignore_boxes_of_other_color = ignore_boxes_of_other_color)
+            if path1 is None or len(path1) == 0:
+                path1= self.find_simple_path((self.row, self.col), (box_row, box_col), ignore_all_boxes=True, ignore_all_other_agents=True, ignore_boxes_of_other_color = ignore_boxes_of_other_color)
+        
         log("First part of search done for agent {}. path 1: {}".format(self.id_, path1), "SAS", False)
         
-        if path1 is None:
+        if path1 is None or len(path1) == 0:
             #TODO
             #If we can't find a path to the box we need to figure out how to make one!
             #Find out how to make request! 
@@ -261,7 +271,7 @@ class SearchAgent(BDIAgent):
             return None
 
         #Search for path from box to goal
-        path2 = self.find_simple_path((box_row, box_col), location, ignore_all_boxes=ignore_all_boxes,ignore_all_other_agents=ignore_all_other_agents)
+        path2 = self.find_simple_path((box_row, box_col), location, ignore_all_boxes=ignore_all_boxes,ignore_all_other_agents=ignore_all_other_agents, ignore_boxes_of_other_color = ignore_boxes_of_other_color)
         log("Second part of search done for agent {}. path 2: {}".format(self.id_, path2), "SAS", False)
         
         if path2 is None:

@@ -176,6 +176,8 @@ class CPAgent(BDIAgent):
 
 
     def will_move_block_passage_entrance(self, next_action = None):
+        if len(self.current_plan) == 0:
+            return False
         if next_action is None:
             next_action = self.current_plan[0]
         if next_action.action.action_type == ActionType.NoOp:
@@ -192,6 +194,8 @@ class CPAgent(BDIAgent):
         return False
 
     def will_move_block_cave_entrance(self, next_action=None):
+        if len(self.current_plan) == 0:
+            return False
         if next_action is None and len(self.current_plan) > 0:
             next_action = self.current_plan[0]
         if next_action.action.action_type == ActionType.NoOp:
