@@ -136,6 +136,7 @@ class Level:
     def pre_process(self, state):
         log("Starting preprocessing of caves", "CAVES", False)
         
+        self.convert_to_wall(state)
         self.count_all_walls()
 
         # loop through level and find deadends (3 walls around one spot)
@@ -171,6 +172,12 @@ class Level:
                 if isinstance(self.level[row][col], Space) or isinstance(self.level[row][col], Goal):
                     self.wall_count[row].append(self.count_walls_around((row, col)))
             
+    def convert_to_wall(self, state):
+        agent_colors = set([agent.color for agent in state.agents.values()])
+
+        for box in state.boxes.values():
+            if box.color not in agent_colors:
+                self.level[box.row][box.col] = Wall()
 
     """
         Output: list of locations for deadends
