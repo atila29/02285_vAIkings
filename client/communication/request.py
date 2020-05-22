@@ -23,7 +23,7 @@ class Request:
     # region String representations
     def __repr__(self):
         if self.move_boxes:
-            return "Request(Agent: {}, id: {}): Move boxes and agents from area: {} ".format(self.agent_id, self.id_, self.area)
+            return "Request(Agent: {}, id: {}): Move boxes and agents from area: {}. \n Agents that have checked: {} ".format(self.agent_id, self.id_, self.area ,self.agents_that_have_checked_request_already)
         return "Request(Agent: {}, id: {}): Move agents from area: {} ".format(self.agent_id, self.id_, self.area)
 
     def __str__(self):

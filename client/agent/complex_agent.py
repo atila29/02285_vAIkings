@@ -16,6 +16,7 @@ from cave import Cave
 from passage import Passage
 from level import AgentElement, AgentGoal
 import random
+import time
 
 class Trigger:
     name: str
@@ -108,6 +109,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
     """
 
     def deliberate(self):
+        start = time.time()
         self.test_for_trigger()
         log("Agent {} is deliberating because {}".format(self.id_, self.trigger), "BDI", False)
         if self.trigger in [Trigger.SUCCEDED, Trigger.IMPOSSIBLE, Trigger.RECONSIDER]:
@@ -125,12 +127,19 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 self.remove_intentions_from_blackboard()
             # Keep intentions and go to plan
             else:
+                end = time.time()
+                log("Agent {} spent {} seconds on deliberating".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
                 return self.intentions
 
         if self.intentions is None:
+            start = time.time()
             self.pick_intentions_from_scratch()
+            end = time.time()
+            log("Agent {} spent {} seconds on finding new intentions".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
             self.trigger = Trigger.NEW_INTENTIONS
-
+        
+        end = time.time()
+        log("Agent {} spent {} seconds on deliberating".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
         return self.intentions
 
     def test_for_trigger(self):
@@ -158,7 +167,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         4. None
     """
     def pick_intentions_from_scratch(self):
-
+        start = time.time()
         # check for request
         check, request, box = self.check_for_request_to_fulfill()
         if check:
@@ -166,8 +175,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             log("Agent {} commited to request {}".format(self.id_, self.intentions), "BDI", False)
             self.current_plan = self.plan_for_current_request
             if len(self.current_plan) > 0:
-                self.current_plan.append(UnfoldedAction(Action(ActionType.NoOp,Dir.N, None), self.id_,True, self.current_plan[-1].agent_to))
+                self.current_plan.append(UnfoldedAction(Action(ActionType.NoOp,Dir.N, None), self.id_,True, self.current_plan[-1].agent_to))   
             return
+        
+        end = time.time()
+        log("Agent {} spent {} seconds on checking for request".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
+        start = time.time()
 
         # check for contract
         if len(self.desires['contracts']) > 0:
@@ -175,6 +188,10 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             self.add_intentions_to_blackboard()
             log("Agent {} commited to contract {}".format(self.id_, self.intentions), "BDI", False)
             return
+
+        end = time.time()
+        log("Agent {} spent {} seconds on checking for contracts".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
+        start = time.time()
 
         # check for box and goal
         if not self.all_my_goals_satisfied:
@@ -191,7 +208,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             self.intentions = self.desires['end location']
             return
 
-        
+        end = time.time()
+        log("Agent {} spent {} seconds on checking for box+goal".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
 
         # Else pick None
         self.intentions = None
@@ -254,11 +272,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                             best_request = request
                             #path = combined_path + agent_path
                             path = combined_path
-
+            #No box to move in request
             if cost == float("inf"):
-                if not request.move_boxes:
-                    log("Agent {} found no boxes it was able to move in the request {}".format(
-                        self.id_, request), "REQUESTS_DETAILED", False)
                 if (self.row, self.col) in area:
                     log("Agent {} at position {} in area {}".format(
                         self.id_, (self.row, self.col), request.area), "REQUESTS_DETAILED", False)
@@ -277,6 +292,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                                 log("Found path ignoring other agents and boxes: {}".format(agent_path),"REQUESTS_DETAILED", False)
                             else:
                                 log("Agent {} found no free space to move to to clear the area in request {}".format(self.id_, request), "REQUESTS_DETAILED", False)
+                                request.agents_that_have_checked_request_already.append(self.id_)
                     if agent_path is not None and len(agent_path) > 0:
                         cost = len(agent_path)
 
@@ -285,13 +301,11 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                             best_cost = cost
                             best_request = request
                             path = agent_path
-                    if cost == float("inf"):
-                        log("Agent {} is unable to help with request {}".format(
-                            self.id_, request), "REQUESTS_DETAILED", False)
-                        request.agents_that_have_checked_request_already.append(self.id_)
-                    else:
                         log("Agent {} can move out of the area in {} moves".format(
                             self.id_, cost), "REQUESTS_DETAILED", False)
+                #agent not in area
+                else:
+                    request.agents_that_have_checked_request_already.append(self.id_)
         if best_cost == float("inf"):
             log("Agent {} is unable to help with the requests".format(
                 self.id_), "REQUESTS", False)
@@ -422,16 +436,21 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
     """
 
     def sound(self) -> 'Bool':  # returns true/false, if sound return true
+        start = time.time()
         if self.is_next_action_impossible():
             self.retreating_duration = 0
             self.trigger = Trigger.NEXT_MOVE_IMPOSSIBLE
             log("trigger set to {}".format(self.trigger), "trigger", False)
+            end = time.time()
+            log("Agent {} spent {} seconds on sound check".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
             return False
 
         if self.retreating_duration > 0:
             self.retreating_duration -= 1
             self.trigger = Trigger.ALL_GOOD
             log("trigger set to {}".format(self.trigger), "trigger", False)
+            end = time.time()
+            log("Agent {} spent {} seconds on sound check".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
             return True
 
         # if self.waiting_for_request():
@@ -443,10 +462,14 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             if not self.is_way_clear():
                 self.trigger = Trigger.ABOUT_ENTER_CAVE_OR_PASSAGE
                 log("trigger set to {}".format(self.trigger), "trigger", False)
+                end = time.time()
+                log("Agent {} spent {} seconds on sound check".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
                 return False
 
         self.trigger = Trigger.ALL_GOOD
         log("trigger set to {}".format(self.trigger), "trigger", False)
+        end = time.time()
+        log("Agent {} spent {} seconds on sound check".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
         return True
 
     def is_way_clear(self):
@@ -458,6 +481,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     BLACKBOARD.claimed_passages.pop(self.id_)
                 if self.id_ in BLACKBOARD.claimed_caves:
                     BLACKBOARD.claimed_caves.pop(self.id_)
+                log("Agent {}. Claims not sound.".format(self.id_), "TEST", False)
                 return False
 
         row,col = self.current_plan[0].required_free
@@ -839,7 +863,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             for i in range(len(cave.locations)):
                 temp = cave.locations[i]
                 if temp in self.beliefs.boxes:
-                    if box is not None and box == self.beliefs.boxes[temp]:
+                    if (box is not None and box == self.beliefs.boxes[temp]):
                         break
                 if temp in LEVEL.goals_by_pos:
                     if location is not None and temp == location:

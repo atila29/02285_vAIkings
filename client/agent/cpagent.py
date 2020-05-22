@@ -331,9 +331,17 @@ class CPAgent(BDIAgent):
         wanted_passages, wanted_cave = self.find_wanted_passages_and_cave()
         #log("wanted_passages: {}, wanted_cave: {}".format(wanted_passages, wanted_cave), "TEST", False)
 
-        can_move = True
+        all_locations = []
+        #TODO: Maybe the agent should consider taking another route instead of waiting
         for elm, entrance in wanted_passages + wanted_cave:
-            if not self.is_free(elm):
+            all_locations += self.find_area(elm)
+        
+        can_move = True
+        for loc in all_locations:
+            if (self.row, self.col) == loc:
+                continue
+            if not self.beliefs.is_free(loc[0], loc[1]):
+                log("Agent {} doesn't move since it sees location {} as not free".format(self.id_, elm), "TEST", False)
                 can_move = False
                 break
         
@@ -342,18 +350,13 @@ class CPAgent(BDIAgent):
                 BLACKBOARD.claim(self.id_, elm)
                 #TODO: remove claims somewhere!
             return True
-        
-        all_locations = []
-        #TODO: Maybe the agent should consider taking another route instead of waiting
-        for elm, entrance in wanted_passages + wanted_cave:
-            all_locations += self.find_area(elm)
-        
-        request = Request(self.id_, all_locations)
-        box, location = self.unpack_intentions_to_box_and_location()
-        if location is not None and location in LEVEL.goals_by_pos:
-            request.goal = LEVEL.goals_by_pos[location]
-            request.box = box
-        BLACKBOARD.add(request, self.id_)
+        else:
+            request = Request(self.id_, all_locations)
+            box, location = self.unpack_intentions_to_box_and_location()
+            if location is not None and location in LEVEL.goals_by_pos:
+                request.goal = LEVEL.goals_by_pos[location]
+                request.box = box
+            BLACKBOARD.add(request, self.id_)
 
         return False
 
