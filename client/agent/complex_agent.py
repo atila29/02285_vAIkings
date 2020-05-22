@@ -439,13 +439,37 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         #     return False
 
         if self.is_about_to_enter_cave_or_passage():
-            self.trigger = Trigger.ABOUT_ENTER_CAVE_OR_PASSAGE
-            log("trigger set to {}".format(self.trigger), "trigger", False)
-            return False
+            if not self.is_way_clear():
+                self.trigger = Trigger.ABOUT_ENTER_CAVE_OR_PASSAGE
+                log("trigger set to {}".format(self.trigger), "trigger", False)
+                return False
 
         self.trigger = Trigger.ALL_GOOD
         log("trigger set to {}".format(self.trigger), "trigger", False)
         return True
+
+    def is_way_clear(self):
+        if self.have_claims():
+            #Assuming that if agents have claims, they are relevant for current action
+            log("Agent {} testing claims".format(self.id_), "CLAIM", False)
+            if not self.claims_are_sound():
+                if self.id_ in BLACKBOARD.claimed_passages:
+                    BLACKBOARD.claimed_passages.pop(self.id_)
+                if self.id_ in BLACKBOARD.claimed_caves:
+                    BLACKBOARD.claimed_caves.pop(self.id_)
+                return False
+
+        row,col = self.current_plan[0].required_free
+        log("Found at location: Caves: {}, passages: {}".format(LEVEL.map_of_caves[row][col], LEVEL.map_of_passages[row][col]), "CP", False)
+        clear = self.clear_path_through_passages_and_cave()
+        if not clear:
+            log("Agent {} waiting. Request clearing of path.".format(self.id_), "PLAN", False)
+            log("Agents request on blackboard: {}".format(BLACKBOARD.requests[self.id_]), "PLAN", False)
+
+            return False
+        else:
+            log("Agent {} thinks path through cave/passage is clear".format(self.id_), "PLAN", False)
+            return True
 
     def waiting_for_request(self):
         return self.id_ in BLACKBOARD.requests
@@ -614,29 +638,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             return         
 
         elif self.trigger ==  Trigger.ABOUT_ENTER_CAVE_OR_PASSAGE:
-            
-            if self.have_claims():
-                #Assuming that if agents have claims, they are relevant for current action
-                log("Agent {} testing claims".format(self.id_), "CLAIM", False)
-                if not self.claims_are_sound():
-                    if self.id_ in BLACKBOARD.claimed_passages:
-                        BLACKBOARD.claimed_passages.pop(self.id_)
-                    if self.id_ in BLACKBOARD.claimed_caves:
-                        BLACKBOARD.claimed_caves.pop(self.id_)
-                    self.wait(1)
-                return 
-
-            row,col = self.current_plan[0].required_free
-            log("Found at location: Caves: {}, passages: {}".format(LEVEL.map_of_caves[row][col], LEVEL.map_of_passages[row][col]), "CP", False)
-            clear = self.clear_path_through_passages_and_cave()
-            if not clear:
-                log("Agent {} waiting. Request clearing of path.".format(self.id_), "PLAN", False)
-                log("Agents request on blackboard: {}".format(BLACKBOARD.requests[self.id_]), "PLAN", False)
-                
-                self.wait(1)
-            else:
-                log("Agent {} thinks path through cave/passage is clear".format(self.id_), "PLAN", False)
-            return
+            self.wait(1)
         else:
             raise RuntimeError("Agent doesn't know why its planning")
 
