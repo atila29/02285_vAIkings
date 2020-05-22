@@ -31,7 +31,9 @@ class Goal(LevelElement):
         self.passage = None
 
     def __str__(self):
-        return str.lower(self.letter)
+        return "goal " + str.lower(self.letter) + " at location {}".format((self.row, self.col))
+    def __repr__(self):
+        return self.__str__()
 
 class AgentGoal(Goal):
     #TODO: We need to parse this when we read it
@@ -41,7 +43,8 @@ class AgentGoal(Goal):
 
     def __str__(self):
         return "AgentGoal {}".format((self.row, self.col))
-
+    def __repr__(self):
+        return self.__str__()
 
  
 class AgentElement:
@@ -83,11 +86,11 @@ class Box:
 
 
     def __repr__(self):
-        return self.color + " Box with letter " + self.letter
+        return "{} box with letter {} at location {}".format(self.color, self.letter, (self.row, self.col))
         
 
     def __str__(self):
-        return self.letter
+        return "{}".format(self.letter)
 
     def __eq__(self, other):
         return other is not None and self.id_ == other.id_

@@ -220,13 +220,14 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 for location in area:
                     if location in state.boxes and state.boxes[location] in boxes:
                         # if box on goal in cave: leave it:
-                        if location in LEVEL.goals_by_pos and state.is_goal_satisfied(LEVEL.goals_by_pos[location]) and LEVEL.map_of_caves[location[0]][location[1]] is not None:
-                            continue
+                        # if location in LEVEL.goals_by_pos and state.is_goal_satisfied(LEVEL.goals_by_pos[location]) and LEVEL.map_of_caves[location[0]][location[1]] is not None:
+                        #     continue
                         # If box unreachable: continue
-                        path_to_box = self.find_simple_path(
-                            (self.row, self.col), location)
-                        if path_to_box is None:
-                            continue
+                        path_to_box = self.find_simple_path((self.row, self.col), location)
+                        if path_to_box is None or len (path_to_box) == 0:
+                            path_to_box = self.find_simple_path((self.row, self.col), location, ignore_all_other_agents = True)
+                            if path_to_box is None or len (path_to_box) == 0:
+                                continue
                         # otherwise find location to move this box to
                         box_path = self.find_path_to_free_space(location)
                         if box_path is None or len(box_path) == 0:
@@ -591,7 +592,9 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     #TODO:
                     log("Agent {} found no simple path. So it is ignoring all boxes and agents".format(self.id_), "PLAN", False)
                     #try to ignore boxes and find a path 
-                    simple_plan = self.search_for_simple_plan(self.heuristic, (box,location), ignore_all_other_agents = True, ignore_all_boxes = True)
+                    simple_plan = self.search_for_simple_plan(self.heuristic, (box,location), ignore_all_other_agents = True, ignore_all_boxes = False, ignore_boxes_of_other_color = True)
+                    if simple_plan is None or len(simple_plan) == 0:
+                        simple_plan = self.search_for_simple_plan(self.heuristic, (box,location), ignore_all_other_agents = True, ignore_all_boxes = True)
                     if simple_plan is not None and len(simple_plan) > 0:
                         self.current_plan = simple_plan
                         if not self.sound():
@@ -728,6 +731,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     return "try retreat", other_agent
                 else:
                     if len(other_agent.current_plan) == 0 or other_agent.current_plan[0].action.action_type == ActionType.NoOp or not other_agent.sound():
+                        log("Agent {} thinks agent {} is standing still".format(self.id_, other_agent.id_), "ANALYSE", False)
+                                
                         #TODO: it is not supposed to update the plan here! fix!
                         #Try to go around:
                         box, location = self.unpack_intentions_to_box_and_location()
@@ -737,11 +742,10 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                                 self.current_plan = simple_plan
                                 if self.sound() and len(self.current_plan) > 1:
                                     log("Agent {} thinks agent {} is standing still but found a path around. Path: {}".format(self.id_, other_agent.id_, self.current_plan), "ANALYSE", False)
+                                    return "going around agent", other_agent
                                 else:
                                     log("Agent {} thinks agent {} is standing still but path found is not sound. Path: {}".format(self.id_, other_agent.id_, self.current_plan), "ANALYSE", False)
-                                    self.wait(1)
-                                return "going around agent", other_agent
-                        
+                                
                         #TODO
                         area_required = [action.required_free for action in self.current_plan[:5] if action.action.action_type != ActionType.NoOp] 
                         request = Request(self.id_, area_required)
