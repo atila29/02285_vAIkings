@@ -27,7 +27,7 @@ class Client:
     current_conflicts = []
     
     def __init__(self, server_messages):
-        self.send_message_async("vAIkings client") # publish our client's name to the server
+        self.send_message_async("vAIkings") # publish our client's name to the server
 
         line = server_messages.readline().rstrip()
 
