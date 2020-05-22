@@ -88,7 +88,10 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         self.intentions = None
 
         ConcreteBDIAgent.__init__(self, id_, color, row, col, initial_beliefs)
+        
+        self.reprioritise_goals()
         self.plan(ignore_all_other_agents=False)
+
 
 
 
@@ -264,6 +267,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                         "REQUESTS_DETAILED", False)
                     if agent_path is None or len(agent_path) == 0:
                         agent_path = self.find_path_to_free_space((self.row, self.col), ignore_all_other_agents=True)
+                        
                         if agent_path is not None and len(agent_path)>0:
                             log("Found path ignoring other agents {}".format(agent_path),"REQUESTS_DETAILED", False)
                         else:
@@ -304,8 +308,11 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         # pick box, goal not already used, Start bidding to find best contractor.
         # random.shuffle(self.desires['goals'])
         
-        self.reprioritise_goals()
+        #self.reprioritise_goals()
         
+        choices = []
+        
+
         for goal in self.desires['goals']:
             if self.goal_qualified(goal):
                 box = self.pick_box(goal, boxes) 
@@ -314,10 +321,48 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 best_agent = self.bid_box_to_goal(goal, box)
 
                 if best_agent.id_ == self.id_:
-                    return (box, goal)
-        return None, None
+                    choices.append((box, goal))
+        #No choices
+        if len(choices) == 0:
+            return None, None
 
-    
+        #pick best choice    
+        best_pair = choices[0]
+        for box, goal in choices:
+            box_location = (box.row, box.col)
+            goal_location = (goal.row, goal.col)
+            box_cave = None
+
+            if LEVEL.map_of_caves[box.row][box.col] is not None:
+                for cave in LEVEL.map_of_caves[box.row][box.col]:
+                    if box_location in cave.locations:
+                        box_cave = cave
+            if box_cave is not None:
+                if not self.is_path_to_location_free_in_cave(box_cave, box_location):
+                    continue
+
+            if goal.cave is not None:
+                if not self.is_path_to_location_free_in_cave(goal.cave, goal_location):
+                    continue
+
+            if (not self.beliefs.is_free(goal.row, goal.col)) and goal_location != (self.row, self.col):
+                continue
+
+            best_pair = (box,goal)
+            break
+        
+        return best_pair
+
+            
+
+    def is_path_to_location_free_in_cave(self, cave: Cave, location):
+        reversed_cave_locations = cave.locations[::-1]
+        for loc in reversed_cave_locations:
+            if loc == location:
+                return True
+            if not self.beliefs.is_free(loc[0], loc[1]):
+                return False
+        
     #1. caves
     #2. others 
     #3. passages
@@ -680,7 +725,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     log("Agent {} thinks it will crash with agent {} and is looking for retreat move".format(self.id_, other_agent.id_), "ANALYSE", False)
                     return "try retreat", other_agent
                 else:
-                    if len(other_agent.current_plan) == 0 or other_agent.current_plan[0].action.action_type == ActionType.NoOp or other_agent.is_next_action_impossible():
+                    if len(other_agent.current_plan) == 0 or other_agent.current_plan[0].action.action_type == ActionType.NoOp or not other_agent.sound():
                         #TODO: it is not supposed to update the plan here! fix!
                         #Try to go around:
                         box, location = self.unpack_intentions_to_box_and_location()
@@ -778,8 +823,9 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             test, cave_or_passage = self.left_claimed_area()
 # endregion
 
-    def find_area(self, cave_or_passage):
-        box, location = self.unpack_intentions_to_box_and_location()
+    def find_area(self, cave_or_passage, pair = None):
+        if pair is None:
+            box, location = self.unpack_intentions_to_box_and_location()
 
         if isinstance(cave_or_passage, Cave):
             cave = cave_or_passage
