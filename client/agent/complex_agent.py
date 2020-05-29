@@ -204,8 +204,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         for elm in BLACKBOARD.requests.values():
             for request in elm:
                 if self.id_ not in request.agents_that_have_checked_request_already:
-                    if not self.present_in_requests(request):
-                        requests.append(request)
+                    # if not self.present_in_requests(request):
+                    requests.append(request)
 
         # find easiest first
         best_cost, best_request, best_box, path = float(
@@ -217,37 +217,31 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             cost = float("inf")
             area = request.area
             if request.move_boxes:
+                
                 # find boxes in area of my colour
                 for location in area:
                     if location in state.boxes and state.boxes[location] in boxes:
-                        # if box on goal in cave: leave it:
-                        # if location in LEVEL.goals_by_pos and state.is_goal_satisfied(LEVEL.goals_by_pos[location]) and LEVEL.map_of_caves[location[0]][location[1]] is not None:
-                        #     continue
-                        # If box unreachable: continue
-                        path_to_box = self.find_simple_path((self.row, self.col), location)
+                        path_to_box = self.find_simple_path((self.row, self.col), location, ignore_all_other_agents = False)
                         if path_to_box is None or len (path_to_box) == 0:
                             path_to_box = self.find_simple_path((self.row, self.col), location, ignore_all_other_agents = True)
                             if path_to_box is None or len (path_to_box) == 0:
+                                #couldn't find path to this box!
                                 continue
-                        # otherwise find location to move this box to
+                        
+                        #otherwise find location to move this box to
                         box_path = self.find_path_to_free_space(location)
                         if box_path is None or len(box_path) == 0:
+                            #Couldn't find free spot
                             continue
-                        # TODO: consider not converting the path yet, is it heavy?
-                        combined_path = self.convert_paths_to_plan(
-                            path_to_box, box_path)
-                        log("Agent {}. \n path to box: {}. \n box path: {} \n combined path: {}".format(
-                            self.id_, path_to_box, box_path, combined_path), "TEST", False)
-                        # last_location = combined_path[-1].agent_to
-                        # agent_path = self.find_simple_path(last_location, locations[1])
-                        # if agent_path is None:
-                        #     continue
-                        # cost = len(combined_path) + len(agent_path)
+                        
+                        #calculate path cost
+                        combined_path = self.convert_paths_to_plan(path_to_box, box_path)
+                        log("Agent {}. \n path to box: {}. \n box path: {} \n combined path: {}".format(self.id_, path_to_box, box_path, combined_path), "TEST", False)
                         cost = len(combined_path)
 
                         if cost < float("inf"):
-                            log("Agent {} can help with moving box {} out of the area in {} moves".format(
-                                self.id_, state.boxes[location], cost), "REQUESTS_DETAILED", False)
+                            log("Agent {} can help with moving box {} out of the area in {} moves".format(self.id_, state.boxes[location], cost), "REQUESTS_DETAILED", False)
+                        
                         # If new best, update
                         if cost < best_cost:
                             best_cost = cost
@@ -255,21 +249,16 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                             best_request = request
                             #path = combined_path + agent_path
                             path = combined_path
-
+            
+            #no box to move in request
             if cost == float("inf"):
-                if not request.move_boxes:
-                    log("Agent {} found no boxes it was able to move in the request {}".format(
-                        self.id_, request), "REQUESTS_DETAILED", False)
+                #If agent in area:
                 if (self.row, self.col) in area:
-                    log("Agent {} at position {} in area {}".format(
-                        self.id_, (self.row, self.col), request.area), "REQUESTS_DETAILED", False)
-                    agent_path = self.find_path_to_free_space(
-                        (self.row, self.col))
-                    log("Found path avoiding other agents: {}".format(agent_path),
-                        "REQUESTS_DETAILED", False)
+                    log("Agent {} at position {} in area {}".format(self.id_, (self.row, self.col), request.area), "REQUESTS_DETAILED", False)
+                    agent_path = self.find_path_to_free_space((self.row, self.col))                    
                     if agent_path is None or len(agent_path) == 0:
+                        log("Found no path ignoring other agents {}".format(agent_path),"REQUESTS_DETAILED", False)
                         agent_path = self.find_path_to_free_space((self.row, self.col), ignore_all_other_agents=True)
-                        
                         if agent_path is not None and len(agent_path)>0:
                             log("Found path ignoring other agents {}".format(agent_path),"REQUESTS_DETAILED", False)
                         else:
@@ -278,6 +267,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                                 log("Found path ignoring other agents and boxes: {}".format(agent_path),"REQUESTS_DETAILED", False)
                             else:
                                 log("Agent {} found no free space to move to to clear the area in request {}".format(self.id_, request), "REQUESTS_DETAILED", False)
+                                request.agents_that_have_checked_request_already.append(self.id_)
+                    #calculate cost if plan found
                     if agent_path is not None and len(agent_path) > 0:
                         cost = len(agent_path)
 
@@ -286,22 +277,19 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                             best_cost = cost
                             best_request = request
                             path = agent_path
-                    if cost == float("inf"):
-                        log("Agent {} is unable to help with request {}".format(
-                            self.id_, request), "REQUESTS_DETAILED", False)
-                        request.agents_that_have_checked_request_already.append(self.id_)
-                    else:
-                        log("Agent {} can move out of the area in {} moves".format(
-                            self.id_, cost), "REQUESTS_DETAILED", False)
+                #agent not in area
+                else:
+                    log("Agent {} not in area so can't help with request {}".format(self.id_, request), "REQUESTS_DETAILED", False)
+                    request.agents_that_have_checked_request_already.append(self.id_)
+        #end for 
+        
+        #No requests to help with
         if best_cost == float("inf"):
-            log("Agent {} is unable to help with the requests".format(
-                self.id_), "REQUESTS", False)
+            log("Agent {} is unable to help with the requests".format(self.id_), "REQUESTS", False)
             return False, None, None
         else:
-            # TODO: how to save this plan?
             self.plan_for_current_request = path
-            log("Agent {} is able to help with the request {} in {} moves.".format(
-                self.id_, best_request, best_cost), "REQUESTS", False)
+            log("Agent {} is able to help with the request {} in {} moves.".format(self.id_, best_request, best_cost), "REQUESTS", False)
             return True, best_request, best_box
 
     # TODO: put priority on goals not in cave/passage!
