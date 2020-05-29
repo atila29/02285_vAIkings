@@ -1,6 +1,8 @@
 from agent.agent import Agent
 from action import UnfoldedAction, Action, ActionType, Dir
 from logger import log
+import time
+
 """
     "Interface" for implementation of BDI Agent
 """
@@ -53,16 +55,22 @@ class BDIAgent(Agent):
 
     ###### BDI control loop ######
     def get_next_action(self, p) -> 'UnfoldedAction':
+        start = time.time() 
         self.brf(p)
         if len(self.current_plan) != 0 and (not self.succeeded()) and (not self.impossible()):
             if self.reconsider():
                 self.deliberate()
             if not(self.sound()):
-                self.plan()
-        
+                plan_start = time.time()
+                self.plan()            
+                plan_end = time.time()
+                log("Agent {} spent {} seconds on planning".format(self.id_, round(plan_end-plan_start,4)), "TIME_SPENT", False)
         else:
             self.deliberate()
-            self.plan()
+            plan_start = time.time()
+            self.plan()            
+            plan_end = time.time()
+            log("Agent {} spent {} seconds on planning".format(self.id_, round(plan_end-plan_start,4)), "TIME_SPENT", False)
         try:
             next_action = self.current_plan[0]
         except IndexError:
@@ -71,6 +79,8 @@ class BDIAgent(Agent):
             self.wait(1)
             next_action = self.current_plan[0]
         # TODO: Make sure to check that plan cannot return an empty plan
+        end = time.time()
+        log("Agent {} spent {} seconds".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
         return next_action
     # endregion
 

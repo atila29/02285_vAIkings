@@ -16,6 +16,7 @@ from cave import Cave
 from passage import Passage
 from level import AgentElement, AgentGoal
 import random
+import time
 
 class Trigger:
     name: str
@@ -108,6 +109,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
     """
 
     def deliberate(self):
+        start = time.time()
         self.test_for_trigger()
         log("Agent {} is deliberating because {}".format(self.id_, self.trigger), "BDI", False)
         if self.trigger in [Trigger.SUCCEDED, Trigger.IMPOSSIBLE, Trigger.RECONSIDER]:
@@ -125,12 +127,19 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 self.remove_intentions_from_blackboard()
             # Keep intentions and go to plan
             else:
+                end = time.time()
+                log("Agent {} spent {} seconds on deliberating".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
                 return self.intentions
 
         if self.intentions is None:
+            start = time.time()
             self.pick_intentions_from_scratch()
+            end = time.time()
+            log("Agent {} spent {} seconds on finding new intentions".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
             self.trigger = Trigger.NEW_INTENTIONS
 
+        end = time.time()
+        log("Agent {} spent {} seconds on deliberating".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
         return self.intentions
 
     def test_for_trigger(self):
@@ -158,6 +167,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         4. None
     """
     def pick_intentions_from_scratch(self):
+        start = time.time()
 
         # check for request
         check, request, box = self.check_for_request_to_fulfill()
@@ -169,12 +179,20 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 self.current_plan.append(UnfoldedAction(Action(ActionType.NoOp,Dir.N, None), self.id_,True, self.current_plan[-1].agent_to))
             return
 
+        end = time.time()
+        log("Agent {} spent {} seconds on checking for request".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
+        start = time.time()
+
         # check for contract
         if len(self.desires['contracts']) > 0:
             self.intentions = self.desires['contracts'][0]
             self.add_intentions_to_blackboard()
             log("Agent {} commited to contract {}".format(self.id_, self.intentions), "BDI", False)
             return
+
+        end = time.time()
+        log("Agent {} spent {} seconds on checking for contracts".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
+        start = time.time()
 
         # check for box and goal
         if not self.all_my_goals_satisfied:
@@ -191,7 +209,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             self.intentions = self.desires['end location']
             return
 
-        
+        end = time.time()
+        log("Agent {} spent {} seconds on checking for box+goal".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
 
         # Else pick None
         self.intentions = None
@@ -422,16 +441,25 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
     """
 
     def sound(self) -> 'Bool':  # returns true/false, if sound return true
+        start = time.time() 
         if self.is_next_action_impossible():
             self.retreating_duration = 0
             self.trigger = Trigger.NEXT_MOVE_IMPOSSIBLE
             log("trigger set to {}".format(self.trigger), "trigger", False)
+            
+            end = time.time()
+            log("Agent {} spent {} seconds on sound check".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
+
             return False
 
         if self.retreating_duration > 0:
             self.retreating_duration -= 1
             self.trigger = Trigger.ALL_GOOD
             log("trigger set to {}".format(self.trigger), "trigger", False)
+            
+            end = time.time()
+            log("Agent {} spent {} seconds on sound check".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
+            
             return True
 
         # if self.waiting_for_request():
@@ -443,10 +471,18 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             if not self.is_way_clear():
                 self.trigger = Trigger.ABOUT_ENTER_CAVE_OR_PASSAGE
                 log("trigger set to {}".format(self.trigger), "trigger", False)
+                
+                end = time.time()
+                log("Agent {} spent {} seconds on sound check".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
+                
                 return False
 
         self.trigger = Trigger.ALL_GOOD
         log("trigger set to {}".format(self.trigger), "trigger", False)
+
+        end = time.time()
+        log("Agent {} spent {} seconds on sound check".format(self.id_, round(end-start,4)), "TIME_SPENT", False)
+
         return True
 
     def is_way_clear(self):
