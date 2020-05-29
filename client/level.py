@@ -383,11 +383,11 @@ class Level:
         row,col = location
         wall_directions = []
         for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
-            log("Is this location part of the level?")
-            log("Row is_corner: " + str(row))
-            log("Col is_corner: " + str(col))
-            log("Row is_corner: " + str(row + direction.d_row))
-            log("Col is_corner: " + str(col + direction.d_col))
+            # log("Is this location part of the level?")
+            # log("Row is_corner: " + str(row))
+            # log("Col is_corner: " + str(col))
+            # log("Row is_corner: " + str(row + direction.d_row))
+            # log("Col is_corner: " + str(col + direction.d_col))
             # log(self.level[row + direction.d_row][col + direction.d_col])
             try:
                 if isinstance(self.level[row + direction.d_row][col + direction.d_col], Wall):

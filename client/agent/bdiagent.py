@@ -66,8 +66,8 @@ class BDIAgent(Agent):
         try:
             next_action = self.current_plan[0]
         except IndexError:
-            log("This agent does not have a plan")
-            log(str(self))
+            # log("This agent does not have a plan")
+            # log(str(self))
             self.wait(1)
             next_action = self.current_plan[0]
         # TODO: Make sure to check that plan cannot return an empty plan

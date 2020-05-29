@@ -1,147 +1,147 @@
 Level name: MAMulle
-Level solved: Yes.
-Actions used: 158.
-Last action time: 0.548 seconds.
+Level solved: No.
+Actions used: 321743.
+Last action time: 90.000 seconds.
 
 Level name: MAAIstars
 Level solved: No.
-Actions used: 713.
-Last action time: 179.957 seconds.
+Actions used: 466.
+Last action time: 89.678 seconds.
 
 Level name: MAdeepChaos
 Level solved: Yes.
 Actions used: 451.
-Last action time: 5.618 seconds.
+Last action time: 5.496 seconds.
 
 Level name: SAMulle
 Level solved: No.
-Actions used: 38196.
-Last action time: 179.996 seconds.
+Actions used: 42557.
+Last action time: 90.000 seconds.
 
 Level name: SAIIOO
 Level solved: Yes.
-Actions used: 18.
-Last action time: 1.573 seconds.
+Actions used: 21.
+Last action time: 2.895 seconds.
 
 Level name: MAaiaicapn
-Level solved: No.
-Actions used: 476.
-Last action time: 179.879 seconds.
+Level solved: Yes.
+Actions used: 1168.
+Last action time: 3.897 seconds.
 
 Level name: SADeepPlan
 Level solved: Yes.
-Actions used: 337.
-Last action time: 1.567 seconds.
+Actions used: 352.
+Last action time: 2.125 seconds.
 
 Level name: MAKaren
 Level solved: No.
-Actions used: 46842.
-Last action time: 178.919 seconds.
+Actions used: 1954.
+Last action time: 89.979 seconds.
 
 Level name: MAThreePO
 Level solved: Yes.
-Actions used: 221.
-Last action time: 0.829 seconds.
+Actions used: 222.
+Last action time: 0.416 seconds.
 
 Level name: SAChuligans
 Level solved: Yes.
 Actions used: 216.
-Last action time: 0.333 seconds.
+Last action time: 0.378 seconds.
 
 Level name: MAOptimalSolution
 Level solved: Yes.
 Actions used: 5.
-Last action time: 0.044 seconds.
+Last action time: 0.049 seconds.
 
 Level name: MAfootsteps
-Level solved: No.
-Actions used: 771.
-Last action time: 179.840 seconds.
+Level solved: Yes.
+Actions used: 377.
+Last action time: 6.516 seconds.
 
 Level name: SAThreePO
 Level solved: Yes.
 Actions used: 164.
-Last action time: 0.354 seconds.
+Last action time: 0.346 seconds.
 
 Level name: SANeverAI
 Level solved: Yes.
 Actions used: 391.
-Last action time: 0.405 seconds.
+Last action time: 0.413 seconds.
 
 Level name: SABaguettes
 Level solved: No.
-Actions used: 2480.
-Last action time: 179.819 seconds.
+Actions used: 1523.
+Last action time: 85.946 seconds.
 
 Level name: MANeverAI
 Level solved: Yes.
-Actions used: 147.
-Last action time: 1.040 seconds.
+Actions used: 143.
+Last action time: 0.661 seconds.
 
 Level name: MAaicecubes
 Level solved: Yes.
 Actions used: 130.
-Last action time: 0.207 seconds.
+Last action time: 0.175 seconds.
 
 Level name: MAaiaioh
 Level solved: Yes.
 Actions used: 13.
-Last action time: 0.019 seconds.
+Last action time: 0.025 seconds.
 
 Level name: MAMSecretA
 Level solved: Yes.
 Actions used: 34.
-Last action time: 0.106 seconds.
+Last action time: 0.072 seconds.
 
 Level name: SANicolAI
 Level solved: Yes.
 Actions used: 130.
-Last action time: 0.114 seconds.
+Last action time: 0.107 seconds.
 
 Level name: MANicolAI
 Level solved: No.
-Actions used: 3191.
-Last action time: 179.933 seconds.
+Actions used: 38594.
+Last action time: 89.999 seconds.
 
 Level name: SAAIAIcapn
 Level solved: Yes.
-Actions used: 941.
-Last action time: 35.085 seconds.
+Actions used: 933.
+Last action time: 7.206 seconds.
 
 Level name: SAReftAI
 Level solved: No.
-Actions used: 47.
-Last action time: 178.999 seconds.
+Actions used: 332.
+Last action time: 86.439 seconds.
 
 Level name: SATrueGlue
 Level solved: Yes.
 Actions used: 110.
-Last action time: 0.137 seconds.
+Last action time: 0.127 seconds.
 
 Level name: SAdeepChaos
 Level solved: Yes.
 Actions used: 521.
-Last action time: 5.104 seconds.
+Last action time: 3.410 seconds.
 
 Level name: SATheZoo
-Level solved: Yes.
-Actions used: 203.
-Last action time: 0.444 seconds.
+Level solved: No.
+Actions used: 148.
+Last action time: 0.236 seconds.
 
 Level name: SAFPHPOP
 Level solved: No.
-Actions used: 480.
-Last action time: 178.420 seconds.
+Actions used: 382.
+Last action time: 80.635 seconds.
 
 Level name: SAThree
 Level solved: Yes.
 Actions used: 21.
-Last action time: 0.135 seconds.
+Last action time: 0.053 seconds.
 
 Level name: MAThree
-Level solved: No.
-Actions used: 334928.
-Last action time: 180.000 seconds.
+Level solved: Yes.
+Actions used: 67.
+Last action time: 0.366 seconds.
 
 Level name: MAMAAIStro
 Level solved: Yes.
@@ -150,151 +150,151 @@ Last action time: 0.037 seconds.
 
 Level name: MADeepPlan
 Level solved: No.
-Actions used: 277.
-Last action time: 179.903 seconds.
+Actions used: 138187.
+Last action time: 89.829 seconds.
 
 Level name: SAAIcaramba
 Level solved: No.
-Actions used: 79317.
-Last action time: 180.000 seconds.
+Actions used: 544164.
+Last action time: 90.000 seconds.
 
 Level name: MAVAikings
 Level solved: Yes.
-Actions used: 866.
-Last action time: 148.809 seconds.
+Actions used: 838.
+Last action time: 13.260 seconds.
 
 Level name: MATheZoo
 Level solved: No.
-Actions used: 1284.
-Last action time: 179.955 seconds.
+Actions used: 3.
+Last action time: 0.254 seconds.
 
 Level name: SASokoBros
 Level solved: No.
-Actions used: 1225.
-Last action time: 179.999 seconds.
+Actions used: 199777.
+Last action time: 90.000 seconds.
 
 Level name: MATrueGlue
 Level solved: Yes.
-Actions used: 74.
-Last action time: 0.310 seconds.
+Actions used: 81.
+Last action time: 0.311 seconds.
 
 Level name: SAKaren
 Level solved: Yes.
 Actions used: 497.
-Last action time: 40.125 seconds.
+Last action time: 12.383 seconds.
 
 Level name: MAFPHPOP
-Level solved: No.
-Actions used: 280.
-Last action time: 179.146 seconds.
+Level solved: Yes.
+Actions used: 282.
+Last action time: 22.230 seconds.
 
 Level name: MADeepMinds
 Level solved: No.
-Actions used: 5581.
-Last action time: 179.986 seconds.
+Actions used: 524223.
+Last action time: 89.413 seconds.
 
 Level name: MACoronAI
 Level solved: Yes.
-Actions used: 28.
-Last action time: 0.092 seconds.
+Actions used: 29.
+Last action time: 0.118 seconds.
 
 Level name: SABoxAgents
 Level solved: No.
-Actions used: 158077.
-Last action time: 180.000 seconds.
+Actions used: 92021.
+Last action time: 90.000 seconds.
 
 Level name: MABaguettes
 Level solved: Yes.
 Actions used: 213.
-Last action time: 12.790 seconds.
+Last action time: 9.072 seconds.
 
 Level name: SAaicecubes
 Level solved: Yes.
 Actions used: 27.
-Last action time: 0.012 seconds.
+Last action time: 0.010 seconds.
 
 Level name: MAHoldUd
 Level solved: Yes.
-Actions used: 24.
-Last action time: 0.119 seconds.
+Actions used: 30.
+Last action time: 0.159 seconds.
 
 Level name: SAHoldUd
 Level solved: No.
-Actions used: 58.
-Last action time: 177.699 seconds.
+Actions used: 36736.
+Last action time: 90.000 seconds.
 
 Level name: MAIIOO
-Level solved: Yes.
-Actions used: 51.
-Last action time: 1.005 seconds.
+Level solved: No.
+Actions used: 10061.
+Last action time: 89.995 seconds.
 
 Level name: MAChuligans
 Level solved: Yes.
 Actions used: 52.
-Last action time: 0.126 seconds.
+Last action time: 0.100 seconds.
 
 Level name: MAGLaDOS
-Level solved: No.
-Actions used: 33.
-Last action time: 179.664 seconds.
+Level solved: Yes.
+Actions used: 430.
+Last action time: 15.640 seconds.
 
 Level name: SAaiaioh
 Level solved: Yes.
 Actions used: 11.
-Last action time: 0.011 seconds.
+Last action time: 0.009 seconds.
 
 Level name: SAvAIkings
 Level solved: Yes.
 Actions used: 2048.
-Last action time: 2.696 seconds.
+Last action time: 2.047 seconds.
 
 Level name: MAReftAI
 Level solved: No.
 Actions used: 4.
-Last action time: 146.170 seconds.
+Last action time: 56.228 seconds.
 
 Level name: MABoxAgents
 Level solved: Yes.
-Actions used: 197.
-Last action time: 25.245 seconds.
+Actions used: 191.
+Last action time: 2.717 seconds.
 
 Level name: SAGLaDOS
 Level solved: No.
-Actions used: 46.
-Last action time: 179.404 seconds.
+Actions used: 63.
+Last action time: 89.167 seconds.
 
 Level name: MASokoBros
 Level solved: No.
-Actions used: 923.
-Last action time: 179.798 seconds.
+Actions used: 805.
+Last action time: 89.888 seconds.
 
 Level name: SAfootsteps
-Level solved: No.
-Actions used: 9150.
-Last action time: 179.995 seconds.
+Level solved: Yes.
+Actions used: 137.
+Last action time: 1.213 seconds.
 
 Level name: SAMSecretA
 Level solved: Yes.
 Actions used: 36.
-Last action time: 0.048 seconds.
+Last action time: 0.031 seconds.
 
 Level name: SADeepMinds
 Level solved: No.
-Actions used: 29450.
-Last action time: 179.997 seconds.
+Actions used: 459629.
+Last action time: 90.000 seconds.
 
 Level name: SACoronAI
-Level solved: No.
-Actions used: 44155.
-Last action time: 179.998 seconds.
+Level solved: Yes.
+Actions used: 95.
+Last action time: 0.164 seconds.
 
 Level name: SAAIstars
 Level solved: Yes.
 Actions used: 41.
-Last action time: 0.118 seconds.
+Last action time: 0.089 seconds.
 
 Level name: SAheav
 Level solved: Yes.
 Actions used: 11.
-Last action time: 0.005 seconds.
+Last action time: 0.004 seconds.
 
