@@ -786,6 +786,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                             return "going around box", other_agent
                     area_required = [action.required_free for action in self.current_plan[:5] if action.action.action_type != ActionType.NoOp]
                     request = Request(self.id_, area_required)
+                    request.purpose = self.intentions
                     if not BLACKBOARD.request_is_there(self.id_, request): 
                         BLACKBOARD.add(request, self.id_)
                         log("Agent {} added request ({}) to make box {} move".format(self.id_,request, box), "ANALYSE", False)

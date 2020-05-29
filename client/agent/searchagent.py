@@ -187,6 +187,9 @@ class SearchAgent(BDIAgent):
         elif location in state.boxes:
             state.boxes.pop(location)
         
+        if (self.row, self.col) != location:
+            state.agents[(self.row, self.col)] = AgentElement(-1, self.color, self.row, self.col)
+
         #define heuritic to be distance from agent to location_to
         requests = []
         for elm in BLACKBOARD.requests.values():
