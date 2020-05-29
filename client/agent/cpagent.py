@@ -236,6 +236,9 @@ class CPAgent(BDIAgent):
                 for i in range(len(cave.locations)):
                     temp = cave.locations[i]
 
+                    if temp == location:
+                        end = i
+                        break
                     #goal 
                     if temp in LEVEL.goals_by_pos:
                         goal = LEVEL.goals_by_pos[temp]
@@ -263,7 +266,7 @@ class CPAgent(BDIAgent):
                 for i in range(len(cave.locations)):
                     temp = cave.locations[i]
                     if temp in self.beliefs.boxes and my_box.id_== self.beliefs.boxes[temp].id_:
-                        end = i-1
+                        end = i+1
                         log("Found the box {} in the cave {}.".format(my_box, cave), "IS_FREE", False)
                         break 
         
@@ -272,7 +275,7 @@ class CPAgent(BDIAgent):
                 area_required = [cave.entrance] + cave.locations
             #clear until end
             else:
-                area_required = [cave.entrance] + cave.locations[end+1:]
+                area_required = [cave.entrance] + cave.locations[end:]
             
             log("The area required in the cave {}is {}.".format(cave, area_required), "IS_FREE", False)
 

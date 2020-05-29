@@ -70,9 +70,9 @@ class SearchAgent(BDIAgent):
         if dir1 == reverse_direction(dir2):  
             for i in range(1, len(path2)):
                 #check if there is room to turn from pull to push
-                if (len(path1)<2 and i == 1 and self.count_free_spaces(path2[i], ignore_all_other_agents=ignore_all_other_agents) >=2) or self.count_free_spaces(path2[i], ignore_all_other_agents=ignore_all_other_agents) >=3:
+                if (len(path1)<2 and i == 1 and self.count_free_spaces(path2[i], ignore_all_other_agents=False) >=2) or self.count_free_spaces(path2[i], ignore_all_other_agents=False) >=3:
                     #change to push
-                    turn = self.swicth_from_pull_to_push(path2[i-1], path2[i], ignore_all_other_agents = ignore_all_other_agents)
+                    turn = self.swicth_from_pull_to_push(path2[i-1], path2[i], ignore_all_other_agents = False)
                     result = result + turn
                     break_point = i
                     break
@@ -252,7 +252,7 @@ class SearchAgent(BDIAgent):
 
         log("Starting Single Agent Search. Box from location {} to location {}".format((box.row, box.col), location), "SAS", False)
         #Searh for path from agent to box
-        path1= self.find_simple_path((self.row, self.col), (box_row, box_col), ignore_all_boxes=False, ignore_all_other_agents=False, ignore_boxes_of_other_color = ignore_boxes_of_other_color)
+        path1= self.find_simple_path((self.row, self.col), (box_row, box_col), ignore_all_boxes=False, ignore_all_other_agents=False, ignore_boxes_of_other_color = False)
         if path1 is None or len(path1) == 0:
             path1= self.find_simple_path((self.row, self.col), (box_row, box_col), ignore_all_boxes=False, ignore_all_other_agents=True, ignore_boxes_of_other_color = ignore_boxes_of_other_color)
             if path1 is None or len(path1) == 0:

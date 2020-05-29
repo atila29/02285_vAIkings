@@ -78,6 +78,10 @@ class Blackboard:
     def add_request(self, request, agent_id):
         log("Agent {} added request {} ".format(agent_id, request), "BB_UPDATE", False)
         if agent_id in self.requests:
+            for req in self.requests[agent_id]:
+                if type(req.purpose) == type(request.purpose) and req.purpose == request.purpose:
+                    request.area = list(set(request.area + req.area))
+                    return            
             self.requests[agent_id].append(request)
         else:
             self.requests[agent_id] = [request]

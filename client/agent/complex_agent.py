@@ -90,6 +90,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         ConcreteBDIAgent.__init__(self, id_, color, row, col, initial_beliefs)
         
         self.reprioritise_goals()
+        self.deliberate()
         self.plan(ignore_all_other_agents=False)
 
 
@@ -184,6 +185,10 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 self.add_intentions_to_blackboard()
                 log("Agent {} now has intentions to move box {} to goal {}".format(
                     self.id_, self.intentions[0], self.intentions[1]), "BDI", False)
+                if self.goal_in_cave(goal):
+                    self.clear_cave_until_location((goal.row, goal.col), pair=(box,goal))
+                if self.wrong_box_on_goal(goal):
+                    self.clear_goal(goal, pair=(box,goal))
                 return
         
         elif self.desires['end location'] is not None:
@@ -196,6 +201,37 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         # Else pick None
         self.intentions = None
         log("Agent {} has no intentions".format(self.id_), "BDI", False)
+
+    def wrong_box_on_goal(self, goal):
+        if (goal.row, goal.col) in self.beliefs.boxes and self.beliefs.boxes[(goal.row, goal.col)].letter != goal.letter:
+            return True
+
+    def clear_goal(self, goal, pair=None):
+        area_required = [(goal.row, goal.col)]
+        request = Request(self.id_, area_required)
+        if pair is not None:
+            request.purpose = pair
+        BLACKBOARD.add(input=request, agent_id = self.id_)
+    
+    def goal_in_cave(self, goal):
+        return LEVEL.map_of_caves[goal.row][goal.col] is not None
+                    
+    def clear_cave_until_location(self, location, pair=None):
+        row,col = location
+        for c in LEVEL.map_of_caves[row][col]:
+            cave = c
+        
+        end = len(cave.locations)
+        for i in range(len(cave.locations)):
+            if cave.locations[i] == location:
+                end = i
+                break
+
+        area_required = [cave.entrance] + cave.locations[end:]
+        request = Request(self.id_, area_required)
+        if pair is not None:
+            request.purpose = pair
+        BLACKBOARD.add(input=request, agent_id = self.id_)
 
     def check_for_request_to_fulfill(self):
         boxes = self.boxes_of_my_color_not_already_claimed()
@@ -225,8 +261,9 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                         if path_to_box is None or len (path_to_box) == 0:
                             path_to_box = self.find_simple_path((self.row, self.col), location, ignore_all_other_agents = True)
                             if path_to_box is None or len (path_to_box) == 0:
-                                #couldn't find path to this box!
-                                continue
+                                path_to_box = self.find_simple_path((self.row, self.col), location, ignore_all_other_agents = True, ignore_boxes_of_other_color=True)
+                                if path_to_box is None or len (path_to_box) == 0:
+                                    continue
                         
                         #otherwise find location to move this box to
                         box_path = self.find_path_to_free_space(location)
@@ -441,6 +478,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 log("trigger set to {}".format(self.trigger), "trigger", False)
                 return False
 
+
         self.trigger = Trigger.ALL_GOOD
         log("trigger set to {}".format(self.trigger), "trigger", False)
         return True
@@ -486,7 +524,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                         if location in self.beliefs.boxes:
                             elm = self.beliefs.boxes[location]
                             boxes_in_the_area.append(elm.id_)
-                            if request.box == elm or (elm.id_ in BLACKBOARD.claimed_boxes and BLACKBOARD.claimed_boxes[elm.id_] == self.id_) :
+                            if (elm.id_ in BLACKBOARD.claimed_boxes and BLACKBOARD.claimed_boxes[elm.id_] == self.id_) :
                                 continue
                         elif location in self.beliefs.agents:
                             elm = self.beliefs.agents[location]
@@ -568,6 +606,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             
             if self.intentions is None:
                 log("Agent {} has no intentions. So it will wait".format(self.id_), "PLAN", False)
+                self.current_plan = []
                 self.wait(1)
                 return
             
@@ -692,6 +731,15 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             # return True
         else:
             log("Agent {} couldn't find a retreat move to make way for agent {}".format(self.id_, other_agent.id_), "RETREAT", False)
+
+            area_required = [action.required_free for action in self.current_plan[:5] if action.action.action_type != ActionType.NoOp] +[(self.row, self.col)] 
+            request = Request(self.id_, area_required)
+            request.purpose = self.intentions
+            if not BLACKBOARD.request_is_there(self.id_, request):
+                BLACKBOARD.add(request, self.id_)
+                log("Agent {} added request ({}) to make agent {} move".format(self.id_,request, other_agent.id_), "ANALYSE", False)
+            log("Agent {} is waiting for agent {} to move".format(self.id_, other_agent.id_), "ANALYSE", False)
+            
             return False
     #self.current_plan[:0] = [UnfoldedAction(Action(ActionType.NoOp, Dir.N, Dir.N), self.id_)]
 
@@ -727,7 +775,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     if (agent.row, agent.col) == rf_loc:
                         other_agent = agent
                 if self.about_to_crash(agent = other_agent):
-                    log("Agent {} thinks it will crash with agent {} and is looking for retreat move".format(self.id_, other_agent.id_), "ANALYSE", False)
+                    log("Agent {} (plan: {}) thinks it will crash with agent {} (Plan: {} and is looking for retreat move".format(self.id_, self.current_plan, other_agent.id_, other_agent.current_plan), "ANALYSE", False)
                     return "try retreat", other_agent
                 else:
                     if len(other_agent.current_plan) == 0 or other_agent.current_plan[0].action.action_type == ActionType.NoOp or not other_agent.sound():
@@ -747,7 +795,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                                     log("Agent {} thinks agent {} is standing still but path found is not sound. Path: {}".format(self.id_, other_agent.id_, self.current_plan), "ANALYSE", False)
                                 
                         #TODO
-                        area_required = [action.required_free for action in self.current_plan[:5] if action.action.action_type != ActionType.NoOp] 
+                        area_required = [action.required_free for action in self.current_plan[:5] if action.action.action_type != ActionType.NoOp] +[(self.row, self.col)] 
                         request = Request(self.id_, area_required)
                         request.purpose = self.intentions
                         #TODO: check if request is there!
