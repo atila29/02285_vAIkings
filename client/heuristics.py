@@ -28,17 +28,21 @@ class SimpleHeuristic:
         return self.h(state)
 
 class DepthHeuristic:
-    def __init__(self, agent_id, requests):
+    def __init__(self, agent_id, requests, ignore_location = None):
         self.agent_id = agent_id
         self.requests = requests
+        self.ignore_location = ignore_location
 
     def h(self, state):
         #find agent in level
         for location in state.agents:
             if state.agents[location].id_ == self.agent_id:
+                agent_location = location
                 for request in self.requests:
                     if location in request.area:
                         return state.g 
+        if self.ignore_location is not None and agent_location == self.ignore_location:
+            return state.g
         return 0
 
     def f(self, state):

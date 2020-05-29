@@ -136,16 +136,18 @@ class SearchAgent(BDIAgent):
         box_direction = reverse_direction(action_before.action.agent_dir)
         agent_dir = action_after.action.agent_dir
         row, col = action_after.agent_from
+        turn_dir = None
         #choose direction
         for direction in [Dir.N, Dir.S, Dir.E, Dir.W]:
             if direction == box_direction or direction == agent_dir:
                 continue
             new_row = row + direction.d_row
             new_col = col + direction.d_col
-            if not (self.beliefs.is_free(new_row, new_col) or (ignore_all_other_agents and (new_row, new_col) in self.beliefs.agents)):
-                continue
-            turn_dir = direction
-            break
+            if self.beliefs.is_free(new_row, new_col):
+                turn_dir = direction
+                break
+            elif (ignore_all_other_agents and (new_row, new_col) in self.beliefs.agents):
+                turn_dir = direction
         
         #pull
         row, col = action_before.agent_to
@@ -187,15 +189,13 @@ class SearchAgent(BDIAgent):
         elif location in state.boxes:
             state.boxes.pop(location)
         
-        if (self.row, self.col) != location:
-            state.agents[(self.row, self.col)] = AgentElement(-1, self.color, self.row, self.col)
 
         #define heuritic to be distance from agent to location_to
         requests = []
         for elm in BLACKBOARD.requests.values():
             requests = requests + elm
         log("Agent: {}, Requests: {}".format(self.id_, requests), "PATH_TO_FREE", False)
-        h = DepthHeuristic(self.id_, requests)
+        h = DepthHeuristic(self.id_, requests, ignore_location = (self.row, self.col))
         return self.best_first_search(h, state)
 
     def best_first_search(self, heuristic, initial_state):

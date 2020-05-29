@@ -213,7 +213,7 @@ class CPAgent(BDIAgent):
             #TODO: If we call this when trying to do a request we will probably not be allowed to enter, since the cave/passage will be blocked by the box we wanna move. How do we handle this?
     def is_free(self, cave_or_passage):
         
-        if isinstance(self.intentions, Request):
+        if isinstance(self.intentions, Request) or self.intentions is None:
             if isinstance(cave_or_passage, Cave):
                 return not cave_or_passage.occupied or (self.row, self.col) in (cave_or_passage.locations + [cave_or_passage.entrance])
             if isinstance(cave_or_passage, Passage):
@@ -226,34 +226,47 @@ class CPAgent(BDIAgent):
                     log("Cave {} is not free since it is claimed by another agent".format(cave), "IS_FREE", False)
                     return False
             
+            my_box,location = self.unpack_intentions_to_box_and_location()
 
-            #Start at the end of the cave and look for boxes and goals
-            #Cave is marked as not free if:
-                # 1: An unsatisfied goal is blocked (behind a box inside the cave, irrelevant if on a goal or not) 
-                # 2: A needed box (claimed, or count to see if any spares) is blocked (behind another box inside the cave, irrelevant if on a goal or not )
-            end = None
+            #If goal in cave it is not enough to clear until goal. We should not block in anything
+            if location in cave.locations:
+                log("The goal {} is in the cave {}.".format(location, cave), "IS_FREE", False)
+                end = None
 
-            for i in range(len(cave.locations)):
-                temp = cave.locations[i]
+                for i in range(len(cave.locations)):
+                    temp = cave.locations[i]
 
-                #If on goal, skip if satisfied, otherwise stop:
-                if temp in LEVEL.goals_by_pos:
-                    if not self.beliefs.is_goal_satisfied(LEVEL.goals_by_pos[temp]):
-                        break
-                    else:
-                        end = i
-
-                #check for box
-                elif temp in self.beliefs.boxes:
-                    box = self.beliefs.boxes[temp]
-                    #These are not allowed to be blocked, so stop
-                    if self.box_is_claimed_by_me(box):
-                        end = i
-                        break
-                    elif self.box_is_needed(box) or self.box_is_claimed_by_other(box):
-                        end = i - 1 #TODO: CHECK INDEX? 
-                        break
-
+                    #goal 
+                    if temp in LEVEL.goals_by_pos:
+                        goal = LEVEL.goals_by_pos[temp]
+                        #ok to block for satisfied goal
+                        if self.beliefs.is_goal_satisfied(goal):
+                            continue
+                        else:
+                            end = i
+                            break
+                    #box
+                    elif temp in self.beliefs.boxes:
+                        box = self.beliefs.boxes[temp] 
+                        if self.box_is_needed(box) or self.box_is_claimed_by_other(box):
+                            end = i
+                            break
+                    #agent
+                    elif temp in self.beliefs.agents:
+                        if self.beliefs.agents[temp].id_ != self.id_:
+                            end = i
+                            break
+            #location not in cave, so just clear until box
+            else:
+                log("The goal {} is not in the cave {}.".format(location, cave), "IS_FREE", False)
+                end = len(cave.locations)
+                for i in range(len(cave.locations)):
+                    temp = cave.locations[i]
+                    if temp in self.beliefs.boxes and my_box.id_== self.beliefs.boxes[temp].id_:
+                        end = i-1
+                        log("Found the box {} in the cave {}.".format(my_box, cave), "IS_FREE", False)
+                        break 
+        
             #clear whole cave
             if end is None:
                 area_required = [cave.entrance] + cave.locations
@@ -261,6 +274,8 @@ class CPAgent(BDIAgent):
             else:
                 area_required = [cave.entrance] + cave.locations[end+1:]
             
+            log("The area required in the cave {}is {}.".format(cave, area_required), "IS_FREE", False)
+
             for location in area_required:
                 if location in self.beliefs.boxes:
                     if self.beliefs.boxes[location].id_ not in BLACKBOARD.claimed_boxes or BLACKBOARD.claimed_boxes[self.beliefs.boxes[location].id_] != self.id_:

@@ -204,8 +204,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         for elm in BLACKBOARD.requests.values():
             for request in elm:
                 if self.id_ not in request.agents_that_have_checked_request_already:
-                    # if not self.present_in_requests(request):
-                    requests.append(request)
+                    if not self.present_in_requests(request):
+                        requests.append(request)
 
         # find easiest first
         best_cost, best_request, best_box, path = float(
@@ -446,12 +446,6 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         return True
 
     def is_way_clear(self):
-        if len(self.current_plan) != 0:
-            next_location = self.current_plan[0].required_free
-            if self.id_ in BLACKBOARD.requests:
-                for req in BLACKBOARD.requests[self.id_]:
-                    if next_location in req.area:
-                        return False
 
         if self.have_claims():
             #Assuming that if agents have claims, they are relevant for current action
@@ -461,6 +455,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     BLACKBOARD.claimed_passages.pop(self.id_)
                 if self.id_ in BLACKBOARD.claimed_caves:
                     BLACKBOARD.claimed_caves.pop(self.id_)
+                log("Agent {} had non-sound-claims".format(self.id_), "TEST", False)
                 return False
 
         row,col = self.current_plan[0].required_free
@@ -593,10 +588,11 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                         return     
                 else:
                     #TODO:
-                    log("Agent {} found no simple path. So it is ignoring all boxes and agents".format(self.id_), "PLAN", False)
+                    log("Agent {} found no simple path. So it is ignoring boxes of another color and agents".format(self.id_), "PLAN", False)
                     #try to ignore boxes and find a path 
                     simple_plan = self.search_for_simple_plan(self.heuristic, (box,location), ignore_all_other_agents = True, ignore_all_boxes = False, ignore_boxes_of_other_color = True)
                     if simple_plan is None or len(simple_plan) == 0:
+                        log("Agent {} found no path ignoring boxes of other colors. So it is ignoring all boxes and agents".format(self.id_), "PLAN", False)
                         simple_plan = self.search_for_simple_plan(self.heuristic, (box,location), ignore_all_other_agents = True, ignore_all_boxes = True)
                     if simple_plan is not None and len(simple_plan) > 0:
                         self.current_plan = simple_plan
@@ -608,6 +604,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     else:
                         if len(self.beliefs.agents) == 1:
                             self.current_plan = self.single_agent_search(self.heuristic, self.intentions)
+                            log("Agent {} is a solo agent. So doing single agent search".format(self.id_), "PLAN", False)
                             return
                         log("Agent {} could not find a plan at all".format(self.id_), "PLAN", False)
                         #Figure out how to make requests to help
@@ -752,6 +749,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                         #TODO
                         area_required = [action.required_free for action in self.current_plan[:5] if action.action.action_type != ActionType.NoOp] 
                         request = Request(self.id_, area_required)
+                        request.purpose = self.intentions
                         #TODO: check if request is there!
                         if not BLACKBOARD.request_is_there(self.id_, request):
                             BLACKBOARD.add(request, self.id_)

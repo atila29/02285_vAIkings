@@ -33,7 +33,10 @@ class RetreatAgent(SearchAgent):
         else:
             other_action = agent.current_plan[0]
         if other_action.action.action_type == ActionType.NoOp:
-            return False
+            if len(agent.current_plan) > 1:
+                other_action = agent.current_plan[1]
+            if other_action.action.action_type == ActionType.NoOp:
+                return False
         if box is None and agent is None: 
             return True
         if my_action.action.action_type == ActionType.Move or  my_action.action.action_type ==  ActionType.Pull:
