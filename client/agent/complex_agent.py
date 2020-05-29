@@ -322,6 +322,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 best_agent = self.bid_box_to_goal(goal, box)
 
                 if best_agent.id_ == self.id_:
+                    if self.pair_present_in_requests((box,goal)):
+                        continue
                     choices.append((box, goal))
         #No choices
         if len(choices) == 0:
@@ -354,7 +356,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         
         return best_pair
 
-            
+    def pair_present_in_requests(self, pair):
+        if self.id_ in BLACKBOARD.requests:
+            for request in BLACKBOARD.requests[self.id_]:
+                if type(request.purpose) == type(pair) and request.purpose == pair:
+                    return True
+        return False 
 
     def is_path_to_location_free_in_cave(self, cave: Cave, location):
         reversed_cave_locations = cave.locations[::-1]
@@ -408,7 +415,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
 
 
     def reconsider(self):
-        return self.waiting_for_request()
+        return not self.sound() and self.waiting_for_request()
 
 # region sound
     """
