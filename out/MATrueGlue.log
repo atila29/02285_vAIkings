@@ -1,0 +1,128 @@
+#domain
+hospital
+#levelname
+MATrueGlue
+#colors
+red: 0, A
+green: 1, B
+blue: 2, C
+#initial
+++++++++++++++++++++++
++     C +         0  +
++       +       2 +  +
++       +         + A+
++                 ++ +
++       +         ++ +
++       +     +   + ++
++       +     +   +  +
++             +   +  +
++B            +   +  +
++  1    +     +   +  +
++      +++++  +   +  +
++                 +  +
++      ++++++++++    +
++                    +
+++++++++++++++++++++++
+#goal
+++++++++++++++++++++++
++  A    +            +
++       +         +  +
++       +         +  +
++                 ++B+
++       +         ++C+
++       +     +   + ++
++       +     +   +  +
++             +   +  +
++             +   +  +
++       +     +   +  +
++      +++++  +   +  +
++                 +  +
++      ++++++++++    +
++                    +
+++++++++++++++++++++++
+#end
+#clientname
+vAIkings
+#actions
+153952857:Move(E);NoOp;Move(S)
+154318687:Move(S);NoOp;Move(S)
+154668656:Move(S);NoOp;Move(W)
+155015853:Push(E,N);NoOp;Move(W)
+155344545:Push(N,N);NoOp;Move(W)
+155612684:Push(N,W);NoOp;Move(W)
+155860213:Push(W,W);NoOp;Move(W)
+156140194:Push(W,W);NoOp;Move(W)
+156445175:Push(W,S);NoOp;Move(W)
+156688170:Push(S,S);NoOp;Move(W)
+156925332:Push(S,S);NoOp;Move(W)
+157139606:Push(S,W);NoOp;Move(N)
+157354448:Push(W,W);NoOp;Move(N)
+157565311:Push(W,W);NoOp;Move(N)
+157777579:Push(W,W);NoOp;Push(W,S)
+157990555:Push(W,W);NoOp;Push(S,S)
+158205178:Push(W,W);NoOp;Push(S,S)
+158441084:Push(W,W);NoOp;Push(S,E)
+158735365:NoOp;NoOp;Push(E,E)
+159058826:NoOp;NoOp;Push(E,E)
+159343348:NoOp;NoOp;Push(E,N)
+159635767:NoOp;NoOp;Push(N,N)
+159924567:NoOp;NoOp;Push(N,N)
+180558133:Push(W,W);NoOp;Push(N,E)
+180830983:Push(W,W);NoOp;Push(E,E)
+181089392:Push(W,W);NoOp;Push(E,E)
+181329625:Push(W,N);NoOp;Push(E,E)
+181574108:Push(N,N);NoOp;Push(E,E)
+181799908:Push(N,N);NoOp;Push(E,E)
+182045809:Push(N,W);NoOp;Push(E,E)
+182352695:Push(W,W);NoOp;Push(E,E)
+182711796:Push(W,W);NoOp;Push(E,E)
+183045053:Push(W,W);NoOp;Push(E,E)
+183316067:NoOp;NoOp;Push(E,S)
+183559226:NoOp;NoOp;Push(S,S)
+183818053:NoOp;NoOp;Push(S,E)
+184058518:NoOp;NoOp;Push(E,S)
+184299822:NoOp;NoOp;Push(S,S)
+225989549:NoOp;Move(N);NoOp
+226279462:NoOp;Move(W);NoOp
+226555553:NoOp;Push(W,N);NoOp
+226812548:NoOp;Push(N,N);NoOp
+227064576:NoOp;Push(N,N);NoOp
+227305832:NoOp;Push(N,N);NoOp
+227545462:NoOp;Push(N,N);NoOp
+227782201:NoOp;Push(N,E);NoOp
+228009100:NoOp;Push(E,E);NoOp
+228250822:NoOp;Push(E,E);NoOp
+228488322:NoOp;Push(E,E);NoOp
+228706310:NoOp;Push(E,E);NoOp
+228956224:NoOp;Push(E,E);NoOp
+229179903:NoOp;Push(E,E);NoOp
+229417650:NoOp;Push(E,E);NoOp
+229761845:NoOp;Push(E,N);NoOp
+230044811:NoOp;Push(N,N);NoOp
+230282186:NoOp;Push(N,N);NoOp
+230519238:NoOp;Push(N,E);NoOp
+230765935:NoOp;Push(E,E);NoOp
+231013296:NoOp;Push(E,E);NoOp
+231247385:NoOp;Push(E,E);NoOp
+231485088:NoOp;Push(E,E);NoOp
+231757786:NoOp;Push(E,E);NoOp
+232084916:NoOp;Push(E,E);NoOp
+232447390:NoOp;Push(E,E);NoOp
+232694901:NoOp;Push(E,E);NoOp
+232994154:NoOp;Push(E,E);NoOp
+233234098:NoOp;Push(E,S);NoOp
+233428580:NoOp;Push(S,S);NoOp
+234124995:NoOp;NoOp;NoOp
+234423194:NoOp;NoOp;Move(N)
+234668863:NoOp;NoOp;Move(N)
+234884224:NoOp;NoOp;NoOp
+236419578:NoOp;Push(S,E);NoOp
+236677719:NoOp;Push(E,S);NoOp
+#end
+#solved
+true
+#numactions
+74
+#time
+236677719
+#end

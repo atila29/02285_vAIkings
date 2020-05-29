@@ -1,0 +1,466 @@
+#domain
+hospital
+#levelname
+MAKaren
+#colors
+blue: 0, A
+pink: 1, C
+green: 2, B
+cyan: 3, D, F
+brown: 4, P
+purple: 5, K
+orange: X
+red: O
+lightblue: 6, E, G
+grey: Y
+#initial
+++++++++++++++++++++++++++++++
++                            +
++ +++                    +++ +
++ ++X+                  +X++ +
++ ++XX++              ++XX++ +
++ ++XXXX+            +XXXX++ +
++  +XXXXX++ F++++G ++XXXXX+  +
++  +XXXXXXX++XXXX++XXXXXXX+  +
++  +XXXXXXXXXXXXXXXXXXXXXX+  +
++   +XXXXXXXXXXXXXXXXXXXX+   +
++    +X+XXXXXXXXXXXXXX+X+    +
++     +XXXXXXXXXXXXXXXX+     +
++     +XXXXXXXXXXXXXXXX+     +
++    +XXX  XXXXXXXX  XXX+    +
++    +XX+ ++XXXXXX+ ++XX+    +
++    +XX++++XXXXXX++++XX+    +
++    +XXX++XXX++XXX++XXX+    +
++ +++XXOOXXXXXXXXXXXXOOXX+++ +
++ + +XOOOOXX+X++X+XXOOOOX+ + +
++ + +XOOOOXXX++++XXXOOOOX+ + +
++ +  +XOOXXXX+OO+XXXXOOX+  + +
++ +  E+XXXXXX+OO+XXXXXX+D  + +
++ +    ++XXXXX++XXXXX++    + +
++ +      +++XXXXXX+++      + +
++         6 ++++++ 3         +
+++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++
++++++  C  A++ 4++++++ ++++++++
++++++ +++++++ +++++++P++++++++
+++     1  0++ +++++++ ++++ +++
++++++++++++++              +++
++    B     ++K++++++++++++P+++
++ B    2  B++ +5           +++
++ B        ++ ++++++++++++++++
+++++++++++++++++++++++++++++++
+#goal
+++++++++++++++++++++++++++++++
++                            +
++ +++G                  F+++ +
++ ++X+                  +X++ +
++ ++XX++D             ++XX++ +
++ ++XXXX+           E+XXXX++ +
++  +XXXXX++  ++++  ++XXXXX+  +
++  +XXXXXXX++XXXX++XXXXXXX+  +
++  +XXXXXXXXXXXXXXXXXXXXXX+  +
++   +XXXXXXXXXXXXXXXXXXXX+   +
++    +X+XXXXXXXXXXXXXX+X+    +
++     +XXXXXXXXXXXXXXXX+     +
++     +XXXXXXXXXXXXXXXX+     +
++    +XXX  XXXXXXXX  XXX+    +
++    +XX+ ++XXXXXX+ ++XX+    +
++    +XX++++XXXXXX++++XX+    +
++    +XXX++XXX++XXX++XXX+    +
++ +++XXOOXXXXXXXXXXXXOOXX+++ +
++ + +XOOOOXX+X++X+XXOOOOX+ + +
++ + +XOOOOXXX++++XXXOOOOX+ + +
++ +  +XOOXXXX+OO+XXXXOOX+  + +
++ +   +XXXXXX+OO+XXXXXX+   + +
++ +    ++XXXXX++XXXXX++    + +
++ +      +++XXXXXX+++      + +
++           ++++++           +
+++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++
++++++      ++  ++++++P++++++++
++++++ +++++++ +++++++ ++++++++
+++CA       ++ +++++++ ++++P+++
++++++++++++++              +++
++      B   ++ ++++++++++++ +++
++          ++K+            +++
++         B++ ++++++++++++++++
+++++++++++++++++++++++++++++++
+#end
+#clientname
+vAIkings
+#actions
+8010252928:NoOp;Move(W);Move(N);Move(E);Move(W);Move(E);Move(W)
+8013828329:NoOp;NoOp;Move(W);Move(E);Move(S);Move(E);Move(W)
+8017541631:NoOp;NoOp;Pull(E,W);Move(E);Move(S);Move(E);Move(W)
+8021227766:NoOp;NoOp;NoOp;Move(E);NoOp;Move(E);Move(W)
+8093446592:NoOp;NoOp;Pull(S,W);Move(E);NoOp;Move(E);Move(W)
+8255092129:NoOp;NoOp;Move(E);Move(E);NoOp;Move(E);Move(W)
+8259554421:NoOp;NoOp;Move(E);Move(E);NoOp;Move(E);Move(W)
+8264081482:NoOp;NoOp;Push(E,S);Move(E);NoOp;Move(E);Move(W)
+8268025284:NoOp;NoOp;NoOp;Move(E);NoOp;Move(E);Move(W)
+8271517523:NoOp;NoOp;NoOp;Move(N);NoOp;Move(E);Move(N)
+8275509315:NoOp;NoOp;NoOp;Move(N);NoOp;Move(E);Move(N)
+8451200685:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+8629875869:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+8811236633:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+9031556410:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+9231953080:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+9425072725:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+9796627593:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+10050650171:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+10241010304:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+10417402704:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+10616430019:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+10793239460:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+10970822303:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+11155954428:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+11452516655:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+11808781269:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+11981966890:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+12197148649:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+12392785061:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+12579489972:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+12777306823:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(N)
+12964373412:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Move(E)
+13146087692:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Move(E)
+13527796716:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Move(E)
+13893999279:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Move(E)
+14197403023:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+14396897941:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Move(E)
+14589767278:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+14891518896:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Move(E)
+15141559393:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Move(E)
+15329860492:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+15527719810:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Move(E)
+15704948791:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+15878171192:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Move(E)
+16051860575:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Move(E)
+16224672501:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Move(E)
+16398839032:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Move(E)
+16570910570:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Move(E)
+16744158136:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;NoOp
+16941050586:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;Move(E)
+18747603207:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Move(E)
+19022828067:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(E)
+19196779210:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Pull(E,S)
+19374073515:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Push(W,N)
+19570333744:NoOp;NoOp;NoOp;Pull(E,S);NoOp;NoOp;Push(N,N)
+19745943857:NoOp;NoOp;NoOp;Push(W,N);NoOp;NoOp;Push(N,N)
+19919536697:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(N,W)
+20096198371:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(W,W)
+20446230397:NoOp;NoOp;NoOp;Push(N,E);NoOp;NoOp;Push(W,W)
+20720133059:NoOp;NoOp;NoOp;Pull(N,E);NoOp;NoOp;NoOp
+20912259995:NoOp;NoOp;NoOp;Pull(E,S);NoOp;NoOp;NoOp
+21131173375:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;Push(W,W)
+21462565365:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;Push(W,W)
+21761887148:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;Push(W,W)
+23283139174:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;Push(W,W)
+23464407450:NoOp;NoOp;NoOp;Push(W,S);NoOp;NoOp;Push(W,W)
+23644734085:NoOp;NoOp;NoOp;Push(S,E);NoOp;NoOp;Push(W,W)
+23831487719:NoOp;NoOp;NoOp;Push(E,E);NoOp;NoOp;Push(W,W)
+24011817775:NoOp;NoOp;NoOp;Push(E,E);NoOp;NoOp;Push(W,W)
+24189444750:NoOp;NoOp;NoOp;Push(E,E);NoOp;NoOp;Push(W,W)
+28699662027:NoOp;NoOp;NoOp;Push(E,E);NoOp;NoOp;Move(N)
+29055194514:NoOp;NoOp;NoOp;Push(E,E);NoOp;NoOp;Move(W)
+29295319817:NoOp;NoOp;NoOp;Push(E,E);NoOp;NoOp;Move(W)
+29470335766:NoOp;NoOp;NoOp;Push(E,E);NoOp;NoOp;Move(W)
+29693166291:NoOp;NoOp;NoOp;Push(E,E);NoOp;NoOp;Move(W)
+30003358194:NoOp;NoOp;NoOp;Push(E,E);NoOp;NoOp;Move(W)
+30296593652:NoOp;NoOp;NoOp;Push(E,E);NoOp;NoOp;Move(S)
+30728318477:NoOp;NoOp;NoOp;Push(E,E);NoOp;NoOp;Move(S)
+35464017966:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Move(S)
+35666378874:NoOp;NoOp;NoOp;Move(E);NoOp;NoOp;Move(S)
+36079720317:NoOp;NoOp;NoOp;Move(E);NoOp;NoOp;Move(S)
+36485728247:NoOp;NoOp;NoOp;Move(E);NoOp;NoOp;Move(S)
+36829726330:NoOp;NoOp;NoOp;Move(E);NoOp;NoOp;Move(S)
+37132374016:NoOp;NoOp;NoOp;Move(E);NoOp;NoOp;Move(S)
+37467744621:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+37718962326:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+37915780211:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+38133631070:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+38319044462:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+38526622421:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+38763686844:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+38944089391:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+39141501229:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+39362564295:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+39544598181:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+39748282082:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+39948566257:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+40135606707:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+40318441428:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(S)
+40611920424:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(E)
+41001219579:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(E)
+41368366909:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(N)
+41563074550:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(N)
+41785372013:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(N)
+41963801386:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Move(E)
+42140154181:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Push(E,S)
+42321922031:NoOp;NoOp;NoOp;Move(S);NoOp;NoOp;Push(S,S)
+42504350968:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Push(S,S)
+42712131694:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Push(S,W)
+42893294528:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Push(W,W)
+43071833575:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Push(W,W)
+43250741392:NoOp;NoOp;NoOp;Move(N);NoOp;NoOp;Push(W,W)
+43429484677:NoOp;NoOp;NoOp;Move(W);NoOp;NoOp;Push(W,N)
+43609617686:NoOp;NoOp;NoOp;Push(W,S);NoOp;NoOp;Push(N,N)
+43788865615:NoOp;NoOp;NoOp;Push(S,S);NoOp;NoOp;Push(N,N)
+43967640843:NoOp;NoOp;NoOp;Push(S,S);NoOp;NoOp;Push(N,N)
+44171414521:NoOp;NoOp;NoOp;Push(S,E);NoOp;NoOp;Push(N,N)
+44347957927:NoOp;NoOp;NoOp;Push(E,E);NoOp;NoOp;Push(N,N)
+44525958760:NoOp;NoOp;NoOp;Push(E,E);NoOp;NoOp;Push(N,N)
+44705664114:NoOp;NoOp;NoOp;Push(E,E);NoOp;NoOp;Push(N,N)
+44885050604:NoOp;NoOp;NoOp;Push(E,N);NoOp;NoOp;Push(N,N)
+45063266510:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(N,N)
+45241436532:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(N,N)
+45420986364:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(N,N)
+45627255388:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(N,N)
+45801855676:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(N,N)
+45979284294:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(N,N)
+46178795299:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(N,N)
+46381938813:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(N,N)
+46580469585:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(N,N)
+46759208628:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(N,N)
+46934075679:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(N,N)
+47138883097:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(N,N)
+47316651922:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(N,N)
+47492505956:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(N,N)
+47672318714:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(N,E)
+47850226449:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(E,E)
+48026379105:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(E,E)
+48206261410:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(E,E)
+48383481938:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(E,E)
+48593828255:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(E,S)
+48770654610:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(S,S)
+48951155187:NoOp;NoOp;NoOp;Push(N,N);NoOp;NoOp;Push(S,E)
+49126991899:NoOp;NoOp;NoOp;Push(N,W);NoOp;NoOp;Push(E,E)
+49305706542:NoOp;NoOp;NoOp;Push(W,W);NoOp;NoOp;Push(E,S)
+49482861507:NoOp;NoOp;NoOp;Push(W,W);NoOp;NoOp;Push(S,E)
+49659426555:NoOp;NoOp;NoOp;Push(W,W);NoOp;NoOp;Push(E,S)
+49833928377:NoOp;NoOp;NoOp;Push(W,W);NoOp;NoOp;Push(S,E)
+50055440859:NoOp;NoOp;NoOp;Push(W,S);NoOp;NoOp;Push(E,E)
+50251924875:NoOp;NoOp;NoOp;Push(S,S);NoOp;NoOp;Push(E,E)
+50430038201:NoOp;NoOp;NoOp;Push(S,W);NoOp;NoOp;Push(E,E)
+50607017056:NoOp;NoOp;NoOp;Push(W,W);NoOp;NoOp;Push(E,E)
+50783816230:NoOp;NoOp;NoOp;Push(W,S);NoOp;NoOp;Push(E,E)
+50958250646:NoOp;NoOp;NoOp;Push(S,W);NoOp;NoOp;Push(E,E)
+51152825713:NoOp;NoOp;NoOp;Push(W,W);NoOp;NoOp;Push(E,E)
+51349647109:NoOp;NoOp;NoOp;Push(W,W);NoOp;NoOp;Push(E,E)
+51572956805:NoOp;NoOp;NoOp;Push(W,W);NoOp;NoOp;Push(E,E)
+51747316296:NoOp;NoOp;NoOp;Push(W,W);NoOp;NoOp;Push(E,E)
+51923383095:NoOp;NoOp;NoOp;Push(W,W);NoOp;NoOp;NoOp
+52101059347:NoOp;NoOp;NoOp;Push(W,W);NoOp;NoOp;NoOp
+52273408526:NoOp;NoOp;NoOp;Push(W,W);NoOp;NoOp;NoOp
+52446414637:NoOp;NoOp;NoOp;Push(W,W);NoOp;NoOp;NoOp
+52621423993:NoOp;NoOp;NoOp;Push(W,W);NoOp;NoOp;NoOp
+52799241296:NoOp;NoOp;NoOp;Push(W,W);NoOp;NoOp;NoOp
+52986344094:NoOp;NoOp;NoOp;Push(W,W);NoOp;NoOp;NoOp
+53217101953:NoOp;NoOp;NoOp;Push(W,W);NoOp;NoOp;NoOp
+53400894342:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+53574204440:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+53749733561:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+53929759904:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+54125503149:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+54304355545:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+54477911129:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+54688737326:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+54861649015:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+55036145243:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+55212759785:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+55389722914:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+55565542686:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+55739295697:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+55915448185:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+56092732776:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+56300961307:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+56475568990:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+56666102336:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+56840721628:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+57016392941:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+57191327589:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+57369165286:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+57556746956:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+57779520641:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+57972764589:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+58161592898:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+58340198993:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+58515703784:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+58689069087:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+58862077348:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+59036491466:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+59216867768:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+59429658137:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+59608062795:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+59780154719:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+59952490204:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+60127425571:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+60301557085:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+60475464330:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+60651098241:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+60864573251:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+61038069653:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+61212845323:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+61386441094:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+61562906495:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+61738189705:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+61914537545:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+62088020952:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+62263623509:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+62480003835:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+62653377102:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+62828401506:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+63013472803:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+63201986044:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+63377643811:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+63554015445:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+63728749404:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+63901834097:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+64115830678:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+64291418726:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+64467781731:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+64643201310:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+64817525293:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+65000112879:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+65177619364:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+65370693667:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+65559822662:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+65770975882:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+65944369978:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+66119370529:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+66298149421:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+66481675384:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+66660920113:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+66841198893:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+67016972118:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+67194012613:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+67409121632:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+67585414182:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+67767499757:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+67961655096:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+68155632740:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+68332742996:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+68508695109:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+68688866889:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+68864299324:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+69091033198:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+69265230654:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+69437814393:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+69612123870:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+69791149246:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+69976115826:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+70160239703:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+70365574648:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+70571108573:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+70819272277:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+71029675128:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+71234931331:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+71414072959:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+71602890084:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+71773141282:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+71947625899:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+72131419915:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+72321203577:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+72538736825:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+72713640748:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+72891093614:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+73066301954:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+73240556940:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+73415443305:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+73590132121:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+73763168482:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+73937955046:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+74111244174:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+74332229809:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+74507724741:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+74681499749:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+74854616072:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+75028042532:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+75206730105:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+75386868326:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+75563439929:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+75737602824:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+75959081874:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+76133406634:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+76311263421:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+76487045826:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+76662085636:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+76837126842:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+77010969785:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+77187174702:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+77364508832:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+77539710740:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+77763424844:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+77940720296:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+78116595256:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+78308850748:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+78487183109:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+78661165463:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+78851245176:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+79029909199:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+79216848105:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+79410136179:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+79653737068:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+79846857217:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+80040790809:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+80249516128:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+80444607116:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+80617447669:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+80788253109:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+80963156423:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+81137884141:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+81361631719:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+81544846774:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+81720187642:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+81897546382:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+82073003457:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+82260411302:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+82445353107:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+82625552704:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+82815304426:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+82994501813:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+83225010364:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+83408300470:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+83582174575:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+83757276179:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+83932517590:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+84126774389:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+84313359388:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+84492745787:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+84671506434:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+84851731909:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+85079937400:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+85251618527:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+85432781663:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+85608876107:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+85779585235:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+85949340582:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+86120557862:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+86294182625:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+86470152133:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+86665669688:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+86892610033:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+87064164016:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+87238805585:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+87408407951:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+87579410048:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+87751638678:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+87921964438:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+88101137502:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+88276580295:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+88448121350:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+88676373876:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+88847445676:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+89019360338:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+89191802372:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+89363388262:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+89533680173:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+89707498757:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+89877434466:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+#end
+#solved
+false
+#numactions
+367
+#time
+89877434466
+#end

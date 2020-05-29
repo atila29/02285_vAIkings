@@ -1,0 +1,47 @@
+#domain
+hospital
+#levelname
+MAaiaioh
+#colors
+red: 0, A
+blue: 1, B
+#initial
++++++++++
++   +   +
++0 A+   +
++       +
++1 B+   +
++++++++++
+#goal
++++++++++
++   +  A+
++   +   +
++       +
++   +  B+
++++++++++
+#end
+#clientname
+vAIkings
+#actions
+10059156:Move(E);Move(E)
+10418154:Push(E,S);NoOp
+10744502:Push(S,E);NoOp
+12957782:NoOp;NoOp
+13450975:Push(E,E);NoOp
+14000744:Push(E,N);NoOp
+14506211:Push(N,N);NoOp
+14758816:Push(N,E);Push(E,N)
+14970037:Push(E,E);NoOp
+18166060:NoOp;Push(N,E)
+18376454:NoOp;Push(E,E)
+18599450:NoOp;Push(E,S)
+18787692:NoOp;Push(S,E)
+18969342:NoOp;Push(E,E)
+#end
+#solved
+true
+#numactions
+14
+#time
+18969342
+#end

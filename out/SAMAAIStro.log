@@ -1,0 +1,37 @@
+#domain
+hospital
+#levelname
+SAheav
+#colors
+blue: 0, A
+#initial
+++++++++++++++++
++          A 0++
+++++++++++++++++
+#goal
+++++++++++++++++
++A            ++
+++++++++++++++++
+#end
+#clientname
+vAIkings
+#actions
+4160769:Move(W)
+4343770:Push(W,W)
+4442721:Push(W,W)
+4544580:Push(W,W)
+4718561:Push(W,W)
+4825855:Push(W,W)
+4916814:Push(W,W)
+4999612:Push(W,W)
+5080032:Push(W,W)
+5159911:Push(W,W)
+5260726:Push(W,W)
+#end
+#solved
+true
+#numactions
+11
+#time
+5260726
+#end

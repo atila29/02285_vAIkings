@@ -1,0 +1,69 @@
+#domain
+hospital
+#levelname
+SAAIstars
+#colors
+red: 0, A
+#initial
+++++++++++++++++++++++++++
++ 0A                     +
+++++++++++++++++++++ +++++
+                   +++
+#goal
+++++++++++++++++++++++++++
++A                       +
+++++++++++++++++++++ +++++
+                   +++
+#end
+#clientname
+vAIkings
+#actions
+4996056:Pull(W,E)
+5261597:NoOp
+89161883:Push(E,E)
+89422949:Push(E,E)
+89680211:Push(E,E)
+89936135:Push(E,E)
+90171947:Push(E,E)
+90409242:Push(E,E)
+90557324:Push(E,E)
+90711281:Push(E,E)
+90799116:Push(E,E)
+90883270:Push(E,E)
+90966282:Push(E,E)
+91047176:Push(E,E)
+91126717:Push(E,E)
+91233272:Push(E,E)
+91339865:Push(E,E)
+91420203:Push(E,E)
+91499782:Push(E,E)
+91614202:Push(E,E)
+91722572:Push(E,S)
+91807340:Pull(E,S)
+91890802:Push(W,W)
+91971458:Push(W,W)
+92106879:Push(W,W)
+92188303:Push(W,W)
+92268277:Push(W,W)
+92347909:Push(W,W)
+92426937:Push(W,W)
+92506216:Push(W,W)
+92585784:Push(W,W)
+92665059:Push(W,W)
+92744913:Push(W,W)
+92823346:Push(W,W)
+92900961:Push(W,W)
+92978844:Push(W,W)
+93057593:Push(W,W)
+93136240:Push(W,W)
+93214212:Push(W,W)
+93327025:Push(W,W)
+93405540:Push(W,W)
+#end
+#solved
+true
+#numactions
+41
+#time
+93405540
+#end

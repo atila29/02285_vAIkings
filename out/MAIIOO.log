@@ -1,0 +1,104 @@
+#domain
+hospital
+#levelname
+MAIIOO
+#colors
+red: 0, A, B, C
+green: 1, D, E, F
+blue: 2, G, H, I
+brown: 3, J, K, L
+#initial
++++++++++++++++
++ADGJ         +
++             +
++        BEHK +
++ 0  12     3 +
++             +
++ B  E H    K +
++ C  F I    L +
++             +
++             +
++   C  F  I  L+
+ + ++ +++ ++ +
+ + ++ +++ ++ +
+ + ++ +++ ++ +
+ +++++++++++++
+#goal
++++++++++++++++
++             +
++             +
++             +
++             +
++             +
++             +
++             +
++             +
++             +
++             +
+ +C++F+++I++L+
+ +B++E+++H++K+
+ +A++D+++G++J+
+ +++++++++++++
+#end
+#clientname
+vAIkings
+#actions
+485943760:Move(N);Move(N);Move(N);Move(W)
+486454113:Move(N);Move(N);Move(N);Move(W)
+487025908:Move(W);Move(W);NoOp;Move(W)
+487555846:Pull(S,N);Move(W);Move(W);Move(W)
+488125631:Pull(E,N);Move(W);Move(W);Move(N)
+488659283:Push(W,S);Pull(E,N);NoOp;Move(N)
+489162482:Push(S,S);Push(W,S);NoOp;Move(N)
+489552399:Push(S,S);Push(S,S);Move(W);Move(W)
+489946261:Push(S,S);Push(S,S);Pull(E,N);Move(W)
+490339994:Push(S,S);Push(S,E);Push(W,S);Move(W)
+490741248:Push(S,S);Push(E,S);Push(S,S);Push(W,S)
+491158521:Push(S,S);Push(S,S);NoOp;Push(S,S)
+491637046:Push(S,E);Push(S,S);Push(S,S);Push(S,S)
+492028084:Push(E,S);Push(S,S);Push(S,S);Push(S,S)
+492420768:Push(S,S);Push(S,E);Push(S,S);Push(S,S)
+492847885:Push(S,S);Push(E,E);Push(S,S);Push(S,S)
+545744987:Move(N);Push(E,S);Push(S,S);Push(S,S)
+546219047:Move(N);Push(S,S);Push(S,E);NoOp
+546750331:Move(N);Push(S,S);Push(E,E);NoOp
+547342129:Move(N);Push(S,S);Push(E,E);NoOp
+638978702:Move(W);Move(N);Push(E,E);Push(S,S)
+639443659:Move(N);Move(N);Push(E,E);Push(S,E)
+639904633:Move(N);NoOp;Push(E,S);Push(E,E)
+640340794:Pull(S,E);NoOp;Push(S,E);Push(E,E)
+640776735:Pull(S,N);Move(N);Push(E,S);Push(E,E)
+641176598:Pull(E,N);Move(N);Push(S,S);Push(E,E)
+641641744:Push(W,S);Move(E);Push(S,S);Push(E,E)
+729703107:Push(S,S);Move(N);Move(N);Push(E,E)
+730160547:Push(S,E);Move(N);Move(N);Push(E,S)
+730649544:Push(E,S);Pull(S,W);Move(W);Push(S,E)
+731058609:Push(S,S);Pull(S,N);Move(N);Push(E,S)
+749654359:Move(N);Pull(E,N);Move(N);Push(S,S)
+750074249:Move(E);Push(W,W);Move(N);Push(S,S)
+815676858:Pull(W,E);Push(W,S);Move(N);Move(N)
+816147114:Pull(N,E);Push(S,S);Pull(N,W);Move(N)
+816591776:Push(S,S);Push(S,S);Push(S,S);Move(N)
+817038398:NoOp;Push(S,S);Push(S,S);Move(N)
+834135972:NoOp;Move(N);Push(S,S);Move(E)
+834565797:NoOp;Move(E);Push(S,S);Move(N)
+835121700:NoOp;Pull(W,E);Push(S,E);Move(N)
+835589974:NoOp;Pull(N,E);Push(E,S);Pull(S,W)
+836010698:NoOp;Push(S,S);Push(S,S);Pull(S,N)
+846712358:NoOp;NoOp;Move(N);Pull(W,N)
+847372919:NoOp;NoOp;Pull(N,E);Push(E,S)
+847904057:NoOp;NoOp;Push(S,S);Push(S,W)
+848603344:NoOp;NoOp;NoOp;Push(W,S)
+849401129:NoOp;NoOp;NoOp;Push(S,S)
+850111208:NoOp;NoOp;NoOp;Push(S,S)
+860570080:NoOp;NoOp;NoOp;Move(N)
+861549416:NoOp;NoOp;NoOp;Pull(N,E)
+862257646:NoOp;NoOp;NoOp;Push(S,S)
+#end
+#solved
+true
+#numactions
+51
+#time
+862257646
+#end

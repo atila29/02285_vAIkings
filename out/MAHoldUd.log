@@ -1,0 +1,58 @@
+#domain
+hospital
+#levelname
+MAHoldUd
+#colors
+red: 0, A
+blue: 1, B, 6, G
+green: 2, C
+cyan: 3, D
+purple: 4, E, 5, F
+#initial
+++++++++++++++++
+++++ + + + + + +
+++++1+2+3+4+5+6+++++
++0A B C D E F G    +
+++++++++++++++++++++
+#goal
+++++++++++++++++
+++++1+2+3+4+5+6+
+++++ + + + + + +++++
++                 A+
+++++++++++++++++++++
+#end
+#clientname
+vAIkings
+#actions
+8387573:Push(E,E);NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+19355970:NoOp;NoOp;NoOp;NoOp;Move(N);Move(N);Move(N)
+24944235:NoOp;Pull(N,S);Pull(N,S);Pull(N,S);NoOp;NoOp;NoOp
+35723946:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+38107910:NoOp;NoOp;NoOp;NoOp;Move(S);Move(S);Move(S)
+41389810:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+65287308:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+67701047:NoOp;NoOp;NoOp;NoOp;Pull(N,S);Pull(N,S);Pull(N,S)
+70115760:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+77992726:Push(E,E);NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+81699764:Push(E,E);NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+85068967:Push(E,E);NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+88264870:Push(E,E);NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+91694450:Push(E,E);NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+94799932:Push(E,E);NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+99064512:Push(E,E);NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+103716984:Push(E,E);NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+108896624:Push(E,E);NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+113374040:Push(E,E);NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+117096319:Push(E,E);NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+120394400:Push(E,E);NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+123888660:Push(E,E);NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+127200206:Push(E,E);NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+131905588:Push(E,E);NoOp;NoOp;NoOp;NoOp;NoOp;NoOp
+#end
+#solved
+true
+#numactions
+24
+#time
+131905588
+#end

@@ -1,0 +1,94 @@
+#domain
+hospital
+#levelname
+MAChuligans
+#colors
+red: 0, A
+green: 1, B
+blue: 2, C
+#initial
+++++++++++++++++++++++++
++                      +
++          +++++++++++++
++      B             C2+
++   A                  +
++                      +
+++++++++++++++++++     +
++  0                   +
++                   1  +
+++++++++++++++++++++++++
+#goal
+++++++++++++++++++++++++
++C                    A+
++          +++++++++++++
++                      +
++                      +
++                      +
+++++++++++++++++++     +
++                      +
++                     B+
+++++++++++++++++++++++++
+#end
+#clientname
+vAIkings
+#actions
+124363803:Move(E);Move(N);Push(W,W)
+124723329:Move(E);Move(N);Push(W,W)
+125040188:Move(E);Move(N);Push(W,W)
+125299234:Move(E);Move(N);Push(W,W)
+125548919:Move(E);Move(N);Push(W,W)
+125780358:Move(E);Move(W);Push(W,W)
+126010963:Move(E);Move(W);Push(W,W)
+126225535:Move(E);Move(W);Push(W,W)
+126438733:Move(E);Move(W);Push(W,W)
+126640613:Move(E);Move(W);Push(W,W)
+126838046:Move(E);Move(W);Push(W,W)
+127066909:Move(E);Move(W);Push(W,N)
+127284201:Move(E);Move(W);Push(N,N)
+127495619:Move(E);Move(W);Push(N,W)
+127766775:Move(E);Move(W);Push(W,W)
+128098210:Move(N);Move(W);Push(W,W)
+128367809:Move(N);Move(W);Push(W,W)
+128572096:Move(N);Push(W,S);Push(W,W)
+128776190:Move(W);Push(S,S);Push(W,W)
+129032767:Move(W);Push(S,E);Push(W,W)
+129299405:Move(W);Push(E,E);Push(W,W)
+129484267:Move(W);Push(E,E);Push(W,W)
+129696021:Move(W);Push(E,E);NoOp
+129911979:Move(W);Push(E,E);NoOp
+130111520:Move(W);Push(E,E);NoOp
+130292943:Move(W);Push(E,E);NoOp
+130522083:Move(W);Push(E,E);NoOp
+130765121:Move(W);Push(E,E);NoOp
+131045347:Move(W);Push(E,E);NoOp
+131299776:Move(W);Push(E,E);NoOp
+131733868:Move(W);Push(E,S);NoOp
+132149726:Push(W,N);Push(S,S);NoOp
+132662156:Push(N,N);Push(S,S);NoOp
+132946312:Push(N,N);Push(S,E);NoOp
+133275758:Push(N,E);Push(E,E);NoOp
+133535729:Push(E,E);Push(E,E);NoOp
+133794198:Push(E,E);Push(E,E);NoOp
+134142185:Push(E,E);NoOp;NoOp
+134479083:Push(E,E);NoOp;NoOp
+134763149:Push(E,E);NoOp;NoOp
+135039635:Push(E,E);NoOp;NoOp
+135403642:Push(E,E);NoOp;NoOp
+135738730:Push(E,E);NoOp;NoOp
+136087217:Push(E,E);NoOp;NoOp
+136405897:Push(E,E);NoOp;NoOp
+136723932:Push(E,E);NoOp;NoOp
+137021033:Push(E,E);NoOp;NoOp
+137526650:Push(E,E);NoOp;NoOp
+138422922:Push(E,E);NoOp;NoOp
+139064606:Push(E,E);NoOp;NoOp
+139671156:Push(E,E);NoOp;NoOp
+140238658:Push(E,E);NoOp;NoOp
+#end
+#solved
+true
+#numactions
+52
+#time
+140238658
+#end

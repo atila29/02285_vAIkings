@@ -1,0 +1,60 @@
+#domain
+hospital
+#levelname
+SAIIOO
+#colors
+red: 0, A, B
+#initial
+++++++++++++++
++    ABA     +
++    A A     +
++    A0A     +
++    A A     +
++    A A     +
++    A A     +
++    A A     +
+++++++ +++++++
+++++++ +++++++
+++++++++++++++
+#goal
+++++++++++++++
++            +
++            +
++            +
++            +
++            +
++            +
++            +
+++++++A+++++++
+++++++B+++++++
+++++++++++++++
+#end
+#clientname
+vAIkings
+#actions
+8320757:Move(N)
+8713944:Pull(S,N)
+9029223:Pull(S,N)
+9348897:Pull(S,N)
+9586313:Pull(S,N)
+9889498:Pull(S,N)
+10205266:Pull(S,N)
+10570863:Pull(S,N)
+1751445259:Push(N,N)
+1751844334:Push(N,N)
+1752184006:Push(E,E)
+1752510322:Push(N,E)
+1752866598:Push(W,S)
+1753182102:Push(S,S)
+1753545119:Push(S,S)
+1759260422:Move(N)
+1759621108:Pull(N,W)
+1759921184:Push(S,S)
+#end
+#solved
+true
+#numactions
+18
+#time
+1759921184
+#end

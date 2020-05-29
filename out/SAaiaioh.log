@@ -1,0 +1,47 @@
+#domain
+hospital
+#levelname
+SAaiaioh
+#colors
+blue: 0, A
+#initial
++++++++++
++A      +
++       +
++       +
++    ++++
++0   +A +
++       +
++++++++++
+#goal
++++++++++
++       +
++       +
++      A+
++    ++++
++    +  +
++       +
++++++++++
+#end
+#clientname
+vAIkings
+#actions
+7976818:Move(N)
+8257028:Move(N)
+8529499:Move(N)
+8805784:Pull(S,N)
+9047214:Pull(S,N)
+9319046:Push(N,E)
+9552606:Push(E,E)
+9670991:Push(E,E)
+9781746:Push(E,E)
+9968298:Push(E,E)
+10082758:Push(E,E)
+#end
+#solved
+true
+#numactions
+11
+#time
+10082758
+#end

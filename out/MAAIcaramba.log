@@ -1,0 +1,48 @@
+#domain
+hospital
+#levelname
+MAOptimalSolution
+#colors
+red: 0, D
+blue: 1, 2, O
+green: 3, T
+purple: 4, R
+grey: 5, P
+pink: 6, U
+#initial
++++++++++++++++++
++ D   O         +
++ 0   1   2 U 3 +
++             T +
++               +
++         O     +
++   4   5   6   +
++   R   P       +
++++++++++++++++++
+#goal
++++++++++++++++++
++               +
++               +
++               +
++ D R O P O U T +
++               +
++               +
++               +
++++++++++++++++++
+#end
+#clientname
+vAIkings
+#actions
+59531914:Pull(E,N);Pull(E,N);Move(S);Push(S,S);Pull(E,S);Pull(E,S);Move(N)
+60562314:Push(W,S);Push(W,S);Move(S);NoOp;Push(W,N);Push(W,N);Move(N)
+61305055:Push(S,S);Push(S,S);Pull(N,S);NoOp;Push(N,N);Push(N,N);Move(N)
+62229774:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;Pull(E,N)
+63144420:NoOp;NoOp;NoOp;NoOp;NoOp;NoOp;Push(W,S)
+#end
+#solved
+true
+#numactions
+5
+#time
+63144420
+#end

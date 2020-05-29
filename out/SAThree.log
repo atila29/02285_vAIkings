@@ -1,0 +1,65 @@
+#domain
+hospital
+#levelname
+SAThree
+#colors
+red: 0, F
+blue: E, N, M
+grey: B, S, R
+#initial
++++++++++++++++++
++              0+
++       +F+     +
++   B    +      +
++          ++++++
++++ +   S   M   +
+++  ++        +++
++  +E   +    RN +
++  +   + +      +
++               +
++++++++++++++++++
+#goal
++++++++++++++++++
++               +
++       + +     +
++   B    +      +
++          ++++++
++++ +   S   M   +
+++  ++        +++
++  +E   +    RN +
++  +   +F+      +
++               +
++++++++++++++++++
+#end
+#clientname
+vAIkings
+#actions
+55547986:Move(W)
+56011192:Move(W)
+56373242:Move(W)
+56763419:Move(W)
+56984712:Move(W)
+57328040:Move(W)
+57556544:Pull(E,S)
+57808140:Pull(E,W)
+58037180:Pull(E,W)
+58236232:Push(W,S)
+58470610:Push(S,S)
+58674407:Push(S,W)
+58874271:Push(W,S)
+59087501:Push(S,S)
+59305789:Push(S,S)
+59515564:Push(S,S)
+59736932:Push(S,S)
+59979918:Push(S,S)
+60191025:Push(S,W)
+60479929:Push(W,W)
+60693061:Push(W,N)
+#end
+#solved
+true
+#numactions
+21
+#time
+60693061
+#end

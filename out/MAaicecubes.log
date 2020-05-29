@@ -1,0 +1,179 @@
+#domain
+hospital
+#levelname
+MAaicecubes
+#colors
+red: 0, A
+blue: 1, B
+#initial
++++++++++++++++++++++++++++++++++++++
++                                   +
++        ++     +   +     ++        +
++    ++++ +     ++B++     + ++++    +
++   +    +      +   +      +    +   +
++  +      ++  ++     ++  ++      +  +
++ +         ++         ++         + +
++ +               A               + +
++  +    +++   +++   +++   +++    +  +
++   +  +   +++   +1+   +++   +  +   +
++    ++++         +         ++++    +
++        +                 +        +
++                 0                 +
++++++++++++++++++++++++++++++++++++++
+#goal
++++++++++++++++++++++++++++++++++++++
++                            B      +
++        ++     +   +     ++        +
++    ++++ +     ++ ++     + ++++    +
++   +    +      +   +      +    +   +
++  +      ++  ++     ++  ++      +  +
++ +         ++         ++         + +
++ +                               + +
++  +    +++   +++   +++   +++  A +  +
++   +  +   +++   + +   +++   +  +   +
++    ++++         +         ++++    +
++        +                 +        +
++                                   +
++++++++++++++++++++++++++++++++++++++
+#end
+#clientname
+vAIkings
+#actions
+118765174:Move(E);Move(N)
+118979881:Move(E);Move(E)
+119182249:Move(E);Move(N)
+119444202:Move(E);Move(N)
+119654753:Move(E);Move(N)
+119870125:Move(E);Move(N)
+120049621:Move(E);Move(W)
+120256174:Move(E);Push(N,N)
+120446582:Move(E);Push(N,N)
+120640925:Move(E);Push(N,E)
+120839198:Move(N);Push(E,E)
+120993416:Move(E);Push(E,E)
+121126226:Move(E);Push(E,E)
+121297003:Move(E);Push(E,E)
+121464950:Move(E);Push(E,E)
+121655077:Move(N);Push(E,E)
+121884828:Move(E);Push(E,E)
+122340434:Move(N);Push(E,E)
+122556387:Move(E);Push(E,E)
+122710435:Move(N);Push(E,E)
+122929720:Move(E);NoOp
+123115223:Move(N);NoOp
+123342168:Move(N);NoOp
+123624944:Move(N);NoOp
+123892457:Move(N);NoOp
+124134008:Move(N);NoOp
+124313260:Move(N);NoOp
+124489031:Move(N);NoOp
+124663782:Move(W);NoOp
+124838178:Move(W);NoOp
+124977223:Move(W);NoOp
+125113862:Move(W);NoOp
+125308961:Move(W);NoOp
+175174917:Move(S);NoOp
+175374813:Move(E);NoOp
+175557071:Move(E);NoOp
+175736204:Move(S);NoOp
+175916143:Move(E);NoOp
+176093034:Move(S);NoOp
+176269610:Move(E);NoOp
+176410955:Move(S);NoOp
+176579066:Move(E);NoOp
+176723004:Move(S);NoOp
+176947221:Move(S);NoOp
+177199844:Move(S);NoOp
+177492707:Move(S);NoOp
+177782379:Move(S);NoOp
+178029629:Move(S);NoOp
+178257069:Move(S);NoOp
+178433745:Move(W);NoOp
+178610152:Move(W);NoOp
+178751239:Move(W);NoOp
+178891102:Move(W);NoOp
+179028323:Move(W);NoOp
+179197575:Move(W);NoOp
+179397427:Move(W);NoOp
+179577618:Move(W);NoOp
+179733634:Move(W);NoOp
+179909592:Move(W);NoOp
+180072710:Move(W);NoOp
+180232588:Move(W);NoOp
+180433520:Move(W);NoOp
+180592805:Move(W);NoOp
+180923307:Move(W);NoOp
+181281649:Move(W);NoOp
+181484646:Move(W);NoOp
+181668168:Move(W);NoOp
+181853196:Move(W);NoOp
+182059916:Move(W);NoOp
+182255098:Move(W);NoOp
+182417354:Move(W);NoOp
+182579634:Move(W);NoOp
+182740855:Move(W);NoOp
+182927847:Move(W);NoOp
+183092199:Move(W);NoOp
+183245744:Move(W);NoOp
+183408007:Move(N);NoOp
+183571632:Move(W);NoOp
+183764544:Move(W);NoOp
+183926579:Move(W);NoOp
+184152688:Move(W);NoOp
+184375311:Move(N);NoOp
+184547099:Move(W);NoOp
+184689435:Move(N);NoOp
+184826248:Move(W);NoOp
+184983788:Move(N);NoOp
+185186554:Move(W);NoOp
+185328870:Move(N);NoOp
+185497056:Move(N);NoOp
+185669396:Move(N);NoOp
+185832477:Move(N);NoOp
+185996573:Move(N);NoOp
+186133115:Move(N);NoOp
+186271273:Move(N);NoOp
+186407177:Move(E);NoOp
+186570841:Move(E);NoOp
+186707945:Move(E);NoOp
+186867857:Move(E);NoOp
+187004834:Move(E);NoOp
+187164785:Move(E);NoOp
+187331677:Move(E);NoOp
+187537703:Move(E);NoOp
+187766403:Move(E);NoOp
+188132428:Move(E);NoOp
+188358813:Move(E);NoOp
+188561209:Move(E);NoOp
+188761217:Move(E);NoOp
+188985280:Move(E);NoOp
+189192958:Move(E);NoOp
+189531834:Move(E);NoOp
+189673623:Move(S);NoOp
+189839233:Move(E);NoOp
+189982927:Move(S);NoOp
+190165372:Move(S);NoOp
+190350136:Move(S);NoOp
+190515428:Move(S);NoOp
+190663244:Push(S,E);NoOp
+190908784:Push(E,E);NoOp
+191088737:Push(E,E);NoOp
+191271443:Push(E,E);NoOp
+191542252:Push(E,E);NoOp
+191890638:Push(E,E);NoOp
+192064401:Push(E,E);NoOp
+192233355:Push(E,E);NoOp
+192376540:Push(E,E);NoOp
+192542485:Push(E,E);NoOp
+192707960:Push(E,E);NoOp
+192872754:Push(E,S);NoOp
+193037180:Push(S,E);NoOp
+193202790:Push(E,E);NoOp
+#end
+#solved
+true
+#numactions
+130
+#time
+193202790
+#end
