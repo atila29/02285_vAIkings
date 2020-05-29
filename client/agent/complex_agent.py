@@ -122,10 +122,10 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
 
         elif self.trigger == Trigger.EMPTY_PLAN:
             if self.succeeded():
-                if self.check_if_all_my_goals_are_satisfied():
+                self.all_my_goals_satisfied = self.check_if_all_my_goals_are_satisfied()
+                if self.all_my_goals_satisfied:
                      #TODO: what if we destroy a goal at some point?
                      log("Agent {} thinks it is done with all its goals".format(self.id_), "AGENT_GOALS", False)
-                     self.all_my_goals_satisfied = True
                 self.remove_intentions_from_blackboard()
             elif self.impossible():
                 self.remove_intentions_from_blackboard()
