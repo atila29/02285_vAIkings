@@ -203,6 +203,9 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 if agent_goal.cave.is_next_goal(agent_goal, self.beliefs):
                     self.intentions = self.desires['end location']
                     return
+            else:
+                self.intentions = self.desires['end location']
+                return
 
         
 
