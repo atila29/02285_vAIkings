@@ -132,6 +132,7 @@ class Level:
 
         self.level[row][col] = agent_goal
         self.agent_goals[char] = agent_goal
+        self.goals_by_pos[(row,col)] = agent_goal
 
     def pre_process(self, state):
         log("Starting preprocessing of caves", "CAVES", False)

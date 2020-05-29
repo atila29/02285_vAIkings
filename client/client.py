@@ -169,12 +169,7 @@ class Client:
     """
     def check_goal_status(self, current_state) -> 'Bool':
         for goal_pos in LEVEL.goals_by_pos:
-            if goal_pos not in current_state.boxes:
-                return False
-            if current_state.boxes[goal_pos].letter != LEVEL.goals_by_pos[goal_pos].letter:
-                return False
-        for id_, agent_goal in LEVEL.agent_goals.items():
-            if agent_goal is not None and ((agent_goal.row, agent_goal.col) not in current_state.agents or current_state.agents[(agent_goal.row, agent_goal.col)].id_ != id_):
+            if not current_state.is_goal_satisfied(LEVEL.goals_by_pos[goal_pos]):
                 return False
         return True
 
