@@ -204,7 +204,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         for elm in BLACKBOARD.requests.values():
             for request in elm:
                 if self.id_ not in request.agents_that_have_checked_request_already:
-                    requests.append(request)
+                    if not self.present_in_requests(request):
+                        requests.append(request)
 
         # find easiest first
         best_cost, best_request, best_box, path = float(
@@ -322,7 +323,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 best_agent = self.bid_box_to_goal(goal, box)
 
                 if best_agent.id_ == self.id_:
-                    if self.pair_present_in_requests((box,goal)):
+                    if self.present_in_requests((box,goal)):
                         continue
                     choices.append((box, goal))
         #No choices
@@ -356,10 +357,10 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         
         return best_pair
 
-    def pair_present_in_requests(self, pair):
+    def present_in_requests(self, obj):
         if self.id_ in BLACKBOARD.requests:
             for request in BLACKBOARD.requests[self.id_]:
-                if type(request.purpose) == type(pair) and request.purpose == pair:
+                if type(request.purpose) == type(obj) and request.purpose == obj:
                     return True
         return False 
 
@@ -457,6 +458,13 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         return True
 
     def is_way_clear(self):
+        if len(self.current_plan) != 0:
+            next_location = self.current_plan[0].required_free
+            if self.id_ in BLACKBOARD.requests:
+                for req in BLACKBOARD.requests[self.id_]:
+                    if next_location in req.area:
+                        return False
+
         if self.have_claims():
             #Assuming that if agents have claims, they are relevant for current action
             log("Agent {} testing claims".format(self.id_), "CLAIM", False)

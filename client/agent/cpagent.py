@@ -349,6 +349,7 @@ class CPAgent(BDIAgent):
             all_locations += self.find_area(elm)
         
         request = Request(self.id_, all_locations)
+        request.purpose = self.intentions
         box, location = self.unpack_intentions_to_box_and_location()
         if location is not None and location in LEVEL.goals_by_pos:
             request.goal = LEVEL.goals_by_pos[location]
