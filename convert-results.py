@@ -4,7 +4,7 @@ import copy
 import re
 
 with open(sys.argv[1], 'r') as f:
-    with open('summary.csv', 'w', newline='\n') as file:
+    with open(sys.argv[2], 'w', newline='\n') as file:
         writer = csv.writer(file)
 
         writer.writerow(["lvl_name", "lvl_solved","actions_used", "last_action_time (in seconds)"])
