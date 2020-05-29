@@ -112,6 +112,11 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         self.test_for_trigger()
         log("Agent {} is deliberating because {}".format(self.id_, self.trigger), "BDI", False)
         if self.trigger in [Trigger.SUCCEDED, Trigger.IMPOSSIBLE, Trigger.RECONSIDER]:
+            if self.succeeded() and isinstance(self.intentions, AgentGoal):
+                if self.id_ in BLACKBOARD.claimed_caves:
+                    BLACKBOARD.claimed_caves.pop(self.id_)
+                if self.id_ in BLACKBOARD.claimed_passages:
+                    BLACKBOARD.claimed_passages.pop(self.id_)
             self.remove_intentions_from_blackboard()
             # TODO: remove also resets intentions, change!
 
@@ -193,8 +198,11 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         
         elif self.desires['end location'] is not None:
             log("Agent {} have intentions to move to end location. desires: {}".format(self.id_, self.desires['end location']), "AGENT_GOALS", False)
-            self.intentions = self.desires['end location']
-            return
+            agent_goal = self.desires['end location']
+            if agent_goal.cave is not None:
+                if agent_goal.cave.is_next_goal(agent_goal, self.beliefs):
+                    self.intentions = self.desires['end location']
+                    return
 
         
 
@@ -892,6 +900,9 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     if box is not None and box == self.beliefs.boxes[temp]:
                         break
                 if temp in LEVEL.goals_by_pos:
+                    if self.beliefs.is_goal_satisfied(LEVEL.goals_by_pos[temp]):
+                        end = i
+                        continue
                     if location is not None and temp == location:
                         break
                 if temp in self.beliefs.agents and self.beliefs.agents[temp].id_ != self.id_:

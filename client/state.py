@@ -1,7 +1,7 @@
 import sys
 from typing import List, Tuple, Dict
 from enum import Enum
-from level import LevelElement, Level, Wall, AgentElement, Box
+from level import LevelElement, Level, Wall, AgentElement, Box, AgentGoal
 from action import Action, ALL_ACTIONS, Dir, ActionType, UnfoldedAction
 import copy
 import random
@@ -177,6 +177,8 @@ class State(object):
 
 
     def is_goal_satisfied(self, goal):
+        if isinstance(goal, AgentGoal):
+            return (goal.row, goal.col) in self.agents and self.agents[goal.row, goal.col].id_ == goal.id_
         return (goal.row, goal.col) in self.boxes and self.boxes[goal.row, goal.col].letter == goal.letter
 
     def is_box_at_location(self, location, boxid):

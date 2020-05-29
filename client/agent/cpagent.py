@@ -226,7 +226,11 @@ class CPAgent(BDIAgent):
                     log("Cave {} is not free since it is claimed by another agent".format(cave), "IS_FREE", False)
                     return False
             
-            my_box,location = self.unpack_intentions_to_box_and_location()
+            if isinstance(self.intentions, AgentGoal):
+                location = (self.intentions.row, self.intentions.col)
+                box = None
+            else:
+                my_box,location = self.unpack_intentions_to_box_and_location()
 
             #If goal in cave it is not enough to clear until goal. We should not block in anything
             if location in cave.locations:
@@ -260,7 +264,7 @@ class CPAgent(BDIAgent):
                             end = i
                             break
             #location not in cave, so just clear until box
-            else:
+            elif my_box is not None:
                 log("The goal {} is not in the cave {}.".format(location, cave), "IS_FREE", False)
                 end = len(cave.locations)
                 for i in range(len(cave.locations)):
@@ -285,13 +289,13 @@ class CPAgent(BDIAgent):
                         box= self.beliefs.boxes[location]
                         log("Cave {} is not free since there is a box in the required area. {} Box with letter {} at: {}, required area: {}".format(cave, box.color, box.letter, location, area_required), "IS_FREE", False)
                         return False
-            if cave.occupied:
-                if (self.row, self.col) in cave.locations + [cave.entrance]:
-                    log("Cave {} is occupied by the agent itself".format(cave), "IS_FREE", False)
-                    return True
-                else:
-                    log("Cave {} (area: {}) is not free since it is occupied by another agent".format(cave_or_passage, cave_or_passage.locations), "IS_FREE", False)
-                    return False
+            # if cave.occupied:
+            #     if (self.row, self.col) in cave.locations + [cave.entrance]:
+            #         log("Cave {} is occupied by the agent itself".format(cave), "IS_FREE", False)
+            #         return True
+            #     else:
+            #         log("Cave {} (area: {}) is not free since it is occupied by another agent".format(cave_or_passage, cave_or_passage.locations), "IS_FREE", False)
+            #         return False
 
         if isinstance(cave_or_passage, Passage):
             for agent_id in BLACKBOARD.claimed_passages:
