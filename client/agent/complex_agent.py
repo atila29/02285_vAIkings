@@ -42,7 +42,7 @@ Trigger.WAITING_FOR_REQUEST = Trigger("waiting_for_request")
 Trigger.ABOUT_ENTER_CAVE_OR_PASSAGE = Trigger("about_to_enter_cave_or_passage")
 
 
-class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
+class ComplexAgent(RetreatAgent, ConcreteBDIAgent, CPAgent, ConcreteCNETAgent):
     color: str  # color of the agent
     id_: str  # agent id
     row: int  # agent row
@@ -356,12 +356,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 box = self.pick_box(goal, boxes) 
                 if box is None:
                     continue
-                best_agent = self.bid_box_to_goal(goal, box)
+                # best_agent = self.bid_box_to_goal(goal, box)
 
-                if best_agent.id_ == self.id_:
-                    if self.present_in_requests((box,goal)):
-                        continue
-                    choices.append((box, goal))
+                # if best_agent.id_ == self.id_:
+                #     if self.present_in_requests((box,goal)):
+                #         continue
+                choices.append((box, goal))
         #No choices
         if len(choices) == 0:
             return None, None
@@ -770,7 +770,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         # Can/should we do a retreat move?
         rf_loc = action.required_free 
         if rf_loc == (self.row, self.col):
-            log("self.id_: {}, rf_loc: {}, (self.row, self.col): {}, action: {}".format(self.id_, rf_loc, (self.row, self.col), action))
+            # log("self.id_: {}, rf_loc: {}, (self.row, self.col): {}, action: {}".format(self.id_, rf_loc, (self.row, self.col), action))
             self.current_plan = []
             self.remove_intentions_from_blackboard()
             self.wait(1)

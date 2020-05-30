@@ -137,7 +137,7 @@ class RetreatAgent(SearchAgent):
             new_location = (self.row + dir1.d_row, self.col + dir1.d_col)
             move2 = UnfoldedAction(Action(ActionType.Move, dir2, None), self.id_, True, new_location)
 
-            log("dir1={}, dir2={}, relative_pos={}, move1={}, move2={}".format(dir1, dir2, relative_pos, move1, move2))
+            # log("dir1={}, dir2={}, relative_pos={}, move1={}, move2={}".format(dir1, dir2, relative_pos, move1, move2))
 
             #convert to pull actions
             moves.append(self.convert_move_to_pull(move1, reverse_direction(direction))) #1

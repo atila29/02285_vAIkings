@@ -65,7 +65,7 @@ class Client:
                         item_dict[item] = color
                     
                 elif(section == Section.INITIAL):
-                    log((section.name, line))
+                    # log((section.name, line))
                     LEVEL.level.append([])
 
                     for col, char in enumerate(line):
