@@ -228,14 +228,15 @@ class CPAgent(BDIAgent):
             
             if isinstance(self.intentions, AgentGoal):
                 location = (self.intentions.row, self.intentions.col)
-                box = None
+                my_box = None
             else:
                 my_box,location = self.unpack_intentions_to_box_and_location()
 
+            end = None
             #If goal in cave it is not enough to clear until goal. We should not block in anything
             if location in cave.locations:
                 log("The goal {} is in the cave {}.".format(location, cave), "IS_FREE", False)
-                end = None
+                
 
                 for i in range(len(cave.locations)):
                     temp = cave.locations[i]
