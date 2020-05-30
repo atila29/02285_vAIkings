@@ -657,8 +657,9 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                             log("Agent {} is a solo agent. So doing single agent search".format(self.id_), "PLAN", False)
                             return
                         log("Agent {} could not find a plan at all".format(self.id_), "PLAN", False)
+                        
                         #Figure out how to make requests to help
-                        self.wait(1)
+                        self.current_plan = self.single_agent_search(self.heuristic, self.intentions)
                         return
         
 
