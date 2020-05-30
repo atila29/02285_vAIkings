@@ -70,7 +70,7 @@ class SearchAgent(BDIAgent):
         if dir1 == reverse_direction(dir2):  
             for i in range(1, len(path2)):
                 #check if there is room to turn from pull to push
-                if (len(path1)<2 and i == 1 and self.count_free_spaces(path2[i], ignore_all_other_agents=False) >=2) or self.count_free_spaces(path2[i], ignore_all_other_agents=False) >=3:
+                if (i == 1 and self.count_free_spaces(path2[i], ignore_all_other_agents=False) >=2) or self.count_free_spaces(path2[i], ignore_all_other_agents=False) >=3:
                     #change to push
                     turn = self.swicth_from_pull_to_push(path2[i-1], path2[i], ignore_all_other_agents = False)
                     result = result + turn
