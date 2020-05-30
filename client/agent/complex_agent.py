@@ -203,6 +203,21 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 if agent_goal.cave.is_next_goal(agent_goal, self.beliefs):
                     self.intentions = self.desires['end location']
                     return
+                else:
+                    log("Agent {} cannot go to agent goal, not next in cave".format(self.id_), "BDI", False)
+                    self.intentions = None
+                    return
+            if LEVEL.map_of_passages[agent_goal.row][agent_goal.col] is not None:
+                #TODO: Wait for what?
+                for goal in [goal for goal in LEVEL.goals_by_pos.values() if not isinstance(goal, AgentGoal)]:
+                    if self.beliefs.is_goal_satisfied(goal):
+                        continue
+                    self.intentions = None
+                    log("Agent {} has no intentions, since it AgentGoal is in passage, and goals are still unsatisfied".format(self.id_), "BDI", False)
+                    return
+                log("Agent {} now has it's agent goal at location {} as intention".format(self.id_, (agent_goal.row, agent_goal.col)), "BDI", False)
+                self.intentions = self.desires['end location']
+                return
             else:
                 self.intentions = self.desires['end location']
                 return
