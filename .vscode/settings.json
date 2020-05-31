@@ -1,5 +1,5 @@
 {
   "python.linting.pylintEnabled": true,
   "python.linting.enabled": true,
-  "python.pythonPath": "C:\\Users\\hhenr\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe"
+  "python.pythonPath": "mas-env/bin/python"
 }

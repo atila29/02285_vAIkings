@@ -104,7 +104,7 @@ class ConcreteCNETAgent(CNETAgent):
 
     def pick_box(self, goal, list_of_boxes): 
         possible_boxes = self.filter_boxes(goal, list_of_boxes)
-        log('possible boxes ' + str(possible_boxes))
+        # log('possible boxes ' + str(possible_boxes))
         if possible_boxes is None: 
             return None 
         else:
