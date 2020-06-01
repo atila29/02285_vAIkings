@@ -8,6 +8,8 @@ from communication.blackboard import BLACKBOARD
 from communication.contract import Contract
 from communication.request import Request
 
+from profiler.profiler import Profiler
+
 from heuristics import Heuristic
 from logger import log
 from state import LEVEL
@@ -56,7 +58,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
     intentions = None
     current_plan: list  # List of UnfoldedAction
     trigger: str  # last trigger in BDI structure
-    # TODO: complete list of variables
+    
+    profiler: Profiler
 
     def __init__(self,
                  id_,
@@ -65,6 +68,8 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                  col,
                  initial_beliefs,
                  all_agents,
+                 level_name,
+                 output_file,
                  heuristic=None):
 
         if heuristic is not None:
@@ -79,6 +84,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         self.desires['goals'] = []
         self.desires['contracts'] = []
         self.desires['end location'] = None
+        
 
         self.trigger = Trigger.EMPTY_PLAN
         self.plan_for_current_request = None
@@ -87,11 +93,15 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
 
         self.intentions = None
 
-        ConcreteBDIAgent.__init__(self, id_, color, row, col, initial_beliefs)
+        self.profiler = Profiler(level_name, id_, output_file)
+
+        ConcreteBDIAgent.__init__(self, id_, color, row, col, initial_beliefs, self.profiler)
+        
         
         self.reprioritise_goals()
         self.deliberate()
         self.plan(ignore_all_other_agents=False)
+
 
 
 
@@ -109,6 +119,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
     """
 
     def deliberate(self):
+        self.profiler.start("deliberate")
         self.test_for_trigger()
         log("Agent {} is deliberating because {}".format(self.id_, self.trigger), "BDI", False)
         if self.trigger in [Trigger.SUCCEDED, Trigger.IMPOSSIBLE, Trigger.RECONSIDER]:
@@ -131,12 +142,14 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 self.remove_intentions_from_blackboard()
             # Keep intentions and go to plan
             else:
+                self.profiler.stop()
                 return self.intentions
 
         if self.intentions is None:
             self.pick_intentions_from_scratch()
             self.trigger = Trigger.NEW_INTENTIONS
-
+            
+        self.profiler.stop()
         return self.intentions
 
     def test_for_trigger(self):
@@ -164,7 +177,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         4. None
     """
     def pick_intentions_from_scratch(self):
-
+        self.profiler.start("pick_intentions_from_scratch")
         # check for request
         check, request, box = self.check_for_request_to_fulfill()
         if check:
@@ -173,6 +186,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             self.current_plan = self.plan_for_current_request
             if len(self.current_plan) > 0:
                 self.current_plan.append(UnfoldedAction(Action(ActionType.NoOp,Dir.N, None), self.id_,True, self.current_plan[-1].agent_to))
+            self.profiler.stop()
             return
 
         # check for contract
@@ -180,6 +194,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             self.intentions = self.desires['contracts'][0]
             self.add_intentions_to_blackboard()
             log("Agent {} commited to contract {}".format(self.id_, self.intentions), "BDI", False)
+            self.profiler.stop()
             return
 
         # check for box and goal
@@ -194,6 +209,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     self.clear_cave_until_location((goal.row, goal.col), pair=(box,goal))
                 if self.wrong_box_on_goal(goal):
                     self.clear_goal(goal, pair=(box,goal))
+                self.profiler.stop()
                 return
         
         elif self.desires['end location'] is not None:
@@ -202,10 +218,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             if agent_goal.cave is not None:
                 if agent_goal.cave.is_next_goal(agent_goal, self.beliefs):
                     self.intentions = self.desires['end location']
+                    self.profiler.stop()
                     return
                 else:
                     log("Agent {} cannot go to agent goal, not next in cave".format(self.id_), "BDI", False)
                     self.intentions = None
+                    self.profiler.stop()
                     return
             if LEVEL.map_of_passages[agent_goal.row][agent_goal.col] is not None:
                 #TODO: Wait for what?
@@ -214,19 +232,24 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                         continue
                     self.intentions = None
                     log("Agent {} has no intentions, since it AgentGoal is in passage, and goals are still unsatisfied".format(self.id_), "BDI", False)
+                    self.profiler.stop()
                     return
                 log("Agent {} now has it's agent goal at location {} as intention".format(self.id_, (agent_goal.row, agent_goal.col)), "BDI", False)
                 self.intentions = self.desires['end location']
+                self.profiler.stop()
                 return
             else:
                 self.intentions = self.desires['end location']
+                self.profiler.stop()
                 return
 
         
-
+        
         # Else pick None
         self.intentions = None
         log("Agent {} has no intentions".format(self.id_), "BDI", False)
+        self.profiler.stop()
+
 
     def wrong_box_on_goal(self, goal):
         if (goal.row, goal.col) in self.beliefs.boxes and self.beliefs.boxes[(goal.row, goal.col)].letter != goal.letter:
@@ -260,6 +283,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         BLACKBOARD.add(input=request, agent_id = self.id_)
 
     def check_for_request_to_fulfill(self):
+        self.profiler.start("check_for_request_to_fulfill")
         boxes = self.boxes_of_my_color_not_already_claimed()
 
         requests = []
@@ -349,10 +373,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
         #No requests to help with
         if best_cost == float("inf"):
             log("Agent {} is unable to help with the requests".format(self.id_), "REQUESTS", False)
+            self.profiler.stop()
             return False, None, None
         else:
             self.plan_for_current_request = path
             log("Agent {} is able to help with the request {} in {} moves.".format(self.id_, best_request, best_cost), "REQUESTS", False)
+            self.profiler.stop()
             return True, best_request, best_box
 
     # TODO: put priority on goals not in cave/passage!
@@ -481,16 +507,19 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
     """
 
     def sound(self) -> 'Bool':  # returns true/false, if sound return true
+        self.profiler.start("sound")
         if self.is_next_action_impossible():
             self.retreating_duration = 0
             self.trigger = Trigger.NEXT_MOVE_IMPOSSIBLE
             log("trigger set to {}".format(self.trigger), "trigger", False)
+            self.profiler.stop()
             return False
 
         if self.retreating_duration > 0:
             self.retreating_duration -= 1
             self.trigger = Trigger.ALL_GOOD
             log("trigger set to {}".format(self.trigger), "trigger", False)
+            self.profiler.stop()
             return True
 
         # if self.waiting_for_request():
@@ -502,11 +531,13 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             if not self.is_way_clear():
                 self.trigger = Trigger.ABOUT_ENTER_CAVE_OR_PASSAGE
                 log("trigger set to {}".format(self.trigger), "trigger", False)
+                self.profiler.stop()
                 return False
 
 
         self.trigger = Trigger.ALL_GOOD
         log("trigger set to {}".format(self.trigger), "trigger", False)
+        self.profiler.stop()
         return True
 
     def is_way_clear(self):
@@ -710,6 +741,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             self.wait(1)
         else:
             raise RuntimeError("Agent doesn't know why its planning")
+
 
     def try_to_retreat(self, other_agent):
         state = self.beliefs

@@ -11,9 +11,13 @@ class BDIAgent(Agent):
                  color,
                  row,
                  col,
-                 initial_beliefs):
+                 initial_beliefs,
+                 profiler):
 
         super().__init__(id_, color, row, col)
+
+
+        self.profiler = profiler
         self.beliefs = initial_beliefs
         
         self.current_plan = []
@@ -53,6 +57,7 @@ class BDIAgent(Agent):
 
     ###### BDI control loop ######
     def get_next_action(self, p) -> 'UnfoldedAction':
+        self.profiler.start("get_next_action")
         self.brf(p)
         if len(self.current_plan) != 0 and (not self.succeeded()) and (not self.impossible()):
             if self.reconsider():
@@ -71,6 +76,7 @@ class BDIAgent(Agent):
             self.wait(1)
             next_action = self.current_plan[0]
         # TODO: Make sure to check that plan cannot return an empty plan
+        self.profiler.stop()
         return next_action
     # endregion
 

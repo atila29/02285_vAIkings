@@ -10,6 +10,7 @@ from communication.blackboard import BLACKBOARD
 import uuid
 from heuristics import Heuristic2
 from agent.complex_agent import ComplexAgent
+import csv
 
 class Section(Enum):
     DOMAIN = 1
@@ -21,6 +22,7 @@ class Section(Enum):
 
 class Client:
     
+    level_name: str
     initial_state: 'State'
     agents = []
     agent_dic = {}
@@ -56,7 +58,7 @@ class Client:
                 if(section == Section.DOMAIN):
                     pass
                 elif(section == Section.LEVELNAME):
-                    pass
+                    self.level_name = line
                 elif(section == Section.COLORS):
                     color = line.split(":")[0]
                     items = line.split(":")[1].replace(" ", "").split(",")
@@ -173,14 +175,15 @@ class Client:
                 return False
         return True
 
-    def init_agents(self, agent_type, args=None, DECOMPOSE=False, h = None):
+    def init_agents(self, agent_type, file, args=None, DECOMPOSE=False, h = None):
         #Create 'real' agents from AgentElements
+        
         for agent_pos in self.initial_state.agents:
             agent = self.initial_state.agents[agent_pos]
             if args is not None:
-                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state, self.agents, *args, heuristic = h))
+                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state, self.agents, self.level_name, file,*args, heuristic = h))
             else:
-                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state, self.agents, heuristic = h))
+                self.agents.append(agent_type(agent.id_, agent.color, agent.row, agent.col, self.initial_state, self.agents, self.level_name, file, heuristic = h))
             self.agent_dic[agent.id_] = self.agents[-1]
         #Decomposition of goals: Adds the goals of the agents color to their desires
         if DECOMPOSE:
@@ -311,10 +314,16 @@ def main():
     #client.init_agents(NaiveBDIAgent, DECOMPOSE = False)
     LEVEL.pre_process(client.initial_state)
     heuristic = Heuristic2()
-    client.init_agents(ComplexAgent, DECOMPOSE=True, h = heuristic)
-    
-    #run client
-    client.run(client.initial_state)
+    with open("{}.csv".format(client.level_name), 'w', newline='\n') as file:
+
+        writer = csv.writer(file)
+        writer.writerow(["level_name","agent", "function_name", "START_OR_END", "delta", "start"])
+
+
+        client.init_agents(ComplexAgent, file, DECOMPOSE=True, h = heuristic)
+        
+        #run client
+        client.run(client.initial_state)
 
     #Print result summary (time, memory, solution length, ... ) ?
 
