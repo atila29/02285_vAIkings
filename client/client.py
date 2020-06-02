@@ -314,7 +314,7 @@ def main():
     #client.init_agents(NaiveBDIAgent, DECOMPOSE = False)
     LEVEL.pre_process(client.initial_state)
     heuristic = Heuristic2()
-    with open("{}.csv".format(client.level_name), 'w', newline='\n') as file:
+    with open("data/levels/out/{}.csv".format(client.level_name), 'w', newline='\n') as file:
 
         writer = csv.writer(file)
         writer.writerow(["level_name","agent", "function_name", "START_OR_END", "delta", "start"])

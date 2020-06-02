@@ -623,6 +623,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             5. New intentions
     """
     def plan(self, ignore_all_other_agents=True, move_around_specific_agents=None) -> '[UnfoldedAction, ...]':
+        self.profiler.start("plan")
         log("Agent {} started planning to achieve: {}. trigger: {}".format(self.id_, self.intentions, self.trigger), "PLAN", False)
         if self.trigger in [Trigger.EMPTY_PLAN, Trigger.NEW_INTENTIONS]:
             
@@ -630,6 +631,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 if self.plan_for_current_request is None or len(self.plan_for_current_request):
                     log("Agent {} switched tried plan for request but there was none".format(self.id_), "PLAN", False)
                     self.wait(1)
+                    self.profiler.stop()
                     return
                 self.current_plan = self.plan_for_current_request
                 self.plan_for_current_request = None
@@ -639,6 +641,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     
                 else:
                     log("Agent {} switched to plan for request. plan: {}".format(self.id_, self.current_plan), "PLAN", False)
+                self.profiler.stop()
                 return
 
             if isinstance(self.intentions, AgentGoal):
@@ -654,17 +657,20 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                             log("Agent {} failed to find a path at all".format(self.id_), "PLAN", False)
                             self.current_plan = []
                             self.wait(1)
+                            self.profiler.stop()
                             return
                 self.current_plan = agent_path
                 if not self.sound():
                     self.wait(1)
                     log("Agent {} thinks the plan isn't sound, so it will wait one turn".format(self.id_), "PLAN", False)
+                self.profiler.stop()
                 return
             
             if self.intentions is None:
                 log("Agent {} has no intentions. So it will wait".format(self.id_), "PLAN", False)
                 self.current_plan = []
                 self.wait(1)
+                self.profiler.stop()
                 return
             
             #TODO FULL REPLAN. (Intention not request or None)
@@ -677,10 +683,12 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                     self.current_plan = simple_plan
                     if self.sound():
                         log("Agent {} found simple path and is using it".format(self.id_), "PLAN", False)
+                        self.profiler.stop()
                         return
                     else: 
                         log("Agent {} found simple path {} but it is not sound. So it is waiting".format(self.current_plan, self.id_), "PLAN", False)
                         self.wait(1)
+                        self.profiler.stop()
                         return     
                 else:
                     #TODO:
@@ -701,11 +709,13 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                         if len(self.beliefs.agents) == 1:
                             self.current_plan = self.single_agent_search(self.heuristic, self.intentions)
                             log("Agent {} is a solo agent. So doing single agent search".format(self.id_), "PLAN", False)
+                            self.profiler.stop()
                             return
                         log("Agent {} could not find a plan at all".format(self.id_), "PLAN", False)
                         
                         #Figure out how to make requests to help
                         self.current_plan = self.single_agent_search(self.heuristic, self.intentions)
+                        self.profiler.stop()
                         return
         
 
@@ -713,6 +723,7 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
             log("Agent {} waiting for request.".format(self.id_), "PLAN", False)
             log("Agents request on blackboard: {}".format(BLACKBOARD.requests[self.id_]), "PLAN", False)
             self.wait(1)
+            self.profiler.stop()
             return
 
         elif self.trigger == Trigger.NEXT_MOVE_IMPOSSIBLE:
@@ -735,12 +746,15 @@ class ComplexAgent(RetreatAgent, ConcreteBDIAgent, ConcreteCNETAgent, CPAgent):
                 self.plan()   
             elif result =="going around agent":
                 pass
+            self.profiler.stop()
             return         
 
         elif self.trigger ==  Trigger.ABOUT_ENTER_CAVE_OR_PASSAGE:
             self.wait(1)
         else:
             raise RuntimeError("Agent doesn't know why its planning")
+
+        self.profiler.stop()
 
 
     def try_to_retreat(self, other_agent):
